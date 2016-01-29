@@ -941,7 +941,13 @@ class Bundle(object):
             # just run a normal NEURON simulation to record the voltage
             self.axons[i].set_voltage_recorders()
             h.run()
+            # print "recorded voltages: "
+            # print np.array(self.axons[i].vreclist)
             self.voltages.append(self.axons[i].vreclist)
+            # print "all recorded voltages: "
+            # print np.array(self.voltages)
+            # print "shape of all recorded voltages: "
+            # print np.shape(np.array(self.voltages))
             elapsed = time.time()-temp
             print "End simulate in: " + str(elapsed)
         else:
