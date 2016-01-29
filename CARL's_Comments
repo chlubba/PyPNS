@@ -1,0 +1,14 @@
+- CAP and voltage-recording are not done at the same time, but alternatively. The 'rec_CAP' and the 'rec_V'-Flag therefore need to be set to True one after the other. If both are set to True, only CAP gets recorded.
+	Reason?
+- CAP only gets recorded if h5py is installed. Do in terminal:
+	sudo apt-get install libhdf5-dev
+	pip install h5py
+
+... if you don't have pip:
+    go to https://pip.pypa.io/en/stable/installing/
+    download pip
+    type in terminal:
+        python get-pip.py
+- nrnivmdl needs to be run with all modules at once, not one after the other.
+- the paths are often set differently. Would be good to have path-set-functions for everything! No 'magic strings'
+-  
