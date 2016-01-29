@@ -11,4 +11,8 @@
         python get-pip.py
 - nrnivmdl needs to be run with all modules at once, not one after the other.
 - the paths are often set differently. Would be good to have path-set-functions for everything! No 'magic strings'
--  
+- run the bundle_paper-scripts. Those work. E.g.:
+    run bundle_paper.py
+        once with save_CAP=True and the save-lines for the CAP-file not commented out
+        once with save_CAP=False and the save-lines for the voltage-file not commented out
+    run figure1.py
