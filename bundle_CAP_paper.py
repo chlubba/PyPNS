@@ -48,7 +48,7 @@ paralength1 = 1.3 #um
 
 p_A = [0.175,0.1,1.0, 0.0]
 for j in range(1):
-    for k in range(len(p_A)):
+    for k in [0]:#range(1,len(p_A)):#range(len(p_A)):
         stimulusParameters = {
             'jitter_para': [0,0], #Mean and standard deviation of the delay
             'stim_type': "EXTRA", #Stimulation type either "INTRA" or "EXTRA"
@@ -63,8 +63,8 @@ for j in range(1):
 
         recordingParameters = {
             "number_contact_points": 8, #Number of points on the circle constituing the cuff electrode
-            'recording_elec_pos': [10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-            'number_elecs': 150, #number of electrodes along the bundle
+            'recording_elec_pos': [1000],#[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+            'number_elecs': 50,#150, #number of electrodes along the bundle
             'dur': h.tstop, # Simulation duration (ms)
             'rec_CAP': True, #If false means we avoid spending time using LFPy functions
         }
@@ -83,7 +83,7 @@ for j in range(1):
 
         unmyelinatedParameters = {
             'name': "unmyelinated_axon", # axon name (for neuron)
-            'L': 10000, #Axon length (micrometer)
+            'L': 1000,#10000, #Axon length (micrometer)
             'diam': unmyelinatedDistribution, #Axon diameter (micrometer)
             'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
             'Ra': 200.0, #Specific axial resistance (Ohm cm)
@@ -93,7 +93,7 @@ for j in range(1):
         bundleParameters = {         #parameters for Bundle classe
             'radius_bundle': 150.0, #um Radius of the bundle (typically 0.5-1.5mm)
             'draw_distribution': True, #Boolean stating the distribution of fibre should be drawn
-            'number_of_axons': 640, # Number of axons in the bundle
+            'number_of_axons': 100,#640, # Number of axons in the bundle
             'p_A': p_A[k], # Percentage of myelinated fiber type A
             'p_C': 1-p_A[k], #Percentage of unmyelinated fiber type C
             'myelinated_A': myelinatedParametersA, #parameters for fiber type A
@@ -103,7 +103,9 @@ for j in range(1):
 
         Parameters1 = dict(bundleParameters, **stimulusParameters)
         Parameters = dict(Parameters1, **recordingParameters)
-        
+
+        # saveParams={'elecCount': len(Parameters['recording_elec_pos']), 'dt': h.dt, 'p_A': Parameters['p_A'], 'p_C': Parameters['p_C'], 'L': unmyelinatedParameters['L'] }
+        # directory = getDirectoryName("CAP", **saveParams)
         directory = "FOR_PAPER/CAP2D/recordings/"
         if not os.path.exists(directory):
             os.makedirs(directory)

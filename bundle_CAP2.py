@@ -49,30 +49,30 @@ paralength1 = 1.3 #um
 pos0 = [13000,12000,11000,10000,9000]
 p_A = [0.175,0.75,0.5, 0.25,1.0, 0.0]
 for j in range(1):
-    for k in [2]:#range(len(p_A)):
+    for k in [-1]:#range(len(p_A)):
         print "myelinated proportion: "+str(p_A[k])
         stimulusParameters = {
             'jitter_para': [0,0], #Mean and standard deviation of the delay
             'stim_type': "EXTRA",#"INTRA",# #Stimulation type either "INTRA" or "EXTRA"
-            'stim_coord': [[0,0.5,0]],#[[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
-            'amplitude': 2000,#2.0,# # Pulse amplitude (nA)
+            'stim_coord': [[0,50,0]],#[[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
+            'amplitude': 1,#2.0,# # Pulse amplitude (nA)
             'freq': 0.1, # Frequency of the sin pulse (kHz)
-            'duty_cycle': 0.005, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+            'duty_cycle': 0.001, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
             'stim_dur' : 10, # Stimulus duration (ms)
             'waveform': "MONOPHASIC",#"BIPHASIC", # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
         }
 
         recordingParameters = {
             "number_contact_points": 8, #Number of points on the circle constituing the cuff electrode
-            'recording_elec_pos':  [1000],#[20000],#[1200],#[40000],# #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-            'number_elecs': 5,#10,#150, #number of electrodes along the bundle
+            'recording_elec_pos':  [9000],#[20000],#[1200],#[40000],# #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+            'number_elecs': 50,#10,#150, #number of electrodes along the bundle
             'dur': h.tstop, # Simulation duration (ms)
             'rec_CAP': True, #If false means we avoid spending time using LFPy functions
         }
         myelinatedParametersA = {
             'name': "myelinated_axonA", # axon name (for neuron)
-            'Nnodes': 31, #Number of nodes
-            'fiberD': myelinatedDistribution, #fiberD_A, #Diameter of the fiber
+            'Nnodes': 11, #Number of nodes
+            'fiberD': 16.0, #fiberD_A, #Diameter of the fiber
             'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
             'rec_v': True, # set voltage recorders True or False
             'nodelength' : nodelength, #set node length (um)
@@ -84,17 +84,17 @@ for j in range(1):
 
         unmyelinatedParameters = {
             'name': "unmyelinated_axon", # axon name (for neuron)
-            'L': 1000,#20000,#1200,#40000,#40,# #Axon length (micrometer)
-            'diam': unmyelinatedDistribution, #Axon diameter (micrometer)
+            'L': 10000,#20000,#1200,#40000,#40,# #Axon length (micrometer)
+            'diam': 1.5, #Axon diameter (micrometer)
             'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
             'Ra': 200.0, #Specific axial resistance (Ohm cm)
             'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
             'rec_v': True,#False, # set voltage recorders True or False
         }
         bundleParameters = {         #parameters for Bundle classe
-            'radius_bundle': 1.5,#150.0, #um Radius of the bundle (typically 0.5-1.5mm)
+            'radius_bundle': 150,#150.0, #um Radius of the bundle (typically 0.5-1.5mm)
             'draw_distribution': True,#False,# #Boolean stating the distribution of fibre should be drawn
-            'number_of_axons': 30,#50,#640, #1,# Number of axons in the bundle
+            'number_of_axons': 10,#50,#640, #1,# Number of axons in the bundle
             'p_A': p_A[k], # Percentage of myelinated fiber type A
             'p_C': 1-p_A[k], #Percentage of unmyelinated fiber type C
             'myelinated_A': myelinatedParametersA, #parameters for fiber type A

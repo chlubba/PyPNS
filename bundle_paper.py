@@ -9,7 +9,7 @@ dt=0.005 //ms//
 tstop=10"""
 h.celsius = 33 # set temperature in celsius
 h.tstop = 3e1 # set simulation duration (ms)
-h.dt = 0.0025 # set time step (ms)
+h.dt = 0.0025 #0.0005 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 
@@ -38,7 +38,7 @@ for i in range(len(duty)):
             for j in range(1):
                 stimulusParameters = {
                     'jitter_para': [0,0], #Mean and standard deviation of the delay
-                    'stim_type': stim_type[i], #Stimulation type either "INTRA" or "EXTRA" 
+                    'stim_type': stim_type[i], #Stimulation type either "INTRA" or "EXTRA"
                     'stim_coord': [[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
                     'amplitude': amplitudes[i], # Pulse amplitude (nA)
                     'freq': frequency[i], # Frequency of the sin pulse (kHz)
@@ -51,7 +51,7 @@ for i in range(len(duty)):
                     'recording_elec_pos': [9000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
                     'number_elecs': 1, #number of electrodes along the bundle
                     'dur': h.tstop, # Simulation duration (ms)
-                    'rec_CAP': True, #If false means we avoid spending time using LFPy functions
+                    'rec_CAP': False, #If false means we avoid spending time using LFPy functions
                 }
 
                 unmyelinatedParameters = {
@@ -61,7 +61,7 @@ for i in range(len(duty)):
                     'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
                     'Ra': 200.0, #Specific axial resistance (Ohm cm)
                     'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
-                    'rec_v': False, # set voltage recorders True or False
+                    'rec_v': True, # set voltage recorders True or False
                 }
                 myelinatedParametersA = {
                     'name': "myelinated_axonA", # axon name (for neuron)
@@ -88,19 +88,27 @@ for i in range(len(duty)):
 
                 Parameters1 = dict(bundleParameters, **stimulusParameters)
                 Parameters = dict(Parameters1, **recordingParameters)
-                
+
                 bundle = Bundle(**Parameters)
-                # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
-                """directory = "FOR_PAPER/Voltage/"
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-                save_voltage_tofile(bundle,Parameters,directory)
-                """
-                directory = "FOR_PAPER/CAP/"
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-                save_CAP_tofile(bundle,Parameters,directory)
-                bundle = None
+
+
+                if recordingParameters['rec_CAP'] == False:
+                    # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
+                    directory = "FOR_PAPER/Voltage/"
+                    # saveParams={'elecCount': len(Parameters['recording_elec_pos']), 'dt': h.dt, 'p_A': Parameters['p_A'], 'p_C': Parameters['p_C'], 'L': Parameters['L'] }
+                    # directory = getDirectoryName("V", **saveParams)
+                    if not os.path.exists(directory):
+                        os.makedirs(directory)
+                    save_voltage_tofile(bundle,Parameters,directory)
+                else:
+                    directory = "FOR_PAPER/CAP/"
+                    # saveParams={'elecCount': len(Parameters['recording_elec_pos']), 'dt': h.dt, 'p_A': Parameters['p_A'], 'p_C': Parameters['p_C'], 'L': Parameters['L'] }
+                    # directory = getDirectoryName("CAP", **saveParams)
+                    if not os.path.exists(directory):
+                        os.makedirs(directory)
+                    save_CAP_tofile(bundle,Parameters,directory)
+                    bundle = None
+
 
 
 

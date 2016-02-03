@@ -35,7 +35,7 @@ recording_pos = [pos1, pos2, pos3, pos4]
 frequency = [0.1]
 duty = [0.01]
 stim_type = ["INTRA"]
-amplitudes = [2.0]
+amplitudes = [0.0]#[2.0]
 waveform = ["MONOPHASIC"]
 for i in range(len(duty)):
     for w in range(4):
@@ -66,14 +66,14 @@ for i in range(len(duty)):
                     'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
                     'Ra': 200.0, #Specific axial resistance (Ohm cm)
                     'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
-                    'rec_v': False, # set voltage recorders True or False
+                    'rec_v': True, # set voltage recorders True or False
                 }
                 myelinatedParametersA = {
                     'name': "myelinated_axonA", # axon name (for neuron)
                     'Nnodes': Nnodes, #Number of nodes
                     'fiberD': fiberD_A, #myelinatedDistribution, Diameter of the fiber
                     'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
-                    'rec_v': False, # set voltage recorders True or False
+                    'rec_v': True, # set voltage recorders True or False
                     'nodelength' : nodelength, #set node length (um)
                     'paralength1': paralength1, #set the length of the nearest paranode segment to the node
                     'paralength2': paralength2,  #set the length of the second paranode segment followed by the internodes segments
@@ -95,17 +95,20 @@ for i in range(len(duty)):
                 Parameters = dict(Parameters1, **recordingParameters)
                 
                 bundle = Bundle(**Parameters)
-                # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
-                """directory = "FOR_PAPER/Voltage/myelinated/"
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-                save_voltage_tofile(bundle,Parameters,directory)
-                """
-                directory = "FOR_PAPER/CAP/myelinated/"
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
-                save_CAP_tofile(bundle,Parameters,directory)
-                #   """
+
+                if recordingParameters['rec_CAP'] == False:
+                    # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
+                    directory = "FOR_PAPER/Voltage/myelinated/"
+                    if not os.path.exists(directory):
+                        os.makedirs(directory)
+                    save_voltage_tofile(bundle,Parameters,directory)
+
+                else:
+                    directory = "FOR_PAPER/CAP/myelinated/"
+                    if not os.path.exists(directory):
+                        os.makedirs(directory)
+                    save_CAP_tofile(bundle,Parameters,directory)
+
                 bundle = None
 
 

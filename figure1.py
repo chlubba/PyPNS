@@ -86,8 +86,8 @@ def retrieve_mono_sum_CAP(filename):
     return sum_CAP
 
 
-directory = "/FOR_PAPER/Voltage/unmyelinated/"
-path = os.getcwd() + directory 
+directory = "/FOR_PAPER/Voltage/"#"unmyelinated/"
+path = os.getcwd() + directory
 tp = []
 
 for filename in glob.glob(os.path.join(path,'*.dat')):
@@ -96,6 +96,10 @@ for filename in glob.glob(os.path.join(path,'*.dat')):
     tp.append([nb,filename])
     tp = sorted(tp, key=getKey)
 
+print "shape of tp: "
+print np.shape(tp)
+
+# pathToFile = max(glob.iglob(path+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
 
 
 gs = gridspec.GridSpec(3, 3, width_ratios=[8,8,8], height_ratios=[0.1,6,6])
@@ -145,8 +149,9 @@ for k in range(3):
 
 cbar =fig.colorbar(CS, cax=axC,ticks=[0, 2.5, 5, 7.5, 10],orientation="horizontal",use_gridspec=True)
 cbar.set_label('Distance from electrode [mm]', rotation=0, fontsize =text_size, fontweight = 'bold', labelpad=-60)
-       
-directory = "/FOR_PAPER/CAP/unmyelinated/"
+
+
+directory = "/FOR_PAPER/CAP/"#unmyelinated/"
 path = os.getcwd() + directory 
 tp = []
 
@@ -192,7 +197,7 @@ for k in range(3):
     
     ax[k+3].set_title(tt, y=0.82,fontsize =text_size+2, fontweight = 'bold',verticalalignment="bottom")
     
-   
+
     
 
 fig.subplots_adjust(hspace=0.1,wspace=0.08)

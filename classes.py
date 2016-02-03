@@ -9,6 +9,7 @@ import time
 import glob
 import os
 import shutil
+from nameSetters import getDirectoryName
 """
     Some methods in the Axon class are based on existing methods in the Python package LFPY
 """
@@ -970,10 +971,13 @@ class Bundle(object):
     def store_geometry(self):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
     def save_electrode(self,i):
-        if self.number_elecs == 1:
-            directory = "electrodes/"
-        else:
-            directory = "electrodes2/"
+        # if self.number_elecs == 1:
+        #     directory = "electrodes/"
+        # else:
+        #     directory = "electrodes2/"
+        saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'p_A': self.p_A, 'p_C': self.p_C, 'L': self.unmyelinated['L'] }
+        directory = getDirectoryName("elec", **saveParams)
+
         print "saving electrode: "+str(i)
         if i==0:
             if not os.path.exists(directory):
@@ -988,7 +992,10 @@ class Bundle(object):
         np.savetxt(directory+filename, DataOut)
         
     def load_electrodes(self):
-        directory = "electrodes/"
+        # directory = "electrodes/"
+        saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'p_A': self.p_A, 'p_C': self.p_C, 'L': self.unmyelinated['L'] }
+        directory = getDirectoryName("elec", **saveParams)
+
         print "loading electrode"
         t0 = time.time()
         self.electrodes = [[] for j in range(self.virtual_number_axons)]
@@ -1037,7 +1044,10 @@ class Bundle(object):
                         
 
     def compute_CAP2D_fromfile(self):
-        directory = "electrodes2/"
+        # directory = "electrodes2/"
+        saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'p_A': self.p_A, 'p_C': self.p_C, 'L': self.unmyelinated['L'] }
+        directory = getDirectoryName("elec", **saveParams)
+
         temp = time.time()
         CAP = []
         print "loading electrode"
@@ -1173,7 +1183,9 @@ class Bundle(object):
 
 
     def load_distrib(self):
-        directory = "draws/biphasic/"
+        #directory = "draws/biphasic/"
+        saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'p_A': self.p_A, 'p_C': self.p_C, 'L': self.unmyelinated['L'] }
+        directory = getDirectoryName("draw", **saveParams)
         filename = self.get_filename_for_draw()
         draw = np.loadtxt(directory +filename, unpack=True, usecols=[0])
         diams = np.loadtxt(directory +filename, unpack=True, usecols=[1])

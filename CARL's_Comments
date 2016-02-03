@@ -9,7 +9,8 @@
     download pip
     type in terminal:
         python get-pip.py
-- nrnivmdl needs to be run with all modules at once, not one after the other.
+- nrnivmodl needs to be run with all modules at once, not one after the other.
+    nrnivmodl AXNODE.mod xtra.mod
 - the paths are often set differently. Would be good to have path-set-functions for everything! No 'magic strings'
 - run the bundle_paper-scripts. Those work. E.g.:
     run bundle_paper.py
