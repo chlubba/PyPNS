@@ -753,16 +753,21 @@ class Stimulus(object):
     stim_coord=[xe,ye,ze]: spatial coordinates  of the stimulating electrode
     waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
     """
-    def __init__(self, stim_type, axon, delay,dur,amp, freq, duty_cycle, stim_coord, waveform):
-        self.waveform = waveform
-        self.stim_type = stim_type
-        self.stim_coord = stim_coord
+    def __init__(self, axon, **stimulusParameters):
+
+        # given params: stim_type, axon, delay,dur,amp, freq, duty_cycle, stim_coord, waveform
+        self.stim_type = stimulusParameters['stim_type']
         self.axon = axon
-        self.dur = dur
-        self.delay = delay
-        self.freq = freq
-        self.amp = amp
-        self.duty_cycle = duty_cycle
+
+        if self.stim_type in ['INTRA', 'EXTRA']:
+            self.stim_coord = stimulusParameters['stim_coord']
+            self.waveform = stimulusParameters['waveform']
+            self.dur = stimulusParameters['stim_dur']
+            self.delay = stimulusParameters['delay']
+            self.freq = stimulusParameters['freq']
+            self.amp = stimulusParameters['amplitude']
+            self.duty_cycle = stimulusParameters['duty_cycle']
+
         cut_off = math.sin((-self.duty_cycle+1.0/2)*math.pi)
         self.t = np.linspace(0, self.dur, (h.tstop+2*h.dt)/h.dt, endpoint=True)+self.delay
         if self.waveform == "MONOPHASIC":
@@ -775,9 +780,9 @@ class Stimulus(object):
             
         self.svec = h.Vector(self.signal)
         self.axon.setrx(self.stim_coord, self.axon.coord)
-        if stim_type == "INTRA":
+        if self.stim_type == "INTRA":
             self.init_intra()
-        elif stim_type == "EXTRA":
+        elif self.stim_type == "EXTRA":
             self.init_xtra()
         else:
             raise NameError('stim_type only "INTRA" or "EXTRA"')
@@ -820,20 +825,25 @@ class Bundle(object):
 
     
     """
-    def __init__(self, radius_bundle, draw_distribution, number_of_axons, p_A, p_C, number_contact_points, recording_elec_pos, jitter_para, stim_type, stim_coord, duty_cycle, freq, amplitude, stim_dur, dur, number_elecs, myelinated_A, unmyelinated,rec_CAP, waveform):
+    def __init__(self, radius_bundle, draw_distribution, number_of_axons, p_A, p_C, number_contact_points, recording_elec_pos, dur, number_elecs, myelinated_A, unmyelinated,rec_CAP, stimulusParameters):
+
+        # included in stumulus parameter dictionary: jitter_para, stim_type, duty_cycle, freq, amplitude, stim_dur, waveform
+
+        # needed in stumulus class instantiation: self.stim_type, delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform
 
         self.draw_distribution = draw_distribution
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
 
-        self.waveform = waveform
-        self.stim_type = stim_type
-        #self.stim_coord = stim_coord#[0,500,0] # [xe,ye,ze] #um
-        self.stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points), radius_bundle*math.sin(math.pi/number_contact_points)]]
-        self.duty_cycle = duty_cycle
-        self.freq = freq
-        self.amp = amplitude
-        self.stim_dur = stim_dur
+        # self.waveform = waveform
+        # self.stim_type = stim_type
+        # #self.stim_coord = stim_coord#[0,500,0] # [xe,ye,ze] #um
+
+        # self.duty_cycle = duty_cycle
+        # self.freq = freq
+        # self.amp = amplitude
+        # self.stim_dur = stim_dur
+
         self.dur = dur
         self.rec_CAP = rec_CAP
 
@@ -848,17 +858,23 @@ class Bundle(object):
         self.number_contact_points = number_contact_points
         self.number_elecs = number_elecs
         self.recording_elec_pos = recording_elec_pos #um
+
+        # complete stimulus dictionary
+        # JITTER (random gaussian delay for individual fiber stimulation) ###
+        jitter_para = stimulusParameters['jitter_para']
+        self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
+        if (jitter_para[0] == 0) & (jitter_para[1] == 0):
+            self.delay = np.zeros(self.number_of_axons)
+        else:
+            self.delay = np.random.normal(self.delay_mu, self.delay_sigma, self.number_of_axons)
+        stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points), radius_bundle*math.sin(math.pi/number_contact_points)]] # stimulation coordinates for extracellular stimulation always at begin of the bundle
+        self.stimulusParametersNoDelay = dict(stimulusParameters, **{'stim_coord': stim_coord}) # stimulus parameters packed for stimulus class instatiation
+        self.stim_type = stimulusParameters['stim_type']
        
         [angles,X,Y,Z,N] = self.setup_recording_elec()
         
         self.build_disk(self.number_of_axons,self.radius_bundle)
 
-        ### JITTER (random gaussian delay for individual fiber stimulation) ###
-        self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
-        if (jitter_para[0] == 0) & (jitter_para[1] == 0):
-            delay = np.zeros(self.number_of_axons)
-        else:
-            delay = np.random.normal(self.delay_mu, self.delay_sigma, self.number_of_axons)
 
         if (isinstance(self.myelinated_A['fiberD'],float) and (isinstance(self.unmyelinated['diam'],float) or isinstance(self.unmyelinated['diam'],int))):
             draw = np.random.choice(2,self.number_of_axons,p = [self.p_A, self.p_C])
@@ -877,7 +893,7 @@ class Bundle(object):
         temp = time.time()
         for i in range(self.number_of_axons):
             if ((self.axons_pos[i,1]>=0 and self.axons_pos[i,1]< self.axons_pos[i,0]) or (self.axons_pos[i,0]== 0 and self.axons_pos[i,1]==0)):
-                self.create_axon(draw,diams, self.virtual_number_axons,X,Y,Z,N,delay)
+                self.create_axon(draw,diams, self.virtual_number_axons,X,Y,Z,N)
                 self.virtual_number_axons +=1
                 print "Number axons done:" + str(self.virtual_number_axons)
         elapsed = time.time()-temp
@@ -891,7 +907,7 @@ class Bundle(object):
                     
 
 
-    def create_axon(self,draw,diams,i,X,Y,Z,N,delay):
+    def create_axon(self,draw,diams,i,X,Y,Z,N):
         if draw[i] == 1:
             unmyel = self.unmyelinated
             unmyel['diam'] = diams[i]
@@ -906,7 +922,9 @@ class Bundle(object):
         else:
             "Error in the draw of the axon type!"
 
-        self.stim = Stimulus(self.stim_type,self.axons[i], delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
+        stimulusParameters = dict(self.stimulusParametersNoDelay, **{'delay': self.delay[i]})
+
+        self.stim = Stimulus(self.axons[i], **stimulusParameters) #delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
 
 
         electrodeParameters = {         #parameters for RecExtElectrode class
@@ -951,7 +969,7 @@ class Bundle(object):
             # print np.shape(np.array(self.voltages))
             elapsed = time.time()-temp
             print "End simulate in: " + str(elapsed)
-        else:
+        if not self.rec_CAP and not self.axons[i].rec_v:
             print "You are probably recording nothing for this axon"
             h.run()
        
@@ -1120,14 +1138,20 @@ class Bundle(object):
         
     def get_filename(self):
         #self.filename = 'unmyelinated_length'+str(self.unmyelinated['L'])+'A'+str(self.p_A)+'B'+str(self.p_B)+'C'+str(self.p_C)+'Delay_'+str(self.delay_mu)+'mu'+str(self.delay_sigma)+'sigma'+str(self.number_elecs)+'electrodes_'+self.stim_type+'_Axons'+str(self.number_of_axons)+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        if False:#self.p_A == 1.0:
-            self.filename = 'myelinated_nodes'+str(self.myelinated_A['Nnodes'])+ 'myelinated_diam'+str(self.myelinated_A['fiberD'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        elif False:#self.p_C == 1.0:
-            self.filename = 'time_step'+str(h.dt)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'unmyelinated_diam'+str(self.unmyelinated['diam'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        else:
-            self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'time_step'+str(h.dt)+"recording_pos"+str(self.recording_elec_pos)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA'+self.waveform+self.stim_type+'.dat'
+        # if False:#self.p_A == 1.0:
+        #     self.filename = 'myelinated_nodes'+str(self.myelinated_A['Nnodes'])+ 'myelinated_diam'+str(self.myelinated_A['fiberD'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
+        # elif False:#self.p_C == 1.0:
+        #     self.filename = 'time_step'+str(h.dt)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'unmyelinated_diam'+str(self.unmyelinated['diam'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
+        # else:
+        if self.stim_type in ['INTRA', 'EXTRA']:
+            self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'time_step'+str(h.dt)+"recording_pos"+\
+                            str(self.recording_elec_pos)+'unmyelinated_length'+str(self.unmyelinated['L'])+ \
+                            'Pulse'+str(self.stimulusParametersNoDelay['duty_cycle']*1.0/self.stimulusParametersNoDelay['freq'])+'ms'+\
+                            str(self.stimulusParametersNoDelay['amplitude'])+'nA'+self.stimulusParametersNoDelay['waveform']+\
+                            self.stimulusParametersNoDelay['stim_type']+'.dat'
 
         return self.filename
+
     def get_filename_for_draw(self):
         self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'nb_axons'+str(self.number_of_axons)+'bundle_radius'+str(self.radius_bundle)+'.dat'
 
