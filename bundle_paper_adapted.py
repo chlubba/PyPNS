@@ -36,16 +36,27 @@ for i in range(len(duty)):#[1]:#
     for w in range(1):
         for k in range(1):
             for j in range(1):
+                # stimulusParameters = {
+                #     'jitter_para': [0,0], #Mean and standard deviation of the delay
+                #     'stim_type': stim_type[i], #Stimulation type either "INTRA" or "EXTRA"
+                #     #'stim_coord': [[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
+                #     'amplitude': amplitudes[i], # Pulse amplitude (nA)
+                #     'freq': frequency[i], # Frequency of the sin pulse (kHz)
+                #     'duty_cycle': duty[i], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+                #     'stim_dur' : 10, # Stimulus duration (ms)
+                #     'waveform': waveform[i], # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+                # }
                 stimulusParameters = {
-                    'jitter_para': [0,0], #Mean and standard deviation of the delay
-                    'stim_type': stim_type[i], #Stimulation type either "INTRA" or "EXTRA"
+                    'stim_type': 'SPONTANEOUS',
                     #'stim_coord': [[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
+                    'correlation': 0.1,
                     'amplitude': amplitudes[i], # Pulse amplitude (nA)
                     'freq': frequency[i], # Frequency of the sin pulse (kHz)
                     'duty_cycle': duty[i], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                     'stim_dur' : 10, # Stimulus duration (ms)
                     'waveform': waveform[i], # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
                 }
+
                 recordingParameters = {
                     "number_contact_points": 8, #Number of points on the circle constituing the cuff electrode
                     'recording_elec_pos': [9000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]

@@ -798,6 +798,9 @@ class Stimulus(object):
     def init_xtra(self):
         self.svec.play(h._ref_is_xtra,h.dt)
 
+    #def init_spontaneous(self):
+
+
         
 class Bundle(object):
     """
