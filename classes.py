@@ -1,6 +1,7 @@
 import neuron
 from neuron import h
 h('load_file("noload.hoc")')
+# import neuron.gui
 import run_simulation
 import refextelectrode
 import numpy as np # for arrays managing
@@ -10,6 +11,7 @@ import glob
 import os
 import shutil
 from nameSetters import getDirectoryName
+from matplotlib import pyplot
 """
     Some methods in the Axon class are based on existing methods in the Python package LFPY
 """
@@ -346,8 +348,12 @@ class Unmyelinated(Axon):
         self.cm = cm
         self.Ra = Ra
         ## End insertion
+
+
         self.axon.insert('extracellular')
         self.axon.insert('xtra')
+
+
         super(Unmyelinated,self).__init__(layout3D, rec_v)
         self.axon_update_property()
         if (self.layout3D == "DEFINE_SHAPE"):
@@ -361,10 +367,14 @@ class Unmyelinated(Axon):
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
         self.set_nsegs(nsegs_method, lambda_f, d_lambda, max_nsegs_length)
+
+
         for sec_id in self.allseclist:
             for seg in sec_id:
                 h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
                 h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
+
+
         self.interpxyz()
         self.collect_geometry()
         self.channel_init(0.120,0.036,0.0003,50,-77,-54.3) # default values of hh channel are used
@@ -759,8 +769,9 @@ class Stimulus(object):
         self.stim_type = stimulusParameters['stim_type']
         self.axon = axon
 
+        self.stim_coord = stimulusParameters['stim_coord']
+
         if self.stim_type in ['INTRA', 'EXTRA']:
-            self.stim_coord = stimulusParameters['stim_coord']
             self.waveform = stimulusParameters['waveform']
             self.dur = stimulusParameters['stim_dur']
             self.delay = stimulusParameters['delay']
@@ -768,24 +779,28 @@ class Stimulus(object):
             self.amp = stimulusParameters['amplitude']
             self.duty_cycle = stimulusParameters['duty_cycle']
 
-        cut_off = math.sin((-self.duty_cycle+1.0/2)*math.pi)
-        self.t = np.linspace(0, self.dur, (h.tstop+2*h.dt)/h.dt, endpoint=True)+self.delay
-        if self.waveform == "MONOPHASIC":
-            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay)))
-        elif self.waveform == "BIPHASIC":
-            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*self.t+self.delay))-self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay+self.duty_cycle/self.freq)))
-        else:
-            print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
-            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay)))
+            cut_off = math.sin((-self.duty_cycle+1.0/2)*math.pi)
+            self.t = np.linspace(0, self.dur, (h.tstop+2*h.dt)/h.dt, endpoint=True)+self.delay
+            if self.waveform == "MONOPHASIC":
+                self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay)))
+            elif self.waveform == "BIPHASIC":
+                self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*self.t+self.delay))-self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay+self.duty_cycle/self.freq)))
+            else:
+                print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
+                self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay)))
             
-        self.svec = h.Vector(self.signal)
+            self.svec = h.Vector(self.signal)
+
         self.axon.setrx(self.stim_coord, self.axon.coord)
+
         if self.stim_type == "INTRA":
             self.init_intra()
         elif self.stim_type == "EXTRA":
             self.init_xtra()
+        elif self.stim_type == 'SPONTANEOUS':
+            self.init_spontaneous()
         else:
-            raise NameError('stim_type only "INTRA" or "EXTRA"')
+            raise NameError('stim_type only "INTRA", "EXTRA" or "SPONTANEOUS"')
 
     def init_intra(self):
         # Place an IClamp on the first element of the allseclist
@@ -798,7 +813,55 @@ class Stimulus(object):
     def init_xtra(self):
         self.svec.play(h._ref_is_xtra,h.dt)
 
-    #def init_spontaneous(self):
+    def init_spontaneous(self):
+
+        # axonTest = h.Section(name='axon')
+        # axonTest.nseg = 20
+        # axonTest.L = 1000
+        # axonTest.diam = 1
+        #
+        # axonTest.insert('hh')
+
+        print('lala')
+
+        self.stim = h.ExpSyn(0, self.axon.allseclist)
+        # self.stim = h.ExpSyn(0, axonTest)
+        self.stim.e = 10
+        self.stim.i = 0.2
+        self.stim.tau = 3
+
+        self.vecStim = h.VecStim()
+        self.vec = h.Vector([5, 25])#[1, 2])
+        self.vecStim.play(self.vec)
+
+        # print np.array(vec)
+
+        self.netCon = h.NetCon(self.vecStim, self.stim)
+        self.netCon.weight[0] = 1
+        #
+        # #observe synapse current for testing purposes
+        # self.i_syn_vec = h.Vector()
+        # self.i_syn_vec.record(self.stim._ref_i)
+
+        # # vAxonVec = h.Vector()
+        # # vAxonVec.record(self.axon(0)._ref_v)
+        #
+        # timeVector = h.Vector()
+        # timeVector.record(h._ref_t)
+        #
+        # h.run()
+        #
+        # # just shortly test if synapse currents happen
+        # iSyn = np.array(self.i_syn_vec)
+        # timeArray = np.array(timeVector)
+        # # vAxon = np.array(vAxonVec)
+        # pyplot.plot(timeVector,iSyn)
+        # pyplot.show()
+        # print 'max synapse current value: ' + str(max(iSyn))
+        # print 'min synapse current value: ' + str(min(iSyn))
+        # print ' '
+
+
 
 
         
@@ -863,13 +926,17 @@ class Bundle(object):
         self.recording_elec_pos = recording_elec_pos #um
 
         # complete stimulus dictionary
-        # JITTER (random gaussian delay for individual fiber stimulation) ###
-        jitter_para = stimulusParameters['jitter_para']
-        self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
-        if (jitter_para[0] == 0) & (jitter_para[1] == 0):
-            self.delay = np.zeros(self.number_of_axons)
+        if stimulusParameters['stim_type'] in ['INTRA', 'EXTRA']:
+            # JITTER (random gaussian delay for individual fiber stimulation) ###
+            jitter_para = stimulusParameters['jitter_para']
+            self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
+            if (jitter_para[0] == 0) & (jitter_para[1] == 0):
+                self.delay = np.zeros(self.number_of_axons)
+            else:
+                self.delay = np.random.normal(self.delay_mu, self.delay_sigma, self.number_of_axons)
         else:
-            self.delay = np.random.normal(self.delay_mu, self.delay_sigma, self.number_of_axons)
+            self.delay = np.zeros(self.number_of_axons)
+
         stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points), radius_bundle*math.sin(math.pi/number_contact_points)]] # stimulation coordinates for extracellular stimulation always at begin of the bundle
         self.stimulusParametersNoDelay = dict(stimulusParameters, **{'stim_coord': stim_coord}) # stimulus parameters packed for stimulus class instatiation
         self.stim_type = stimulusParameters['stim_type']
@@ -927,7 +994,8 @@ class Bundle(object):
 
         stimulusParameters = dict(self.stimulusParametersNoDelay, **{'delay': self.delay[i]})
 
-        self.stim = Stimulus(self.axons[i], **stimulusParameters) #delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
+        self.axons[i].stim = Stimulus(self.axons[i], **stimulusParameters) #delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
+        #self.stim = Stimulus(self.axons[i], **stimulusParameters) #delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
 
 
         electrodeParameters = {         #parameters for RecExtElectrode class
@@ -963,6 +1031,12 @@ class Bundle(object):
             # just run a normal NEURON simulation to record the voltage
             self.axons[i].set_voltage_recorders()
             h.run()
+
+            # # just shortly test if synapse currents happen
+            # iSyn = np.array(self.axons[i].stim.i_syn_vec)
+            # pyplot.plot(iSyn)
+            # pyplot.show()
+
             # print "recorded voltages: "
             # print np.array(self.axons[i].vreclist)
             self.voltages.append(self.axons[i].vreclist)
@@ -1152,6 +1226,12 @@ class Bundle(object):
                             'Pulse'+str(self.stimulusParametersNoDelay['duty_cycle']*1.0/self.stimulusParametersNoDelay['freq'])+'ms'+\
                             str(self.stimulusParametersNoDelay['amplitude'])+'nA'+self.stimulusParametersNoDelay['waveform']+\
                             self.stimulusParametersNoDelay['stim_type']+'.dat'
+        elif self.stim_type == 'SPONTANEOUS':
+            self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'time_step'+str(h.dt)+"recording_pos"+\
+                            str(self.recording_elec_pos)+'unmyelinated_length'+str(self.unmyelinated['L'])+ \
+                            self.stimulusParametersNoDelay['stim_type']+'.dat'
+        else:
+            raise Exception('Filename could not be generated bacause stimulus type given is invalid.')
 
         return self.filename
 

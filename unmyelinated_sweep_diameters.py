@@ -14,7 +14,7 @@ h.finitialize(-65) # initialize voltage state
 
 
 
-#fiberD from 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
+#fiberD from [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
 fiberD_A = 16.0 #um
 
 ### PARAMETERS BELOW ARE ACTUALLY SET IN THE CODE BUT USEFUL FOR THE HEADER AND PLOTS ###
@@ -25,14 +25,16 @@ paralength1 = 1.3 #um
 [paralength2_A, interlength_A] = fiberD_dependent_param(fiberD_A, nodelength, paralength1)
 
 
-p_A = [0]
+p_A = [1]
 
 frequency = [0.1,0.1,0.1]
 duty = [0.001,0.01,0.005]
+fiberD_A_array = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
 stim_type = ["EXTRA", "INTRA", "EXTRA"]
 amplitudes = [1.0,2.0,0.5]
 waveform = ["MONOPHASIC","MONOPHASIC", "BIPHASIC"]
-for i in [1]:#range(len(duty)):#[1]:#
+i = 1
+for m in range(len(fiberD_A_array)):#[1]:#range(len(duty)):#[1]:#
     for w in range(1):
         for k in range(1):
             for j in range(1):
@@ -74,7 +76,7 @@ for i in [1]:#range(len(duty)):#[1]:#
                 myelinatedParametersA = {
                     'name': "myelinated_axonA", # axon name (for neuron)
                     'Nnodes': 11, #Number of nodes
-                    'fiberD': fiberD_A, #myelinatedDistribution, Diameter of the fiber
+                    'fiberD': fiberD_A_array[m], #myelinatedDistribution, Diameter of the fiber
                     'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
                     'rec_v': True, # set voltage recorders True or False
                     'nodelength' : nodelength, #set node length (um)
