@@ -53,6 +53,8 @@ def save_voltage_tofile(bundle, parameters,directory):
         number_of_segments = 0
         try:
             number_of_segments = len(bundle.voltages[w])
+            # plt.plot(np.transpose(np.array(bundle.voltages[w])))
+            # plt.show()
         except IndexError:
             print "You have probably not set rec_v to True for this axon !"
         for i in range(number_of_segments):

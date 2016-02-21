@@ -336,7 +336,7 @@ class Unmyelinated(Axon):
     layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
     rec_v: set voltage recorders True or False
     """
-    def __init__(self, name, L, diam, cm, Ra, coord, layout3D, rec_v, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
+    def __init__(self, name, L, diam, cm, Ra, coord, layout3D, rec_v, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
         self.axon = h.Section(name = str(name))
         self.coord = coord
         ## Inserted as attribute mainly for visualization purpose using pyreverse
@@ -345,6 +345,7 @@ class Unmyelinated(Axon):
         print "Unmyelinated axon diameter: " +str(self.diam)
         self.cm = cm
         self.Ra = Ra
+        self.hhDraw = hhDraw
         ## End insertion
         self.axon.insert('extracellular')
         self.axon.insert('xtra')
@@ -388,12 +389,20 @@ class Unmyelinated(Axon):
     """
     def channel_init(self, gna,gk,gl, ena,ek,el):
         self.axon.insert('hh') # insert a Hodgkin & Huxley channel
-        self.axon.gnabar_hh = gna
-        self.axon.gkbar_hh = gk
-        self.axon.gl_hh = gl
-        self.axon.ena = ena
-        self.axon.ek = ek
-        self.axon.el_hh = el
+        if not self.hhDraw:
+            self.axon.gnabar_hh = gna
+            self.axon.gkbar_hh = gk
+            self.axon.gl_hh = gl
+            self.axon.ena = ena
+            self.axon.ek = ek
+            self.axon.el_hh = el
+        else:
+            self.axon.gnabar_hh = gna*(1+0.1*np.random.uniform(1))#[0])
+            self.axon.gkbar_hh = gk*(1+0.1*np.random.uniform(1))#[0])
+            self.axon.gl_hh = gl
+            self.axon.ena = ena*(1+0.2*np.random.uniform(1))#[0])
+            self.axon.ek = ek*(1+0.1*np.random.uniform(1))#[0])
+            self.axon.el_hh = el
 
     ## LPFy methods using the d_lambda rule available in NEURON
     # http://www.neuron.yale.edu/neuron/static/docs/d_lambda/d_lambda.html

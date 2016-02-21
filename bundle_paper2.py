@@ -10,12 +10,12 @@ tstop=10"""
 h.celsius = 33 # set temperature in celsius
 h.tstop = 3e1 # set simulation duration (ms)
 h.dt = 0.0025 # set time step (ms)
-h.finitialize(-65) # initialize voltage state
+h.finitialize(-75) # initialize voltage state
 
 
 
 #fiberD from 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
-fiberD_A = 11.5 #um
+fiberD_A = 16. #um
 
 ### PARAMETERS BELOW ARE ACTUALLY SET IN THE CODE BUT USEFUL FOR THE HEADER AND PLOTS ###
 ## Values of nodelength and paralength1 are constant
@@ -35,7 +35,7 @@ recording_pos = [pos1, pos2, pos3, pos4]
 frequency = [0.1]
 duty = [0.01]
 stim_type = ["INTRA"]
-amplitudes = [0.0]#[2.0]
+amplitudes = [2.0]#[0.0]#
 waveform = ["MONOPHASIC"]
 for i in range(len(duty)):
     for w in range(4):
@@ -56,17 +56,18 @@ for i in range(len(duty)):
                     'recording_elec_pos': [recording_pos[w]], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
                     'number_elecs': 1, #number of electrodes along the bundle
                     'dur': h.tstop, # Simulation duration (ms)
-                    'rec_CAP': True, #If false means we avoid spending time using LFPy functions
+                    'rec_CAP': False, #If false means we avoid spending time using LFPy functions
                 }
 
                 unmyelinatedParameters = {
                     'name': "unmyelinated_axon", # axon name (for neuron)
-                    'L': 10000, #Axon length (micrometer)
+                    'L': 100, #Axon length (micrometer)
                     'diam': 1.5, #Axon diameter (micrometer)
                     'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
                     'Ra': 200.0, #Specific axial resistance (Ohm cm)
                     'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
                     'rec_v': True, # set voltage recorders True or False
+                    'hhDraw': True
                 }
                 myelinatedParametersA = {
                     'name': "myelinated_axonA", # axon name (for neuron)

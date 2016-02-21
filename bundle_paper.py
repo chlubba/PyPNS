@@ -25,14 +25,14 @@ paralength1 = 1.3 #um
 [paralength2_A, interlength_A] = fiberD_dependent_param(fiberD_A, nodelength, paralength1)
 
 
-p_A = [0]
+p_A = [1]
 
 frequency = [0.1,0.1,0.1]
 duty = [0.001,0.01,0.005]
 stim_type = ["EXTRA", "INTRA", "EXTRA"]
 amplitudes = [1.0,2.0,0.5]
 waveform = ["MONOPHASIC","MONOPHASIC", "BIPHASIC"]
-for i in range(len(duty)):
+for i in [1]:#range(len(duty)):
     for w in range(1):
         for k in range(1):
             for j in range(1):
@@ -48,7 +48,7 @@ for i in range(len(duty)):
                 }
                 recordingParameters = {
                     "number_contact_points": 8, #Number of points on the circle constituing the cuff electrode
-                    'recording_elec_pos': [9000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+                    'recording_elec_pos': [4000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
                     'number_elecs': 1, #number of electrodes along the bundle
                     'dur': h.tstop, # Simulation duration (ms)
                     'rec_CAP': False, #If false means we avoid spending time using LFPy functions
@@ -56,12 +56,13 @@ for i in range(len(duty)):
 
                 unmyelinatedParameters = {
                     'name': "unmyelinated_axon", # axon name (for neuron)
-                    'L': 10000, #Axon length (micrometer)
-                    'diam': 1.5, #Axon diameter (micrometer)
+                    'L': 4000, #Axon length (micrometer)
+                    'diam': 1.5,#0.1,# #Axon diameter (micrometer)
                     'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
                     'Ra': 200.0, #Specific axial resistance (Ohm cm)
                     'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
                     'rec_v': True, # set voltage recorders True or False
+                    'hhDraw': True
                 }
                 myelinatedParametersA = {
                     'name': "myelinated_axonA", # axon name (for neuron)
@@ -79,7 +80,7 @@ for i in range(len(duty)):
                 bundleParameters = {         #parameters for Bundle classe
                         'radius_bundle': 150.0, #um Radius of the bundle (typically 0.5-1.5mm)
                         'draw_distribution': True, #Boolean stating the distribution of fibre should be drawn
-                        'number_of_axons': 1, # Number of axons in the bundle
+                        'number_of_axons': 50, # Number of axons in the bundle
                         'p_A': p_A[k], # Percentage of myelinated fiber type A
                         'p_C': 1-p_A[k], #Percentage of unmyelinated fiber type C
                         'myelinated_A': myelinatedParametersA, #parameters for fiber type A
