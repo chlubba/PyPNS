@@ -10,13 +10,13 @@ def getDirectoryName(keyword, elecCount=2, dt=0, p_A=0, p_C=0, L=0):
         keyword=keyword+"2"
 
 
-    homeDirectory=""#"/media/carl/Elements/"
+    homeDirectory="/media/carl/Elements/PyPN/"#""#
     suffix = {
         'elec': "electrodes/",
         'elec2': "electrodes2/",
         'draw': "draws/",
-        'CAP': "CAP_data/2D_4/time_step"+str(dt)+"/p_A"+str(p_A)+"p_C"+str(p_C)+"/BIPOLAR/_length"+str(L)+"/",
-        'CAP2': "CAP_data/2D_4/time_step"+str(dt)+"/p_A"+str(p_A)+"p_C"+str(p_C)+"/MONOPOLAR/_length"+str(L)+"/",
+        'CAP': "CAP_data/2D_4/time_step"+str(dt)+"/p_A"+str(p_A)+"p_C"+str(p_C)+"/RecBIPOLAR/_length"+str(L)+"/",
+        'CAP2': "CAP_data/2D_4/time_step"+str(dt)+"/p_A"+str(p_A)+"p_C"+str(p_C)+"/RecMONOPOLAR/_length"+str(L)+"/",
         'V': "Voltage/"
     }.get(keyword,-1)
 

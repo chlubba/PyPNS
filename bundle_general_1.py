@@ -13,6 +13,20 @@ h.tstop = 30 # set simulation duration (ms)
 h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
+# Set parameters
+
+# fiber compositions
+p_A = [0.175,0.1,1.0, 0.0] # share of myelinated fibers
+
+# stimulus characteristics
+stim_types = ["EXTRA", "INTRA", "EXTRA"]
+waveforms = ["MONOPHASIC","MONOPHASIC", "BIPHASIC"]
+frequencies = [0.1,0.1,0.1]
+duty_cycles = [0.001,0.01,0.005]
+amplitudes = [1.0,2.0,0.5]
+
+
+# Do not change from here
 
 
 ### !!! USING MYELINATED DISTRUTION NOT COMPATIBLE WITH VOLTAGE RECORDING ###
@@ -40,25 +54,18 @@ paralength1 = 1.3 #um
 [paralength2_A, interlength_A] = fiberD_dependent_param(fiberD_A, nodelength, paralength1)
 
 
-
-
-
-
-
-
-p_A = [0.175,0.1,1.0, 0.0]
-for j in range(1):
+for j in range(len(duty_cycles)):
     for k in range(len(p_A)):#[0]:#range(1,len(p_A)):#
         stimulusParameters = {
             'jitter_para': [0,0], #Mean and standard deviation of the delay
-            'stim_type': "EXTRA", #Stimulation type either "INTRA" or "EXTRA"
+            'stim_type': stim_types[j], #Stimulation type either "INTRA" or "EXTRA"
             # stim_coord is NOT USED default value is used directly
-            'stim_coord': [[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
-            'amplitude': 2.0, # Pulse amplitude (nA)
-            'freq': 0.1, # Frequency of the sin pulse (kHz)
-            'duty_cycle': 0.005, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+            # 'stim_coord': [[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
+            'amplitude': amplitudes[j], # Pulse amplitude (nA)
+            'freq': frequencies[j], # Frequency of the sin pulse (kHz)
+            'duty_cycle': duty_cycles[j], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
             'stim_dur' : 10, # Stimulus duration (ms)
-            'waveform': "BIPHASIC", # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+            'waveform': waveforms[j], # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
 }
 
         recordingParameters = {
