@@ -8,6 +8,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import os.path
 import random
 import matplotlib as mpl
+from nameSetters import getDirectoryName
+
 label_size = 20
 mpl.rcParams['xtick.labelsize'] = label_size
 mpl.rcParams['ytick.labelsize'] = label_size 
@@ -15,17 +17,11 @@ mpl.rcParams['ytick.labelsize'] = label_size
 fontP = FontProperties()
 fontP.set_size(12)
 
-def save_CAP_tofile(bundle, parameters,directory):
-    filename = bundle.get_filename()
-    number = 0
-    filename_org = filename
-    while os.path.isfile(directory+filename):
-        number += 1
-        print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
-        filename = str(number) + filename_org
+def save_CAP_tofile(bundle, parameters):
+    filename = bundle.get_filename("CAP")
     print "Filename: " + filename
-    filename = directory+filename
-    header= repr(parameters)
+
+    header = repr(parameters)
     DataOut = np.array(bundle.trec)
     if bundle.number_elecs != 1:
         for i in range(len(bundle.sum_CAP)):
@@ -37,18 +33,22 @@ def save_CAP_tofile(bundle, parameters,directory):
             DataOut = np.column_stack( (DataOut, np.array(bundle.CAP[i])))"""
     np.savetxt(filename, DataOut, header=header)
 
-def save_voltage_tofile(bundle, parameters,directory):
-    filename = bundle.get_filename()
-    number = 0
-    filename_org = filename
-    while os.path.isfile(directory+filename):
-        number += 1
-        print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
-        filename = str(number) + filename_org
+def save_voltage_tofile(bundle, parameters):
+    filename = bundle.get_filename("V")
+    # number = 0
+    # filename = filename
+    # while os.path.isfile(directory+filename):
+    #     number += 1
+    #     print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
+    #     filename = str(number) + filename
     print "Filename: " + filename
-    filename = directory+filename
+    # filename = directory+filename
+
     header= repr(parameters)
     DataOut = np.concatenate(([0],np.array(bundle.trec)))
+
+    voltagesArray = np.array(bundle.voltages[0][0])
+
     for w in range(bundle.number_of_axons):
         number_of_segments = 0
         try:
@@ -58,7 +58,8 @@ def save_voltage_tofile(bundle, parameters,directory):
         except IndexError:
             print "You have probably not set rec_v to True for this axon !"
         for i in range(number_of_segments):
-            DataOut = np.column_stack( (DataOut, np.concatenate(([number_of_segments],np.array(bundle.voltages[w][i])))))
+            segmentVoltageSignal = np.concatenate(([number_of_segments],np.array(bundle.voltages[w][i])))
+            DataOut = np.column_stack( (DataOut, segmentVoltageSignal))
     np.savetxt(filename, DataOut, header=header)
     
 def plot2D_CAP_fromfile(filename):

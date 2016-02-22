@@ -476,7 +476,7 @@ class Myelinated(Axon):
     paralength2: set the length of the second paranode segment followed by the internodes segments
     interlength: set the length of the internode part comprising the 6 segments between two paranodes2
     """
-    def __init__(self, name, Nnodes, fiberD, coord, layout3D, rec_v, nodelength, paralength1, paralength2, interlength):
+    def __init__(self, name, Nnodes, fiberD, coord, layout3D, rec_v):#, nodelength, paralength1, paralength2, interlength):
         
         self.name = name
         self.layout3D = layout3D
@@ -862,6 +862,12 @@ class Bundle(object):
         
         self.build_disk(self.number_of_axons,self.radius_bundle)
 
+        self.saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
+                    'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
+                    'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
+                    'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
+
+
         ### JITTER (random gaussian delay for individual fiber stimulation) ###
         self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
         if (jitter_para[0] == 0) & (jitter_para[1] == 0):
@@ -984,8 +990,13 @@ class Bundle(object):
         #     directory = "electrodes/"
         # else:
         #     directory = "electrodes2/"
-        saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'p_A': self.p_A, 'p_C': self.p_C, 'L': self.unmyelinated['L'] }
-        directory = getDirectoryName("elec", **saveParams)
+
+        #dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, elecCount=2, stimType = "EXTRA", stimWaveform = "", stimDutyCycle = 0, stimAmplitude = 0
+        # saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
+        #             'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
+        #             'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
+        #             'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
+        directory = getDirectoryName("elec", **self.saveParams)
 
         print "saving electrode: "+str(i)
         if i==0:
@@ -1002,8 +1013,11 @@ class Bundle(object):
         
     def load_electrodes(self):
         # directory = "electrodes/"
-        saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'p_A': self.p_A, 'p_C': self.p_C, 'L': self.unmyelinated['L'] }
-        directory = getDirectoryName("elec", **saveParams)
+        # saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
+        #             'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
+        #             'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
+        #             'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
+        directory = getDirectoryName("elec", **self.saveParams)
 
         print "loading electrode"
         t0 = time.time()
@@ -1054,8 +1068,11 @@ class Bundle(object):
 
     def compute_CAP2D_fromfile(self):
         # directory = "electrodes2/"
-        saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'p_A': self.p_A, 'p_C': self.p_C, 'L': self.unmyelinated['L'] }
-        directory = getDirectoryName("elec", **saveParams)
+        # saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
+        #             'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
+        #             'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
+        #             'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
+        directory = getDirectoryName("elec", **self.saveParams)
 
         temp = time.time()
         CAP = []
@@ -1127,16 +1144,31 @@ class Bundle(object):
         self.axons_pos[:,1] = np.sin(theta)
         self.axons_pos *= radius.reshape((n, 1))
         
-    def get_filename(self):
-        #self.filename = 'unmyelinated_length'+str(self.unmyelinated['L'])+'A'+str(self.p_A)+'B'+str(self.p_B)+'C'+str(self.p_C)+'Delay_'+str(self.delay_mu)+'mu'+str(self.delay_sigma)+'sigma'+str(self.number_elecs)+'electrodes_'+self.stim_type+'_Axons'+str(self.number_of_axons)+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        if False:#self.p_A == 1.0:
-            self.filename = 'myelinated_nodes'+str(self.myelinated_A['Nnodes'])+ 'myelinated_diam'+str(self.myelinated_A['fiberD'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        elif False:#self.p_C == 1.0:
-            self.filename = 'time_step'+str(h.dt)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'unmyelinated_diam'+str(self.unmyelinated['diam'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        else:
-            self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'time_step'+str(h.dt)+"recording_pos"+str(self.recording_elec_pos)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA'+self.waveform+self.stim_type+'.dat'
+    def get_filename(self, recordingType):
+        # #self.filename = 'unmyelinated_length'+str(self.unmyelinated['L'])+'A'+str(self.p_A)+'B'+str(self.p_B)+'C'+str(self.p_C)+'Delay_'+str(self.delay_mu)+'mu'+str(self.delay_sigma)+'sigma'+str(self.number_elecs)+'electrodes_'+self.stim_type+'_Axons'+str(self.number_of_axons)+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
+        # if False:#self.p_A == 1.0:
+        #     self.filename = 'myelinated_nodes'+str(self.myelinated_A['Nnodes'])+ 'myelinated_diam'+str(self.myelinated_A['fiberD'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
+        # elif False:#self.p_C == 1.0:
+        #     self.filename = 'time_step'+str(h.dt)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'unmyelinated_diam'+str(self.unmyelinated['diam'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
+        # else:
+        #     self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'time_step'+str(h.dt)+"recording_pos"+str(self.recording_elec_pos)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA'+self.waveform+self.stim_type+'.dat'
+
+        directory = getDirectoryName(recordingType, **self.saveParams)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        filename = 'recording.dat'
+
+        number = 0
+        while os.path.isfile(directory+filename):
+            number += 1
+            print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
+            filename = str(number) + filename
+
+        self.filename = directory+filename
 
         return self.filename
+
     def get_filename_for_draw(self):
         self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'nb_axons'+str(self.number_of_axons)+'bundle_radius'+str(self.radius_bundle)+'.dat'
 
@@ -1193,8 +1225,11 @@ class Bundle(object):
 
     def load_distrib(self):
         #directory = "draws/biphasic/"
-        saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'p_A': self.p_A, 'p_C': self.p_C, 'L': self.unmyelinated['L'] }
-        directory = getDirectoryName("draw", **saveParams)
+        # saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
+        #             'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
+        #             'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
+        #             'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
+        directory = getDirectoryName("draw", **self.saveParams)
         filename = self.get_filename_for_draw()
         draw = np.loadtxt(directory +filename, unpack=True, usecols=[0])
         diams = np.loadtxt(directory +filename, unpack=True, usecols=[1])
