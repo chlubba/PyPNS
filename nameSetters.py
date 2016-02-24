@@ -26,7 +26,7 @@ def getDirectoryName(keyword, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyel
     else:
         unmyelDiamStr = 'draw'
 
-    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+" myelinatedDiam="+myelDiamStr+" unmyelinatedDiam="+unmyelDiamStr+"/"
+    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+"/"#+" myelinatedDiam="+myelDiamStr+" unmyelinatedDiam="+unmyelDiamStr
     pathString = stimulusPathString+pathStringNoStim
 
     suffix = {

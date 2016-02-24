@@ -1067,37 +1067,32 @@ class Bundle(object):
                         
 
     def compute_CAP2D_fromfile(self):
-        # directory = "electrodes2/"
-        # saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
-        #             'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
-        #             'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
-        #             'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
         directory = getDirectoryName("elec", **self.saveParams)
 
         temp = time.time()
         CAP = []
         print "loading electrode"
         t0 = time.time()
-        self.electrodes = [[] for j in range(self.virtual_number_axons)]
+
         filename = "electrode_"+str(0)+".dat"
-        self.electrodes[0] = np.loadtxt(directory + filename, unpack=True)
+        electrodesData = np.loadtxt(directory + filename, unpack=True)
         print "loaded in: "+str(time.time()-t0)
-        self.sum_CAP = np.zeros((self.number_elecs,len(self.electrodes[0][0])))
+        self.sum_CAP = np.zeros((self.number_elecs,len(electrodesData[0])))
         for i in range(self.number_contact_points):
             for j in range(self.number_elecs):
-                CAP.append(self.electrodes[0][i*self.number_elecs+j])
+                CAP.append(electrodesData[i*self.number_elecs+j])
 
-        self.electrodes[0] = None
+        del electrodesData
         for k in range(1,self.virtual_number_axons):
             t0 = time.time()
             filename = "electrode_"+str(k)+".dat"
-            self.electrodes[k] = np.loadtxt(directory + filename, unpack=True)
+            electrodesData = np.loadtxt(directory + filename, unpack=True)
             print "electrode_"+str(k)+ "loaded in: "+str(time.time()-t0)
             for j in range(self.number_elecs):
                 for i in range(self.number_contact_points):
-                    CAP[i*self.number_elecs+j] += self.electrodes[k][i*self.number_elecs+j]
+                    CAP[i*self.number_elecs+j] += electrodesData[i*self.number_elecs+j]
                     self.sum_CAP[j,:] += CAP[i*self.number_elecs+j]
-            self.electrodes[k] = None
+            del electrodesData
 
         elapsed = time.time()-temp
         print "Elapsed time to compute CAP:" + str(elapsed)

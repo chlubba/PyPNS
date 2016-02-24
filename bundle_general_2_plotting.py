@@ -9,15 +9,17 @@ v_init=-80 //mV//
 dt=0.005 //ms//         	
 tstop=10"""
 h.celsius = 33 # set temperature in celsius
-h.tstop = 30 # set simulation duration (ms)
+h.tstop = 15 # set simulation duration (ms)
 h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = False
+calculationFlag = True
 plottingFlag = True
 
 plotCAP = True
+plotCAP1D = True
+plotCAP2D = False
 
 # bundle characteristics
 p_A = [0.175,0.1,1.0, 0.0] # share of myelinated fibers
@@ -32,16 +34,17 @@ lengthOfBundle = 1000
 
 
 # stimulus characteristics
-stim_types = ["EXTRA", "INTRA", "EXTRA"]
-waveforms = ["MONOPHASIC","MONOPHASIC", "BIPHASIC"]
-frequencies = [0.1,0.1,0.1]
-duty_cycles = [0.001,0.01,0.005]
-amplitudes = [1.0,2.0,0.5]
+stim_types = ["EXTRA"]#, "INTRA", "EXTRA"]
+waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"]
+frequencies = [0.1]#,0.1,0.1]
+duty_cycles = [0.005]#[0.001]#,0.01,0.005]
+amplitudes = [2.0]#,2.0,0.5]
+stimDur = [0.1]
 
 # recoding params
 number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
-recording_elec_pos = 1000 #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-number_elecs =  50#150, #number of electrodes along the bundle
+recording_elec_pos = [1000] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+number_elecs =  150#150, #number of electrodes along the bundle
 
 # Do not change from here
 
@@ -74,10 +77,10 @@ if fiberD_C == 'draw':
 
 
 
-for VoltCAPSelector in [2]:#[1,2]:
+for VoltCAPSelector in [1]:#[1,2]:
     rec_CAP = (VoltCAPSelector==1)
     rec_v = (VoltCAPSelector==2)
-    for j in [1]:#range(len(duty_cycles)):
+    for j in range(len(duty_cycles)):
         for k in [1]:#range(len(p_A)):#[0]:#range(1,len(p_A)):#
             stimulusParameters = {
                 'jitter_para': [0,0], #Mean and standard deviation of the delay
@@ -87,13 +90,13 @@ for VoltCAPSelector in [2]:#[1,2]:
                 'amplitude': amplitudes[j], # Pulse amplitude (nA)
                 'freq': frequencies[j], # Frequency of the sin pulse (kHz)
                 'duty_cycle': duty_cycles[j], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-                'stim_dur' : 10, # Stimulus duration (ms)
+                'stim_dur' : stimDur[j], # Stimulus duration (ms)
                 'waveform': waveforms[j], # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
     }
 
             recordingParameters = {
                 "number_contact_points": number_contact_points, #Number of points on the circle constituing the cuff electrode
-                'recording_elec_pos': [recording_elec_pos],#[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+                'recording_elec_pos': recording_elec_pos,#[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
                 'number_elecs': number_elecs,#150, #number of electrodes along the bundle
                 'dur': h.tstop, # Simulation duration (ms)
                 'rec_CAP': rec_CAP, #If false means we avoid spending time using LFPy functions
@@ -134,16 +137,98 @@ for VoltCAPSelector in [2]:#[1,2]:
             Parameters1 = dict(bundleParameters, **stimulusParameters)
             Parameters = dict(Parameters1, **recordingParameters)
 
-            bundle = Bundle(**Parameters)
+            if calculationFlag:
 
-            if rec_CAP:
-                save_CAP_tofile(bundle,Parameters)
-            if rec_v:
-                # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
-                save_voltage_tofile(bundle,Parameters)
+                bundle = Bundle(**Parameters)
 
-            bundle = None
-        
+                if rec_CAP:
+                    save_CAP_tofile(bundle,Parameters)
+                if rec_v:
+                    # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
+                    save_voltage_tofile(bundle,Parameters)
+
+                bundle = None
+
+            if plottingFlag:
+
+
+                saveParams={'elecCount': len(recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
+                    'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
+                    'L': unmyelinatedParameters['L'], 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
+                    'stimDutyCycle': stimulusParameters['duty_cycle'], 'stimAmplitude' : stimulusParameters['amplitude']}
+
+                if plotCAP:
+
+                    # get the whole CAP, can be signle electrode or multiple
+                    directory = getDirectoryName("CAP", **saveParams)
+                    try:
+                        newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+                    except ValueError:
+                        print 'No calculation has been performed yet with this set of parameter.'
+                        quit()
+
+                    CAPraw = np.transpose(np.loadtxt(newestFile))
+                    time = CAPraw[0,:]
+                    CAP = CAPraw[1:,:]
+
+                    if plotCAP1D:
+
+                        numberOfRecordingSites = np.shape(CAP)[0]
+                        numberOfPlots = min(5, numberOfRecordingSites)
+
+                        eletrodeSelection = np.floor(np.linspace(0,numberOfRecordingSites-1, numberOfPlots))
+
+                        # Two subplots, the axes array is 1-d
+                        f, axarr = plt.subplots(numberOfPlots, sharex=True)
+
+                        for i in range(numberOfPlots):
+
+                            electrodeIndex = eletrodeSelection[i]
+
+                            CAPSingleElectrode =  CAP[electrodeIndex,:]
+                            distanceFromOrigin = saveParams['L']/numberOfRecordingSites*electrodeIndex
+
+                            axarr[i].plot(CAPSingleElectrode)
+                            axarr[i].set_title('distance ' + str(distanceFromOrigin) + ' [um]')
+                            axarr[i].set_ylabel('CAP [uV]')
+
+                            if i == numberOfPlots - 1:
+                                axarr[i].set_xlabel('time [ms]')
+
+
+
+
+                    if plotCAP2D:
+
+                        # print as an image
+                        fig = pyl.figure()
+                        im = pyl.imshow(CAP, cmap=pyl.get_cmap('gist_stern'), interpolation='none', aspect='auto')#, norm=LogNorm(vmin=CAPmin, vmax=CAPmax))
+
+                        # correct xticks (from samples to ms)
+                        numberOfXTicks = 10
+                        tick_locs = np.round(np.linspace(0,np.shape(CAP)[1],numberOfXTicks))
+                        tick_lbls = np.round(np.linspace(0,saveParams['tStop'],numberOfXTicks))
+                        plt.xticks(tick_locs, tick_lbls, fontsize=12)
+
+                        # correct yticks (from electrodes to distance)
+                        numberOfYTicks = 10
+                        tick_locs = np.round(np.linspace(0,np.shape(CAP)[0],numberOfYTicks))
+                        tick_lbls = np.round(np.linspace(0,saveParams['L'],numberOfYTicks))
+                        plt.yticks(tick_locs, tick_lbls, fontsize=12)
+
+                        # add titles, axis labels and colorbar
+                        fig.suptitle('Compound action potential [uV] over space and time', fontsize=20)
+                        pyl.xlabel('time [ms]')
+                        pyl.ylabel('Distance from axon origin [um]')
+                        cbar = pyl.colorbar(im)
+
+                    # finally show result
+                    pyl.show()
+
+
+                    print 'plotit'
+
+
 
 
 

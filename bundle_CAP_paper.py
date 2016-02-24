@@ -74,10 +74,10 @@ for j in range(1):
             'fiberD': myelinatedDistribution, #fiberD_A, #Diameter of the fiber
             'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
             'rec_v': True, # set voltage recorders True or False
-            'nodelength' : nodelength, #set node length (um)
-            'paralength1': paralength1, #set the length of the nearest paranode segment to the node
-            'paralength2': paralength2_A,  #set the length of the second paranode segment followed by the internodes segments
-            'interlength': interlength_A, #set the length of the internode part comprising the 6 segments between two paranodes2
+            # 'nodelength' : nodelength, #set node length (um)
+            # 'paralength1': paralength1, #set the length of the nearest paranode segment to the node
+            # 'paralength2': paralength2_A,  #set the length of the second paranode segment followed by the internodes segments
+            # 'interlength': interlength_A, #set the length of the internode part comprising the 6 segments between two paranodes2
         }
 
 
