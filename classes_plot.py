@@ -47,24 +47,39 @@ def save_voltage_tofile(bundle, parameters):
     #     print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
     #     filename = str(number) + filename
     print "Filename: " + filename
-    # filename = directory+filename
-
+    # # filename = directory+filename
+    #
     header= repr(parameters)
+    # DataOut = np.concatenate(([0],np.array(bundle.trec)))
+    #
+    # voltagesArray = np.array(bundle.voltages[0][0])
+    #
+    # for w in range(bundle.number_of_axons):
+    #     number_of_segments = 0
+    #     try:
+    #         number_of_segments = len(bundle.voltages[w])
+    #         # plt.plot(np.transpose(np.array(bundle.voltages[w])))
+    #         # plt.show()
+    #     except IndexError:
+    #         print "You have probably not set rec_v to True for this axon !"
+    #     for i in range(number_of_segments):
+    #         segmentVoltageSignal = np.concatenate(([number_of_segments],np.array(bundle.voltages[w][i])))
+    #         DataOut = np.column_stack( (DataOut, segmentVoltageSignal))
     DataOut = np.concatenate(([0],np.array(bundle.trec)))
 
-    voltagesArray = np.array(bundle.voltages[0][0])
+    voltages = np.array(bundle.voltages)
+    # as np.array only converts outer Vector to python-readable format, we need to iterate through elements to convert
+    # inner vectors where the actual voltage signals are stored.
+    for i in range(len(voltages)):
+        voltageSingleAxon = np.transpose(np.array(voltages[i]))
 
-    for w in range(bundle.number_of_axons):
-        number_of_segments = 0
-        try:
-            number_of_segments = len(bundle.voltages[w])
-            # plt.plot(np.transpose(np.array(bundle.voltages[w])))
-            # plt.show()
-        except IndexError:
-            print "You have probably not set rec_v to True for this axon !"
-        for i in range(number_of_segments):
-            segmentVoltageSignal = np.concatenate(([number_of_segments],np.array(bundle.voltages[w][i])))
-            DataOut = np.column_stack( (DataOut, segmentVoltageSignal))
+        # append the sectionlength in the first column in order to differentiate different axons later
+        numberOfSegments = np.shape(voltageSingleAxon)[1]
+        numberOfSegmentsArray = np.multiply(np.ones(numberOfSegments),np.array(numberOfSegments))
+        voltageSingleAxonFormatted = np.row_stack((numberOfSegmentsArray, voltageSingleAxon))
+
+        # DataOut = np.column_stack((DataOut, voltageSingleAxon))
+        DataOut = np.column_stack( (DataOut, voltageSingleAxonFormatted))
     np.savetxt(filename, DataOut, header=header)
     
 def plot2D_CAP_fromfile(filename):

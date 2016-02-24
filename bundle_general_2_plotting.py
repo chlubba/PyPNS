@@ -9,22 +9,24 @@ v_init=-80 //mV//
 dt=0.005 //ms//         	
 tstop=10"""
 h.celsius = 33 # set temperature in celsius
-h.tstop = 15 # set simulation duration (ms)
+h.tstop = 30 # set simulation duration (ms)
 h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = True
+calculationFlag = False
 plottingFlag = True
 
-plotCAP = True
-plotCAP1D = True
+plotCAP = False
+plotCAP1D = False
 plotCAP2D = False
 
+plotVoltage = True
+
 # bundle characteristics
-p_A = [0.175,0.1,1.0, 0.0] # share of myelinated fibers
-fiberD_A = 'draw' #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
-fiberD_C = 'draw'
+p_A = [1.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+fiberD_A = 16.0 #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
+fiberD_C = 1.5#'draw'
 
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
@@ -34,12 +36,12 @@ lengthOfBundle = 1000
 
 
 # stimulus characteristics
-stim_types = ["EXTRA"]#, "INTRA", "EXTRA"]
+stim_types = ["INTRA"]#, "INTRA", "EXTRA"]
 waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"]
 frequencies = [0.1]#,0.1,0.1]
-duty_cycles = [0.005]#[0.001]#,0.01,0.005]
-amplitudes = [2.0]#,2.0,0.5]
-stimDur = [0.1]
+duty_cycles = [0.01]#[0.001]#,0.01,0.005]
+amplitudes = [4.0]#,2.0,0.5]
+stimDur = [10]
 
 # recoding params
 number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
@@ -77,11 +79,11 @@ if fiberD_C == 'draw':
 
 
 
-for VoltCAPSelector in [1]:#[1,2]:
+for VoltCAPSelector in [2]:#[1,2]:
     rec_CAP = (VoltCAPSelector==1)
     rec_v = (VoltCAPSelector==2)
     for j in range(len(duty_cycles)):
-        for k in [1]:#range(len(p_A)):#[0]:#range(1,len(p_A)):#
+        for k in range(len(p_A)):#[0]:#range(1,len(p_A)):#
             stimulusParameters = {
                 'jitter_para': [0,0], #Mean and standard deviation of the delay
                 'stim_type': stim_types[j], #Stimulation type either "INTRA" or "EXTRA"
@@ -164,7 +166,7 @@ for VoltCAPSelector in [1]:#[1,2]:
                     try:
                         newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
                     except ValueError:
-                        print 'No calculation has been performed yet with this set of parameter.'
+                        print 'No CAP calculation has been performed yet with this set of parameter.'
                         quit()
 
                     CAPraw = np.transpose(np.loadtxt(newestFile))
@@ -178,7 +180,7 @@ for VoltCAPSelector in [1]:#[1,2]:
 
                         eletrodeSelection = np.floor(np.linspace(0,numberOfRecordingSites-1, numberOfPlots))
 
-                        # Two subplots, the axes array is 1-d
+                        # Subplots
                         f, axarr = plt.subplots(numberOfPlots, sharex=True)
 
                         for i in range(numberOfPlots):
@@ -226,11 +228,68 @@ for VoltCAPSelector in [1]:#[1,2]:
                     pyl.show()
 
 
+                if plotVoltage:
+
+                    # get the whole CAP, can be signle electrode or multiple
+                    directory = getDirectoryName("V", **saveParams)
+                    try:
+                        newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+                    except ValueError:
+                        print 'No voltage calculation has been performed yet with this set of parameter.'
+                        quit()
+
+                    # load the raw voltage file
+                    Vraw = np.transpose(np.loadtxt(newestFile))
+
+                    time = Vraw[0,1:] # extract time vector
+                    segmentArray = Vraw[1:,0] # extract segment numbers for each axon (varies with diameter, lambda rule)
+                    V = Vraw[1:,1:] # free actual voltage signals from surrounding formatting
+
+                    # separate the axons, first get segment counts for each axon
+                    segmentNumbers = [segmentArray[0]]
+                    indexNextFirstEntry = segmentNumbers[0]
+                    while indexNextFirstEntry < len(segmentArray):
+                        segmentNumbers.append(segmentArray[indexNextFirstEntry])
+                        indexNextFirstEntry += segmentNumbers[-1]
+
+                    numberOfAxons = len(segmentNumbers)
+
+                    firstIndices = np.cumsum((np.insert(segmentNumbers,0,0)))
+
+                    voltageMatrices = []
+                    for i in range(numberOfAxons):
+                        startIndex = firstIndices[i]
+                        endIndex = firstIndices[i+1]-1
+                        voltageMatrices.append(V[startIndex:endIndex,:])
+
+                    # now plot
+                    numberOfAxons = np.shape(voltageMatrices)[0]
+                    numberOfPlots = 2#min(5, numberOfAxons)
+
+                    axonSelection = np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
+
+                    f, axarr = plt.subplots(numberOfPlots, sharex=True)
+
+                    # colors
+                    jet = plt.get_cmap('jet')
+
+                    for i in range(len(axonSelection)):
+                        voltageMatrix = np.transpose(voltageMatrices[int(axonSelection[i])])
+
+                        currentNumberOfSegments = np.shape(voltageMatrix)[1]
+
+                        cNorm = colors.Normalize(vmin=0, vmax=currentNumberOfSegments-1)#len(diameters_m)-1)#
+                        scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+
+                        for j in range(currentNumberOfSegments):
+                            colorVal = scalarMap.to_rgba(j)
+                            axarr[i].plot(voltageMatrix[:,j], color=colorVal)
+                        axarr[i].set_title('distance ' + str(555) + ' [um]')
+                        axarr[i].set_ylabel('Voltage [mV]')
+
+                    # finally show result
+                    pyl.show()
                     print 'plotit'
-
-
-
-
 
 
 
