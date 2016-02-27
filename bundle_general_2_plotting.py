@@ -1,4 +1,4 @@
-from classes import *
+from classes import * #BeforeRestructuring
 from classes_plot import *
 import time
 time.sleep(0) # delays for x seconds
@@ -14,17 +14,17 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = False
+calculationFlag = True
 plottingFlag = True
 
 plotCAP = False
-plotCAP1D = False
+plotCAP1D = True
 plotCAP2D = False
 
 plotVoltage = True
 
 # bundle characteristics
-p_A = [1.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 16.0 #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5#'draw'
 
@@ -32,20 +32,20 @@ fiberD_C = 1.5#'draw'
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
 number_of_axons =  50
-lengthOfBundle = 1000
+lengthOfBundle = 2000
 
 
 # stimulus characteristics
 stim_types = ["INTRA"]#, "INTRA", "EXTRA"]
-waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"]
+waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"]
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
-amplitudes = [4.0]#,2.0,0.5]
+amplitudes = [1.0]#,2.0,0.5]
 stimDur = [10]
 
 # recoding params
 number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
-recording_elec_pos = [1000] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+recording_elec_pos = [2000] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
 number_elecs =  150#150, #number of electrodes along the bundle
 
 # Do not change from here
@@ -143,6 +143,12 @@ for VoltCAPSelector in [2]:#[1,2]:
 
                 bundle = Bundle(**Parameters)
 
+                # print 'Are the segments in the first two axons the same?'
+                # for i in range(len(bundle.axons)):
+                #     print list(list(bundle.axons[i].allseclist)[0].allseg())
+
+                # bundle.simulateBundle()
+
                 if rec_CAP:
                     save_CAP_tofile(bundle,Parameters)
                 if rec_v:
@@ -190,7 +196,7 @@ for VoltCAPSelector in [2]:#[1,2]:
                             CAPSingleElectrode =  CAP[electrodeIndex,:]
                             distanceFromOrigin = saveParams['L']/numberOfRecordingSites*electrodeIndex
 
-                            axarr[i].plot(CAPSingleElectrode)
+                            axarr[i].plot(time, CAPSingleElectrode)
                             axarr[i].set_title('distance ' + str(distanceFromOrigin) + ' [um]')
                             axarr[i].set_ylabel('CAP [uV]')
 
@@ -239,7 +245,9 @@ for VoltCAPSelector in [2]:#[1,2]:
                         quit()
 
                     # load the raw voltage file
+                    timeStart = time.time()
                     Vraw = np.transpose(np.loadtxt(newestFile))
+                    print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
 
                     time = Vraw[0,1:] # extract time vector
                     segmentArray = Vraw[1:,0] # extract segment numbers for each axon (varies with diameter, lambda rule)
@@ -264,7 +272,7 @@ for VoltCAPSelector in [2]:#[1,2]:
 
                     # now plot
                     numberOfAxons = np.shape(voltageMatrices)[0]
-                    numberOfPlots = 2#min(5, numberOfAxons)
+                    numberOfPlots = min(6, numberOfAxons)
 
                     axonSelection = np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
 
@@ -283,9 +291,10 @@ for VoltCAPSelector in [2]:#[1,2]:
 
                         for j in range(currentNumberOfSegments):
                             colorVal = scalarMap.to_rgba(j)
-                            axarr[i].plot(voltageMatrix[:,j], color=colorVal)
-                        axarr[i].set_title('distance ' + str(555) + ' [um]')
+                            axarr[i].plot(time, voltageMatrix[:,j], color=colorVal)
+                        # axarr[i].set_title('distance ' + str(555) + ' [um]')
                         axarr[i].set_ylabel('Voltage [mV]')
+                        axarr[i].set_xlabel('time [ms]')
 
                     # finally show result
                     pyl.show()

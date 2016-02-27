@@ -20,23 +20,26 @@ class Axon(object):
     layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
     # "PT3D" option has not been tested
     """
+
     def __init__(self,layout3D,rec_v):
         self.layout3D = layout3D
         self.rec_v = rec_v
         # LFPy initilizations        
         self.verbose = False
         self.dotprodresults = None # Not in class cell of LFPY but present in run_simulation as cell.dotprodresults
-        self.create_sectionlists()
+        # self.create_sectionlists()
+        # self.allseclist = []
         #self.totnsegs = self.calc_totnsegs()
         
-    def create_sectionlists(self):
-        '''Create section lists for different kinds of sections'''
-        #list with all sections
-        self.allsecnames = []
-        self.allseclist = h.SectionList()
-        for sec in neuron.h.allsec():
-            self.allsecnames.append(sec.name())
-            self.allseclist.append(sec=sec)
+    # def create_sectionlists(self):
+    #     '''Create section lists for different kinds of sections'''
+    #     #list with all sections
+    #     self.allsecnames = []
+    #     self.allseclist = self.sections
+    #     # self.allseclist = h.SectionList()
+    #     # for sec in neuron.h.allsec():
+    #     #     self.allsecnames.append(sec.name())
+    #     #     self.allseclist.append(sec=sec)
 
     def calc_totnsegs(self):
         '''Calculate the number of segments in the allseclist'''
@@ -154,6 +157,7 @@ class Axon(object):
         Record voltage for all segments (not from LFPy sources)
         '''
         self.vreclist = h.List()
+
         for sec in self.allseclist:
             # address the problem of the important number of segments necessary to compute the accurate AP propagation in the unmyelinated axon case
             if sec.nseg > 100:
@@ -166,7 +170,7 @@ class Axon(object):
                     vrec = h.Vector(int(h.tstop/h.dt+1))
                     vrec.record(seg._ref_v)
                     self.vreclist.append(vrec)
-            
+
 
     def calc_imem(self):
         '''
@@ -337,7 +341,12 @@ class Unmyelinated(Axon):
     rec_v: set voltage recorders True or False
     """
     def __init__(self, name, L, diam, cm, Ra, coord, layout3D, rec_v, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
+        super(Unmyelinated,self).__init__(layout3D, rec_v)
         self.axon = h.Section(name = str(name))
+
+        self.allseclist = h.SectionList()
+        self.allseclist.append(self.axon)
+        #self.allseclist = [self.axon]
         self.coord = coord
         ## Inserted as attribute mainly for visualization purpose using pyreverse
         self.L = L
@@ -349,7 +358,6 @@ class Unmyelinated(Axon):
         ## End insertion
         self.axon.insert('extracellular')
         self.axon.insert('xtra')
-        super(Unmyelinated,self).__init__(layout3D, rec_v)
         self.axon_update_property()
         if (self.layout3D == "DEFINE_SHAPE"):
             h.define_shape()
@@ -361,7 +369,11 @@ class Unmyelinated(Axon):
             ################################################################################
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
+
+        #print list(self.axon.allseg())
         self.set_nsegs(nsegs_method, lambda_f, d_lambda, max_nsegs_length)
+        #print list(self.axon.allseg())
+
         for sec_id in self.allseclist:
             for seg in sec_id:
                 h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
@@ -595,6 +607,8 @@ class Myelinated(Axon):
         Rpx=(rhoa*0.01)/(math.pi*((math.pow((axonD/2)+space_i,2))-(math.pow(axonD/2,2))))
         self.interlength=(deltax-self.nodelength-(2*self.paralength1)-(2*self.paralength2))/6
 
+        super(Myelinated,self).__init__(layout3D, rec_v)
+
         #### from initialize() ####
         self.nodes = []
         for i in range(self.axonnodes):
@@ -616,6 +630,7 @@ class Myelinated(Axon):
             node.insert('xtra')
 
             self.nodes.append(node)
+            self.allseclist.append(node)
 
         self.MYSAs = [] # paranodes1
         for i in range(paranodes1):
@@ -639,6 +654,7 @@ class Myelinated(Axon):
             MYSA.insert('xtra')
 
             self.MYSAs.append(MYSA)
+            self.allseclist.append(MYSA)
 
         self.FLUTs = [] # paranodes2
         for i in range(paranodes2):
@@ -662,6 +678,7 @@ class Myelinated(Axon):
             FLUT.insert('xtra')
 
             self.FLUTs.append(FLUT)
+            self.allseclist.append(FLUT)
 
         self.STINs = [] # internodes
         for i in range(axoninter):
@@ -685,6 +702,8 @@ class Myelinated(Axon):
             STIN.insert('xtra')
 
             self.STINs.append(STIN)
+            self.allseclist.append(STIN)
+
         if (self.layout3D == "DEFINE_SHAPE"):
             for i in range(self.axonnodes-1):
                 self.MYSAs[2*i].connect(self.nodes[i],1,0)
@@ -737,7 +756,7 @@ class Myelinated(Axon):
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
 
-        super(Myelinated,self).__init__(layout3D, rec_v)
+
         self.totnsegs = self.calc_totnsegs()
         for sec_id in self.allseclist:
             for seg in sec_id:
@@ -762,42 +781,49 @@ class Stimulus(object):
     stim_coord=[xe,ye,ze]: spatial coordinates  of the stimulating electrode
     waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
     """
-    def __init__(self, stim_type, axon, delay,dur,amp, freq, duty_cycle, stim_coord, waveform):
+    def __init__(self, stim_type, dur,amp, freq, duty_cycle, stim_coord, waveform):
         self.waveform = waveform
         self.stim_type = stim_type
         self.stim_coord = stim_coord
-        self.axon = axon
         self.dur = dur
-        self.delay = delay
         self.freq = freq
         self.amp = amp
         self.duty_cycle = duty_cycle
         cut_off = math.sin((-self.duty_cycle+1.0/2)*math.pi)
-        self.t = np.linspace(0, self.dur, (h.tstop+2*h.dt)/h.dt, endpoint=True)+self.delay
+        self.t = np.linspace(0, self.dur, (h.tstop+2*h.dt)/h.dt, endpoint=True)
         if self.waveform == "MONOPHASIC":
-            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay)))
+            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t)))
         elif self.waveform == "BIPHASIC":
-            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*self.t+self.delay))-self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay+self.duty_cycle/self.freq)))
+            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*self.t))-self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.duty_cycle/self.freq)))
         else:
             print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
-            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t+self.delay)))
+            self.signal = self.amp*(cut_off < np.sin(2*math.pi*self.freq*(self.t)))
             
         self.svec = h.Vector(self.signal)
-        self.axon.setrx(self.stim_coord, self.axon.coord)
-        if stim_type == "INTRA":
-            self.init_intra()
-        elif stim_type == "EXTRA":
+
+    def connectAxon(self, axon):
+        if self.stim_type == "INTRA":
+            self.init_intra(axon)
+        elif self.stim_type == "EXTRA":
+            axon.setrx(self.stim_coord, axon.coord)
             self.init_xtra()
         else:
             raise NameError('stim_type only "INTRA" or "EXTRA"')
 
-    def init_intra(self):
+    def init_intra(self, axon):
         # Place an IClamp on the first element of the allseclist
         # In unmyelinated axon case allseclist is directly the unique axon section
-        self.stim = h.IClamp(0, self.axon.allseclist)
-        self.stim.delay = self.delay
-        self.stim.dur = self.dur
-        self.svec.play(self.stim._ref_amp,h.dt)
+
+        # counter = 0
+        # for seg in axon.allseclist[0]:
+        #     print 'Segment number ' + str(counter)
+        #     print seg
+        #     counter += 1
+
+        axon.stim = h.IClamp(0, axon.allseclist)
+        axon.stim.delay = 0
+        axon.stim.dur = self.dur
+        self.svec.play(axon.stim._ref_amp,h.dt)
         
     def init_xtra(self):
         self.svec.play(h._ref_is_xtra,h.dt)
@@ -858,8 +884,6 @@ class Bundle(object):
         self.number_elecs = number_elecs
         self.recording_elec_pos = recording_elec_pos #um
        
-        [angles,X,Y,Z,N] = self.setup_recording_elec()
-        
         self.build_disk(self.number_of_axons,self.radius_bundle)
 
         self.saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
@@ -867,36 +891,37 @@ class Bundle(object):
                     'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
                     'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
 
+        # ### JITTER (random gaussian delay for individual fiber stimulation) ###
+        # self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
+        # if (jitter_para[0] == 0) & (jitter_para[1] == 0):
+        #     delay = np.zeros(self.number_of_axons)
+        # else:
+        #     delay = np.random.normal(self.delay_mu, self.delay_sigma, self.number_of_axons)
 
-        ### JITTER (random gaussian delay for individual fiber stimulation) ###
-        self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
-        if (jitter_para[0] == 0) & (jitter_para[1] == 0):
-            delay = np.zeros(self.number_of_axons)
-        else:
-            delay = np.random.normal(self.delay_mu, self.delay_sigma, self.number_of_axons)
+        # create axons within wanted nerve-slice
 
-        if (isinstance(self.myelinated_A['fiberD'],float) and (isinstance(self.unmyelinated['diam'],float) or isinstance(self.unmyelinated['diam'],int))):
-            draw = np.random.choice(2,self.number_of_axons,p = [self.p_A, self.p_C])
-            diams = []
-            for i in range(len(draw)):
-                if draw[i] ==1:
-                    diams.append(self.unmyelinated['diam'])
-                else:
-                    diams.append(self.myelinated_A['fiberD'])
-        elif self.draw_distribution:
-            [draw,diams] = self.draw_distrib()
-        else:
-            [draw,diams] = self.load_distrib()
-                            
+
+        # create axons within one fourth slice of the whole bundle.
         self.virtual_number_axons = 0
-        temp = time.time()
         for i in range(self.number_of_axons):
+            # if within the desired subsection of the bundle, create axon
             if ((self.axons_pos[i,1]>=0 and self.axons_pos[i,1]< self.axons_pos[i,0]) or (self.axons_pos[i,0]== 0 and self.axons_pos[i,1]==0)):
-                self.create_axon(draw,diams, self.virtual_number_axons,X,Y,Z,N,delay)
+                # print self.axons_pos[i,:]
+                self.create_axon(self.axons_pos[i,:])
                 self.virtual_number_axons +=1
-                print "Number axons done:" + str(self.virtual_number_axons)
-        elapsed = time.time()-temp
-        print "Elapsed time to create all axons:" + str(elapsed)
+                print "Number axons created:" + str(self.virtual_number_axons)
+
+        # create Simulus instace used for all axons
+        self.stim = Stimulus(self.stim_type, self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
+
+        # connect to stimulus
+        for i in range(self.virtual_number_axons):
+            axon = self.axons[i]
+            self.stim.connectAxon(axon)
+
+    def simulateBundle(self):
+
+        self.simulateAxons()
 
         if self.rec_CAP:
             if self.number_elecs !=1:
@@ -906,96 +931,118 @@ class Bundle(object):
                     
 
 
-    def create_axon(self,draw,diams,i,X,Y,Z,N,delay):
-        if draw[i] == 1:
+    def create_axon(self, axonPosition):
+
+        # first decide by chance whether myelinated or unmyelinated
+        axonTypeIndex = np.random.choice(2,1,p = [self.p_A, self.p_C])
+        axonTypes = ['m', 'u']
+        axonType = axonTypes[axonTypeIndex]
+
+        # then get diameter. Either drawn from distribution or constant.
+        axonDiameter = self.getDiam(axonType)
+
+        if axonTypeIndex == 1:
             unmyel = self.unmyelinated
-            unmyel['diam'] = diams[i]
-            axonParameters = dict( {'coord':self.axons_pos[i,:]},**unmyel)
-            self.axons.append(Unmyelinated(**axonParameters ))
-            #self.axons[i].channel_init(0.120,0.036,0.0003,50,-77,-54.3) # default values of hh channel are used
-        elif draw[i] == 0:
+            unmyel['diam'] = axonDiameter
+            axonParameters = dict( {'coord': axonPosition},**unmyel)
+
+            print 'before appending axon'
+            for i in range(len(self.axons)):
+                print list(list(self.axons[i].allseclist)[0].allseg())
+
+            newAxon = Unmyelinated(**axonParameters )
+
+            print 'Segments of new axon:'
+            print list(list(newAxon.allseclist)[0].allseg())
+
+            self.axons.append(newAxon)
+
+            print 'after appending axon'
+            for i in range(len(self.axons)):
+                print list(list(self.axons[i].allseclist)[0].allseg())
+
+        elif axonTypeIndex == 0:
             myel = self.myelinated_A
-            myel['fiberD'] = diams[i]
-            axonParameters = dict( {'coord':self.axons_pos[i,:]},**myel)
+            myel['fiberD'] = axonDiameter
+            axonParameters = dict( {'coord':axonPosition},**myel)
             self.axons.append(Myelinated(**axonParameters))
         else:
             "Error in the draw of the axon type!"
 
-        self.stim = Stimulus(self.stim_type,self.axons[i], delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
+        # self.stim = Stimulus(self.stim_type,self.axons[i], delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
 
+    def simulateAxons(self):
 
-        electrodeParameters = {         #parameters for RecExtElectrode class
-                'sigma' : 0.3,              #Extracellular potential
-                'x' : X,  #Coordinates of electrode contacts
-                'y' : Y-self.axons_pos[i,0],
-                'z' : Z-self.axons_pos[i,1],
-                'n' : 20,
-                'r' : 10,
-                'N' : N,
-            	'method': "pointsource", #or "linesource"
-            }
+        for axonIndex in range(self.virtual_number_axons):
 
-        ### LAUNCH SIMULATION ###
-        temp = time.time()
-        self.trec = h.Vector()
-        # record time variable
-        self.trec.record(h._ref_t)
-        if self.rec_CAP:
-            self.axons[i].simulate()
-            self.electrodes.append(refextelectrode.RecExtElectrode(self.axons[i], **electrodeParameters))
-            elapsed1 = time.time()-temp
-            print "End simulate in: " + str(elapsed1)
+            axon = self.axons[axonIndex]
+
+            # where is the axon
+            axonPosition = axon.coord
+
+            # where are the electrodes
+            [angles,X,Y,Z,N] = self.setup_recording_elec()
+
+            electrodeParameters = {         #parameters for RecExtElectrode class
+                    'sigma' : 0.3,              #Extracellular potential
+                    'x' : X,  #Coordinates of electrode contacts
+                    'y' : Y-axonPosition[0],
+                    'z' : Z-axonPosition[1],
+                    'n' : 20,
+                    'r' : 10,
+                    'N' : N,
+                    'method': "pointsource", #or "linesource"
+                }
+
+            ### LAUNCH SIMULATION ###
             temp = time.time()
-            self.electrodes[i].calc_lfp()
-            elapsed2 = time.time()-temp
-            print "Elapsed time to calc lfp:" + str(elapsed2)
-            self.save_electrode(i)
-            self.electrodes[i]= None
-            self.CAP_to_file = True
-                  
-        elif self.axons[i].rec_v:
-            # just run a normal NEURON simulation to record the voltage
-            self.axons[i].set_voltage_recorders()
-            h.run()
-            # print "recorded voltages: "
-            # print np.array(self.axons[i].vreclist)
-            self.voltages.append(self.axons[i].vreclist)
-            # print "all recorded voltages: "
-            # print np.array(self.voltages)
-            # print "shape of all recorded voltages: "
-            # print np.shape(np.array(self.voltages))
-            elapsed = time.time()-temp
-            print "End simulate in: " + str(elapsed)
-        else:
-            print "You are probably recording nothing for this axon"
-            h.run()
-       
-        ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
-        for sec in h.allsec():
-            for seg in sec:
-                seg = None
-            sec = None
-        if draw[i] == 1:
-            self.axons[i].axon = None
-        else:
-            self.axons[i].nodes = None
-            self.axons[i].FLUTs = None
-            self.axons[i].MYSAs = None
-            self.axons[i].STINs = None
+
+            if axonIndex == 0:
+            # record time variable
+                self.trec = h.Vector()
+                self.trec.record(h._ref_t)
+
+            if self.rec_CAP:
+                axon.simulate()
+                self.electrodes.append(refextelectrode.RecExtElectrode(axon, **electrodeParameters))
+                elapsed1 = time.time()-temp
+                print "Elapsed time to simulate CAP: " + str(elapsed1)
+                temp = time.time()
+                self.electrodes[axonIndex].calc_lfp()
+                elapsed2 = time.time()-temp
+                print "Elapsed time to calc lfp:" + str(elapsed2)
+                self.save_electrode(axonIndex)
+                self.electrodes[axonIndex]= None
+                self.CAP_to_file = True
+
+            elif axon.rec_v:
+                # just run a normal NEURON simulation to record the voltage
+                axon.set_voltage_recorders()
+                h.run()
+                self.voltages.append(axon.vreclist)
+                elapsed = time.time()-temp
+                print "Elapsed time to simulate V: " + str(elapsed)
+            else:
+                print "You are probably recording nothing for this axon"
+                h.run()
+
+            # ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
+            # for sec in h.allsec():
+            #     for seg in sec:
+            #         seg = None
+            #     sec = None
+            # if draw[i] == 1:
+            #     self.axons[i].axon = None
+            # else:
+            #     self.axons[i].nodes = None
+            #     self.axons[i].FLUTs = None
+            #     self.axons[i].MYSAs = None
+            #     self.axons[i].STINs = None
+
 
     def store_geometry(self):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
     def save_electrode(self,i):
-        # if self.number_elecs == 1:
-        #     directory = "electrodes/"
-        # else:
-        #     directory = "electrodes2/"
-
-        #dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, elecCount=2, stimType = "EXTRA", stimWaveform = "", stimDutyCycle = 0, stimAmplitude = 0
-        # saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
-        #             'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
-        #             'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
-        #             'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
         directory = getDirectoryName("elec", **self.saveParams)
 
         print "saving electrode: "+str(i)
@@ -1012,11 +1059,6 @@ class Bundle(object):
         np.savetxt(directory+filename, DataOut)
         
     def load_electrodes(self):
-        # directory = "electrodes/"
-        # saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
-        #             'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
-        #             'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
-        #             'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
         directory = getDirectoryName("elec", **self.saveParams)
 
         print "loading electrode"
@@ -1140,13 +1182,6 @@ class Bundle(object):
         self.axons_pos *= radius.reshape((n, 1))
         
     def get_filename(self, recordingType):
-        # #self.filename = 'unmyelinated_length'+str(self.unmyelinated['L'])+'A'+str(self.p_A)+'B'+str(self.p_B)+'C'+str(self.p_C)+'Delay_'+str(self.delay_mu)+'mu'+str(self.delay_sigma)+'sigma'+str(self.number_elecs)+'electrodes_'+self.stim_type+'_Axons'+str(self.number_of_axons)+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        # if False:#self.p_A == 1.0:
-        #     self.filename = 'myelinated_nodes'+str(self.myelinated_A['Nnodes'])+ 'myelinated_diam'+str(self.myelinated_A['fiberD'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        # elif False:#self.p_C == 1.0:
-        #     self.filename = 'time_step'+str(h.dt)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'unmyelinated_diam'+str(self.unmyelinated['diam'])+'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA.dat'
-        # else:
-        #     self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'time_step'+str(h.dt)+"recording_pos"+str(self.recording_elec_pos)+'unmyelinated_length'+str(self.unmyelinated['L'])+ 'Pulse'+str(self.duty_cycle*1.0/self.freq)+'ms'+str(self.amp)+'nA'+self.waveform+self.stim_type+'.dat'
 
         directory = getDirectoryName(recordingType, **self.saveParams)
         if not os.path.exists(directory):
@@ -1169,53 +1204,113 @@ class Bundle(object):
 
         return self.filename
 
-    def draw_distrib(self):
-        draw = np.random.choice(2,self.number_of_axons,p = [self.p_A, self.p_C])
-        diams = []
-        for i in range(len(draw)):
-            if (isinstance(self.myelinated_A['fiberD'],float) and (isinstance(self.unmyelinated['diam'],float) or isinstance(self.unmyelinated['diam'],int))):
-                pass
-            else:
-                if draw[i] == 0:
-                    fiberD = self.myelinated_A['fiberD'];
-                    densities = fiberD['densities'];
-                    sum_d = float(sum(densities))
-                    normalize_densities = [x / sum_d for x in densities]
-                    draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-                    axonD = fiberD['diameters'][draw_diam]+2.8
-                    # choose the closest from existing axonD
-                    axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
-                    diff_axonD = [abs(x-axonD) for x in axonD_choices]
-                    fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
-                    fiberD = fiberD_choices[np.argmin(diff_axonD)]
-                    diams.append(fiberD)
-                else:
-                    """print "Unmyelinated in the function"
-                    print self.unmyelinated
-                    print "\n" """
-                    diam = self.unmyelinated['diam']
-                    densities = diam['densities'];
-                    sum_d = float(sum(densities))
-                    normalize_densities = [x / sum_d for x in densities]
-                    draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-                    D = diam['diameters'][draw_diam]
-                    diams.append(D)
+    def getDiam(self, axonType):
 
-        parameters_to_save = {'p_A': self.p_A, 'p_C': self.p_C, 'radius_bundle': self.radius_bundle, 'number_of_axons':self.number_of_axons, 'unmyelinated': self.unmyelinated, 'myelinated': self.myelinated_A}
-        header = repr(parameters_to_save)
-        filename = self.get_filename_for_draw()
-        directory = "FOR_PAPER/CAP2D/draws/"
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        DataOut = np.column_stack( (draw, diams))
-        filename_org = filename
-        number  = 0
-        while os.path.isfile(directory+filename):
-            number += 1
-            print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
-            filename = str(number) + filename_org
-        np.savetxt(directory+filename, DataOut, header=header)
-        return [draw, diams]
+        if axonType == 'm':
+            givenDiameter = self.myelinated_A['fiberD']
+
+            if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
+                return givenDiameter
+            elif isinstance(givenDiameter, dict):
+                # get diameter distribution
+                fiberD = self.myelinated_A['fiberD']
+                densities = fiberD['densities']
+
+                # normalize it
+                sum_d = float(sum(densities))
+                normalize_densities = [x / sum_d for x in densities]
+
+                # draw one diameter value from the distribution
+                draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+
+                # why add 2.8?
+                axonD = fiberD['diameters'][draw_diam]+2.8
+
+                # choose the closest from existing axonD
+                axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
+                diff_axonD = [abs(x-axonD) for x in axonD_choices]
+                fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
+                fiberD = fiberD_choices[np.argmin(diff_axonD)]
+                diam = fiberD
+            else:
+                raise('Something is wrong with your given axon diameter for myelinated axons.')
+
+        elif  axonType == 'u':
+            givenDiameter = self.unmyelinated['diam']
+
+            if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
+                return givenDiameter
+            elif isinstance(givenDiameter, dict):
+                fiberD = self.unmyelinated['diam']
+                densities = fiberD['densities']
+
+                sum_d = float(sum(densities))
+                normalize_densities = [x / sum_d for x in densities]
+
+                draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+                D = fiberD['diameters'][draw_diam]
+                diam = D
+            else:
+                raise('Something is wrong with your given axon diameter for unmyelinated axons.')
+
+
+        else:
+            raise('Wrong axon type given to function getDiam. Valid ones: u or m')
+
+        return diam
+
+    # def draw_distrib(self):
+    #     startTime = time.time()
+    #
+    #     draw = np.random.choice(2,self.number_of_axons,p = [self.p_A, self.p_C])
+    #     diams = []
+    #     for i in range(len(draw)):
+    #         if (isinstance(self.myelinated_A['fiberD'],float) and (isinstance(self.unmyelinated['diam'],float) or isinstance(self.unmyelinated['diam'],int))):
+    #             pass
+    #         else:
+    #             if draw[i] == 0:
+    #                 fiberD = self.myelinated_A['fiberD'];
+    #                 densities = fiberD['densities'];
+    #                 sum_d = float(sum(densities))
+    #                 normalize_densities = [x / sum_d for x in densities]
+    #                 draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+    #                 axonD = fiberD['diameters'][draw_diam]+2.8
+    #                 # choose the closest from existing axonD
+    #                 axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
+    #                 diff_axonD = [abs(x-axonD) for x in axonD_choices]
+    #                 fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
+    #                 fiberD = fiberD_choices[np.argmin(diff_axonD)]
+    #                 diams.append(fiberD)
+    #             else:
+    #                 """print "Unmyelinated in the function"
+    #                 print self.unmyelinated
+    #                 print "\n" """
+    #                 diam = self.unmyelinated['diam']
+    #                 densities = diam['densities'];
+    #                 sum_d = float(sum(densities))
+    #                 normalize_densities = [x / sum_d for x in densities]
+    #                 draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+    #                 D = diam['diameters'][draw_diam]
+    #                 diams.append(D)
+    #
+    #     print 'Time to draw from diameter distribution: ' + str(time.time() - startTime)
+    #
+    #
+    #     parameters_to_save = {'p_A': self.p_A, 'p_C': self.p_C, 'radius_bundle': self.radius_bundle, 'number_of_axons':self.number_of_axons, 'unmyelinated': self.unmyelinated, 'myelinated': self.myelinated_A}
+    #     header = repr(parameters_to_save)
+    #     filename = self.get_filename_for_draw()
+    #     directory = "FOR_PAPER/CAP2D/draws/"
+    #     if not os.path.exists(directory):
+    #         os.makedirs(directory)
+    #     DataOut = np.column_stack( (draw, diams))
+    #     filename_org = filename
+    #     number  = 0
+    #     while os.path.isfile(directory+filename):
+    #         number += 1
+    #         print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
+    #         filename = str(number) + filename_org
+    #     np.savetxt(directory+filename, DataOut, header=header)
+    #     return [draw, diams]
 
 
     def load_distrib(self):
