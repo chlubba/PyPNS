@@ -6,7 +6,7 @@ def getDirectoryName(keyword, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyel
     # CAP -> compound action potential folder
     # V -> voltage folder
 
-    homeDirectory="/media/carl/Elements/PyPN/"#""#
+    homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#
 
     if elecCount == 2:
         keyword=keyword+"2"

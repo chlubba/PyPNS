@@ -1,4 +1,4 @@
-from classes import * #BeforeRestructuring
+from classes import * #RestartRestructuring
 from classes_plot import *
 import time
 time.sleep(0) # delays for x seconds
@@ -36,7 +36,7 @@ lengthOfBundle = 2000
 
 
 # stimulus characteristics
-stim_types = ["INTRA"]#, "INTRA", "EXTRA"]
+stim_types = ["EXTRA"]#, "INTRA", "EXTRA"]
 waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"]
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
@@ -147,7 +147,7 @@ for VoltCAPSelector in [2]:#[1,2]:
                 # for i in range(len(bundle.axons)):
                 #     print list(list(bundle.axons[i].allseclist)[0].allseg())
 
-                # bundle.simulateBundle()
+                bundle.simulateBundle()
 
                 if rec_CAP:
                     save_CAP_tofile(bundle,Parameters)
