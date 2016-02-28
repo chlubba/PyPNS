@@ -514,7 +514,7 @@ class Myelinated(Axon):
         self.paranodes1= 2*(self.axonnodes-1)
         self.paranodes2= 2*(self.axonnodes-1)
         self.axoninter= 6*(self.axonnodes-1)
-        self.axontotal= self.axonnodes+paranodes1+paranodes2+axoninter
+        self.axontotal= self.axonnodes+self.paranodes1+self.paranodes2+self.axoninter
 
         # morphological parameters
         self.paralength1=3

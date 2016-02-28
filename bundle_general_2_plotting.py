@@ -17,14 +17,14 @@ h.finitialize(-65) # initialize voltage state
 calculationFlag = True
 plottingFlag = True
 
-plotCAP = True
-plotCAP1D = True
+plotCAP = False
+plotCAP1D = False
 plotCAP2D = False
 
-plotVoltage = False
+plotVoltage = True
 
 # bundle characteristics
-p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [1.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 16.0 #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5#'draw'
 
@@ -32,21 +32,21 @@ fiberD_C = 1.5#'draw'
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
 number_of_axons =  50
-lengthOfBundle = 2000
+lengthOfBundle = 5000
 
 
 # stimulus characteristics
-stim_types = ["EXTRA"]#, "INTRA", "EXTRA"]
-waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"]
+stim_types = ["INTRA"]#, "INTRA", "EXTRA"
+waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
-amplitudes = [1.0]#,2.0,0.5]
+amplitudes = [2.0]#,2.0,0.5]
 stimDur = [10]
 
 # recoding params
 number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
-recording_elec_pos = [2000] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-number_elecs =  150#150, #number of electrodes along the bundle
+recording_elec_pos = [math.floor(lengthOfBundle*0.9)] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+number_elecs =  10#150#150, #number of electrodes along the bundle
 
 # Do not change from here
 
@@ -79,7 +79,7 @@ if fiberD_C == 'draw':
 
 
 
-for VoltCAPSelector in [1]:#[1,2]:
+for VoltCAPSelector in [2]:#[1,2]:
     rec_CAP = (VoltCAPSelector==1)
     rec_v = (VoltCAPSelector==2)
     for j in range(len(duty_cycles)):
@@ -94,7 +94,7 @@ for VoltCAPSelector in [1]:#[1,2]:
                 'duty_cycle': duty_cycles[j], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                 'stim_dur' : stimDur[j], # Stimulus duration (ms)
                 'waveform': waveforms[j], # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-    }
+            }
 
             recordingParameters = {
                 "number_contact_points": number_contact_points, #Number of points on the circle constituing the cuff electrode
@@ -182,26 +182,33 @@ for VoltCAPSelector in [1]:#[1,2]:
                     if plotCAP1D:
 
                         numberOfRecordingSites = np.shape(CAP)[0]
-                        numberOfPlots = min(5, numberOfRecordingSites)
+                        numberOfPlots = min(10, numberOfRecordingSites)
 
-                        eletrodeSelection = np.floor(np.linspace(0,numberOfRecordingSites-1, numberOfPlots))
+                        if not numberOfPlots == 1:
 
-                        # Subplots
-                        f, axarr = plt.subplots(numberOfPlots, sharex=True)
+                            eletrodeSelection = np.floor(np.linspace(0,numberOfRecordingSites-1, numberOfPlots))
 
-                        for i in range(numberOfPlots):
+                            # Subplots
+                            f, axarr = plt.subplots(numberOfPlots, sharex=True)
 
-                            electrodeIndex = eletrodeSelection[i]
+                            for i in range(numberOfPlots):
 
-                            CAPSingleElectrode =  CAP[electrodeIndex,:]
-                            distanceFromOrigin = saveParams['L']/numberOfRecordingSites*electrodeIndex
+                                electrodeIndex = eletrodeSelection[i]
 
-                            axarr[i].plot(time, CAPSingleElectrode)
-                            axarr[i].set_title('distance ' + str(distanceFromOrigin) + ' [um]')
-                            axarr[i].set_ylabel('CAP [uV]')
+                                CAPSingleElectrode =  CAP[electrodeIndex,:]
+                                distanceFromOrigin = saveParams['L']/numberOfRecordingSites*electrodeIndex
 
-                            if i == numberOfPlots - 1:
-                                axarr[i].set_xlabel('time [ms]')
+                                axarr[i].plot(time, CAPSingleElectrode)
+                                axarr[i].set_title('distance ' + str(distanceFromOrigin) + ' [um]')
+                                axarr[i].set_ylabel('CAP [mV]')
+
+                                if i == numberOfPlots - 1:
+                                    axarr[i].set_xlabel('time [ms]')
+                        else:
+                            plt.plot(time, CAP[0,:])
+                            plt.title('CAP')
+                            plt.ylabel('CAP [mV]')
+
 
 
 
