@@ -177,7 +177,7 @@ for VoltCAPSelector in [1,2]:
 
                 if plotCAP:
 
-                    # get the whole CAP, can be signle electrode or multiple
+                    # get the whole CAP, can be single electrode or multiple
                     directory = getDirectoryName("CAP", **saveParams)
                     try:
                         newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)

@@ -10,6 +10,19 @@ import glob
 import os
 import shutil
 import copy
+
+# import matplotlib as mpl
+import matplotlib.pyplot as plt
+# import matplotlib.pylab as pyl
+# import matplotlib.gridspec as gridspec
+import matplotlib.cm as cm
+import matplotlib.colors as colors
+# from matplotlib.colors import LogNorm
+# from matplotlib.font_manager import FontProperties
+# from mpl_toolkits.axes_grid1 import make_axes_locatable
+# import os.path
+# import random
+
 from nameSetters import getDirectoryName
 """
     Some methods in the Axon class are based on existing methods in the Python package LFPY
@@ -1011,6 +1024,160 @@ class Bundle(object):
 
             DataOut = np.column_stack( (DataOut, voltageSingleAxonFormatted))
         np.savetxt(filename, DataOut)#, header=header)
+
+    def get_CAP_from_file(self):
+
+        # get the whole CAP, can be single electrode or multiple
+        directory = getDirectoryName("CAP", **self.saveParams)
+        try:
+            newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+        except ValueError:
+            print 'No CAP calculation has been performed yet with this set of parameter.'
+            quit()
+
+        CAPraw = np.transpose(np.loadtxt(newestFile))
+        time = CAPraw[0,:]
+        CAP = CAPraw[1:,:]
+
+        return time, CAP
+
+    def plot_CAP1D(self, maxNumberOfSubplots = 10):
+
+        # first load the desired data from file
+        time, CAP = self.get_CAP_from_file()
+
+        numberOfRecordingSites = np.shape(CAP)[0]
+
+        if not numberOfRecordingSites == 1:
+
+            numberOfPlots = min(maxNumberOfSubplots, numberOfRecordingSites-1)
+
+            eletrodeSelection = np.floor(np.linspace(1,numberOfRecordingSites-1, numberOfPlots))
+
+            # Subplots
+            f, axarr = plt.subplots(numberOfPlots, sharex=True)
+
+            for i in range(numberOfPlots):
+
+                electrodeIndex = eletrodeSelection[i]
+
+                CAPSingleElectrode =  CAP[electrodeIndex,:]
+                distanceFromOrigin = self.saveParams['L']/numberOfRecordingSites*electrodeIndex
+
+                axarr[i].plot(time, CAPSingleElectrode)
+                axarr[i].set_title('distance ' + str(distanceFromOrigin) + ' [um]')
+                axarr[i].set_ylabel('CAP [mV]')
+
+                if i == numberOfPlots - 1:
+                    axarr[i].set_xlabel('time [ms]')
+
+    def plot_CAP2D(self):
+
+        # first load the desired data from file
+        time, CAP = self.get_CAP_from_file()
+
+        # print as an image
+        fig = plt.figure()
+        im = plt.imshow(CAP, cmap=plt.get_cmap('gist_stern'), interpolation='none', aspect='auto')#, norm=LogNorm(vmin=CAPmin, vmax=CAPmax))
+
+        # correct xticks (from samples to ms)
+        numberOfXTicks = 10
+        tick_locs = np.round(np.linspace(0,np.shape(CAP)[1],numberOfXTicks))
+        tick_lbls = np.round(np.linspace(0,self.saveParams['tStop'],numberOfXTicks))
+        plt.xticks(tick_locs, tick_lbls, fontsize=12)
+
+        # correct yticks (from electrodes to distance)
+        numberOfYTicks = 10
+        tick_locs = np.round(np.linspace(0,np.shape(CAP)[0],numberOfYTicks))
+        tick_lbls = np.round(np.linspace(0,self.saveParams['L'],numberOfYTicks))
+        plt.yticks(tick_locs, tick_lbls, fontsize=12)
+
+        # add titles, axis labels and colorbar
+        fig.suptitle('Compound action potential [uV] over space and time', fontsize=20)
+        plt.xlabel('time [ms]')
+        plt.ylabel('Distance from axon origin [um]')
+        cbar = plt.colorbar(im)
+
+    def plot_voltage(self):
+        # get the whole CAP, can be signle electrode or multiple
+        directory = getDirectoryName("V", **self.saveParams)
+        try:
+            newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+        except ValueError:
+            print 'No voltage calculation has been performed yet with this set of parameter.'
+            quit()
+
+        # load the raw voltage file
+        timeStart = time.time()
+        Vraw = np.transpose(np.loadtxt(newestFile))
+        print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
+
+        timeRec = Vraw[0,1:] # extract time vector
+        segmentArray = Vraw[1:,0] # extract segment numbers for each axon (varies with diameter, lambda rule)
+        V = Vraw[1:,1:] # free actual voltage signals from surrounding formatting
+
+        # separate the axons, first get segment counts for each axon
+        segmentNumbers = [segmentArray[0]]
+        indexNextFirstEntry = segmentNumbers[0]
+        while indexNextFirstEntry < len(segmentArray):
+            segmentNumbers.append(segmentArray[indexNextFirstEntry])
+            indexNextFirstEntry += segmentNumbers[-1]
+
+        numberOfAxons = len(segmentNumbers)
+
+        firstIndices = np.cumsum((np.insert(segmentNumbers,0,0)))
+
+        voltageMatrices = []
+        for i in range(numberOfAxons):
+            startIndex = firstIndices[i]
+            endIndex = firstIndices[i+1]-1
+            voltageMatrices.append(V[startIndex:endIndex,:])
+
+        # now plot
+        numberOfAxons = np.shape(voltageMatrices)[0]
+        numberOfPlots = min(6, numberOfAxons)
+
+        axonSelection = np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
+
+        f, axarr = plt.subplots(numberOfPlots, sharex=True)
+
+        # colors
+        jet = plt.get_cmap('jet')
+
+        for i in range(len(axonSelection)):
+            axonIndex = int(axonSelection[i])
+
+            voltageMatrix = np.transpose(voltageMatrices[axonIndex])
+
+            # find out whether axon is myelinated or not
+            isMyelinated = (type(self.axons[axonIndex]) == Myelinated)
+
+            axonDiameter = self.axons[axonIndex].fiberD
+            currentNumberOfSegments = np.shape(voltageMatrix)[1]
+
+            if not isMyelinated:
+                cNorm = colors.Normalize(vmin=0, vmax=currentNumberOfSegments-1)#len(diameters_m)-1)#
+                scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+                for j in range(currentNumberOfSegments):
+                    colorVal = scalarMap.to_rgba(j)
+                    axarr[i].plot(timeRec, voltageMatrix[:,j], color=colorVal)
+                # axarr[i].set_title('distance ' + str(555) + ' [um]')
+                axarr[i].set_ylabel('Voltage [mV]')
+                axarr[i].set_xlabel('time [ms]')
+                axarr[i].set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
+            else:
+                Nnodes = self.myelinated_A['Nnodes']
+
+                cNorm = colors.Normalize(vmin=0, vmax=Nnodes-1)#len(diameters_m)-1)#
+                scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+
+                for j in range(Nnodes):
+                    colorVal = scalarMap.to_rgba(j)
+                    axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
+
+                axarr[i].set_ylabel('Voltage [mV]')
+                axarr[i].set_xlabel('time [ms]')
+                axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
 
     def create_axon(self, axonPosition):
 
