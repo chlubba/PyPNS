@@ -14,7 +14,11 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = True
+calculationFlag = False
+
+calculateCAP = False
+calculateVoltage = True
+
 plottingFlag = True
 
 plotCAP = False
@@ -79,9 +83,15 @@ if fiberD_C == 'draw':
 
 
 
-for VoltCAPSelector in [2]:#[1,2]:
+for VoltCAPSelector in [1,2]:
     rec_CAP = (VoltCAPSelector==1)
     rec_v = (VoltCAPSelector==2)
+
+    if rec_CAP and not calculateCAP:
+        continue
+    if rec_v and not calculateVoltage:
+        continue
+
     for j in range(len(duty_cycles)):
         for k in range(len(p_A)):#[0]:#range(1,len(p_A)):#
             stimulusParameters = {
@@ -139,9 +149,9 @@ for VoltCAPSelector in [2]:#[1,2]:
             Parameters1 = dict(bundleParameters, **stimulusParameters)
             Parameters = dict(Parameters1, **recordingParameters)
 
-            if calculationFlag:
+            bundle = Bundle(**Parameters)
 
-                bundle = Bundle(**Parameters)
+            if calculationFlag:
 
                 # print 'Are the segments in the first two axons the same?'
                 # for i in range(len(bundle.axons)):
@@ -155,7 +165,7 @@ for VoltCAPSelector in [2]:#[1,2]:
                     # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
                     save_voltage_tofile(bundle,Parameters)
 
-                bundle = None
+                # bundle = None
 
             if plottingFlag:
 
@@ -256,7 +266,7 @@ for VoltCAPSelector in [2]:#[1,2]:
                     Vraw = np.transpose(np.loadtxt(newestFile))
                     print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
 
-                    time = Vraw[0,1:] # extract time vector
+                    timeRec = Vraw[0,1:] # extract time vector
                     segmentArray = Vraw[1:,0] # extract segment numbers for each axon (varies with diameter, lambda rule)
                     V = Vraw[1:,1:] # free actual voltage signals from surrounding formatting
 
@@ -289,24 +299,48 @@ for VoltCAPSelector in [2]:#[1,2]:
                     jet = plt.get_cmap('jet')
 
                     for i in range(len(axonSelection)):
-                        voltageMatrix = np.transpose(voltageMatrices[int(axonSelection[i])])
+                        axonIndex = int(axonSelection[i])
+
+                        voltageMatrix = np.transpose(voltageMatrices[axonIndex])
+
+                        # find out whether axon is myelinated or not
+                        isMyelinated = (type(bundle.axons[axonIndex]) == Myelinated)
+                        if isMyelinated:
+                            axonDiameter = bundle.axons[axonIndex].fiberD
+                        else:
+                            axonDiameter = bundle.axons[axonIndex].diam
 
                         currentNumberOfSegments = np.shape(voltageMatrix)[1]
 
-                        cNorm = colors.Normalize(vmin=0, vmax=currentNumberOfSegments-1)#len(diameters_m)-1)#
-                        scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+                        if not isMyelinated:
+                            cNorm = colors.Normalize(vmin=0, vmax=currentNumberOfSegments-1)#len(diameters_m)-1)#
+                            scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+                            for j in range(currentNumberOfSegments):
+                                colorVal = scalarMap.to_rgba(j)
+                                axarr[i].plot(timeRec, voltageMatrix[:,j], color=colorVal)
+                            # axarr[i].set_title('distance ' + str(555) + ' [um]')
+                            axarr[i].set_ylabel('Voltage [mV]')
+                            axarr[i].set_xlabel('time [ms]')
+                            axarr[i].set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter))
+                        else:
+                            Nnodes = bundle.myelinated_A['Nnodes']
 
-                        for j in range(currentNumberOfSegments):
-                            colorVal = scalarMap.to_rgba(j)
-                            axarr[i].plot(time, voltageMatrix[:,j], color=colorVal)
-                        # axarr[i].set_title('distance ' + str(555) + ' [um]')
-                        axarr[i].set_ylabel('Voltage [mV]')
-                        axarr[i].set_xlabel('time [ms]')
+                            cNorm = colors.Normalize(vmin=0, vmax=Nnodes-1)#len(diameters_m)-1)#
+                            scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+
+                            for j in range(Nnodes):
+                                colorVal = scalarMap.to_rgba(j)
+                                axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
+
+                            axarr[i].set_ylabel('Voltage [mV]')
+                            axarr[i].set_xlabel('time [ms]')
+                            axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter))
+
 
                     # finally show result
                     pyl.show()
                     print 'plotit'
 
-
+bundle = None
 
 
