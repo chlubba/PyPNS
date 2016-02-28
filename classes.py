@@ -9,6 +9,7 @@ import time
 import glob
 import os
 import shutil
+import copy
 from nameSetters import getDirectoryName
 """
     Some methods in the Axon class are based on existing methods in the Python package LFPY
@@ -1022,7 +1023,7 @@ class Bundle(object):
         axonDiameter = self.getDiam(axonType)
 
         if axonTypeIndex == 1:
-            unmyel = self.unmyelinated
+            unmyel = copy.copy(self.unmyelinated)
             unmyel['diam'] = axonDiameter
             axonParameters = dict( {'coord': axonPosition},**unmyel)
             self.axons.append(Unmyelinated(**axonParameters))
@@ -1043,7 +1044,7 @@ class Bundle(object):
             #     print list(list(self.axons[i].allseclist)[0].allseg())
 
         elif axonTypeIndex == 0:
-            myel = self.myelinated_A
+            myel = copy.copy(self.myelinated_A)
             myel['fiberD'] = axonDiameter
             axonParameters = dict( {'coord':axonPosition},**myel)
             self.axons.append(Myelinated(**axonParameters))

@@ -14,23 +14,23 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = True
+calculationFlag = False
 
-calculateCAP = False
-calculateVoltage = True
+calculateCAP = True
+calculateVoltage = False
 
 plottingFlag = True
 
-plotCAP = False
-plotCAP1D = False
+plotCAP = True
+plotCAP1D = True
 plotCAP2D = False
 
 plotVoltage = True
 
 # bundle characteristics
 p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
-fiberD_A = 16.0 #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
-fiberD_C = 1.5#'draw'
+fiberD_A = 'draw' #16.0 #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
+fiberD_C = 'draw' #1.5#'draw'
 
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
@@ -40,8 +40,8 @@ lengthOfBundle = 5000
 
 
 # stimulus characteristics
-stim_types = ["INTRA"]#, "INTRA", "EXTRA"
-waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"
+stim_types = ["EXTRA"]#, "INTRA", "EXTRA"
+waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
 amplitudes = [2.0]#,2.0,0.5]
@@ -192,11 +192,12 @@ for VoltCAPSelector in [1,2]:
                     if plotCAP1D:
 
                         numberOfRecordingSites = np.shape(CAP)[0]
-                        numberOfPlots = min(10, numberOfRecordingSites)
 
-                        if not numberOfPlots == 1:
+                        if not numberOfRecordingSites == 1:
 
-                            eletrodeSelection = np.floor(np.linspace(0,numberOfRecordingSites-1, numberOfPlots))
+                            numberOfPlots = min(10, numberOfRecordingSites-1)
+
+                            eletrodeSelection = np.floor(np.linspace(1,numberOfRecordingSites-1, numberOfPlots))
 
                             # Subplots
                             f, axarr = plt.subplots(numberOfPlots, sharex=True)
@@ -307,11 +308,6 @@ for VoltCAPSelector in [1,2]:
                         isMyelinated = (type(bundle.axons[axonIndex]) == Myelinated)
 
                         axonDiameter = bundle.axons[axonIndex].fiberD
-                        # if isMyelinated:
-                        #
-                        # else:
-                        #     axonDiameter = bundle.axons[axonIndex].diam
-
                         currentNumberOfSegments = np.shape(voltageMatrix)[1]
 
                         if not isMyelinated:
