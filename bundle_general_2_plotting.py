@@ -14,7 +14,7 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = False
+calculationFlag = True
 
 calculateCAP = False
 calculateVoltage = True
@@ -28,7 +28,7 @@ plotCAP2D = False
 plotVoltage = True
 
 # bundle characteristics
-p_A = [1.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 16.0 #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5#'draw'
 
@@ -159,11 +159,11 @@ for VoltCAPSelector in [1,2]:
 
                 bundle.simulateBundle()
 
-                if rec_CAP:
-                    save_CAP_tofile(bundle,Parameters)
-                if rec_v:
-                    # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
-                    save_voltage_tofile(bundle,Parameters)
+                # if rec_CAP:
+                #     save_CAP_tofile(bundle,Parameters)
+                # if rec_v:
+                #     # When saving voltage to file limit the number of axons to 10. If 100 unmyelinated it produces a 1Go file, and if 100 myelinated 2Go.
+                #     save_voltage_tofile(bundle,Parameters)
 
                 # bundle = None
 
@@ -305,10 +305,12 @@ for VoltCAPSelector in [1,2]:
 
                         # find out whether axon is myelinated or not
                         isMyelinated = (type(bundle.axons[axonIndex]) == Myelinated)
-                        if isMyelinated:
-                            axonDiameter = bundle.axons[axonIndex].fiberD
-                        else:
-                            axonDiameter = bundle.axons[axonIndex].diam
+
+                        axonDiameter = bundle.axons[axonIndex].fiberD
+                        # if isMyelinated:
+                        #
+                        # else:
+                        #     axonDiameter = bundle.axons[axonIndex].diam
 
                         currentNumberOfSegments = np.shape(voltageMatrix)[1]
 
@@ -321,7 +323,7 @@ for VoltCAPSelector in [1,2]:
                             # axarr[i].set_title('distance ' + str(555) + ' [um]')
                             axarr[i].set_ylabel('Voltage [mV]')
                             axarr[i].set_xlabel('time [ms]')
-                            axarr[i].set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter))
+                            axarr[i].set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
                         else:
                             Nnodes = bundle.myelinated_A['Nnodes']
 
@@ -334,7 +336,7 @@ for VoltCAPSelector in [1,2]:
 
                             axarr[i].set_ylabel('Voltage [mV]')
                             axarr[i].set_xlabel('time [ms]')
-                            axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter))
+                            axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
 
 
                     # finally show result

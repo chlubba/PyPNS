@@ -347,6 +347,7 @@ class Unmyelinated(Axon):
         self.coord = coord
         self.L = L
         self.diam = diam
+        self.fiberD = diam
         print "Unmyelinated axon diameter: " +str(self.diam)
         self.cm = cm
         self.Ra = Ra
@@ -963,8 +964,52 @@ class Bundle(object):
                 self.compute_CAP2D_fromfile() 
             else:
                 self.compute_CAP1D_fromfile()
-                    
+            self.save_CAP_to_file()
 
+        self.save_voltage_to_file()
+                    
+    def save_CAP_to_file(self):
+        filename = self.get_filename("CAP")
+        print "Save location for CAP file: " + filename
+
+        # maybe add the header later. Right now we assume that the simulation is defined by the bundle object that get
+        # always generated during the whole simulation. If files are opened independently from a bundle object, such a
+        # header would be useful.
+        # header = repr(parameters)
+        DataOut = np.array(self.trec)
+        if self.number_elecs != 1:
+            for i in range(len(self.sum_CAP)):
+                DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP[i])))
+        else:
+            DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP)))
+
+        np.savetxt(filename, DataOut)
+
+    def save_voltage_to_file(self):
+        filename = self.get_filename("V")
+        print "Save location for voltage file: " + filename
+        #header= repr(parameters)
+
+        DataOut = np.concatenate(([0],np.array(self.trec)))
+
+        voltages = np.array(self.voltages)
+
+        if np.size(voltages) == 0:
+            return
+
+        # as np.array(...) only converts outer Vector to python-readable format, we need to iterate through elements to convert
+        # inner vectors where the actual voltage signals are stored.
+
+        for i in range(len(voltages)):
+            voltageSingleAxon = np.transpose(np.array(voltages[i]))
+
+            # append the sectionlength in the first column in order to differentiate different axons later
+            numberOfSegments = np.shape(voltageSingleAxon)[1]
+            numberOfSegmentsArray = np.multiply(np.ones(numberOfSegments),np.array(numberOfSegments))
+            voltageSingleAxonFormatted = np.row_stack((numberOfSegmentsArray, voltageSingleAxon))
+
+            DataOut = np.column_stack( (DataOut, voltageSingleAxonFormatted))
+        np.savetxt(filename, DataOut)#, header=header)
 
     def create_axon(self, axonPosition):
 
