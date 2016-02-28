@@ -342,20 +342,27 @@ class Unmyelinated(Axon):
     """
     def __init__(self, name, L, diam, cm, Ra, coord, layout3D, rec_v, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
         super(Unmyelinated,self).__init__(layout3D, rec_v)
-        self.axon = h.Section(name = str(name))
 
-        self.allseclist = h.SectionList()
-        self.allseclist.append(sec = self.axon)
-        #self.allseclist = [self.axon]
+        # set all properties
         self.coord = coord
-        ## Inserted as attribute mainly for visualization purpose using pyreverse
         self.L = L
         self.diam = diam
         print "Unmyelinated axon diameter: " +str(self.diam)
         self.cm = cm
         self.Ra = Ra
         self.hhDraw = hhDraw
+        self.name = name
+        self.nsegs_method = nsegs_method
+        self.lambda_f = lambda_f
+        self.d_lambda = d_lambda
+        self.max_nsegs_length = max_nsegs_length
         ## End insertion
+
+    def create_neuron_object(self):
+        self.axon = h.Section(name = str(self.name))
+        self.allseclist = h.SectionList()
+        self.allseclist.append(sec = self.axon)
+
         self.axon.insert('extracellular')
         self.axon.insert('xtra')
         self.axon_update_property()
@@ -364,15 +371,13 @@ class Unmyelinated(Axon):
         elif (self.layout3D == "PT3D"):
              ### PLACE AXON SPATIALLY #######################################################        
             h.pt3dclear(sec=self.axon)
-            h.pt3dadd(0, coord[0], coord[1], self.axon.diam, sec=self.axon)
-            h.pt3dadd(self.axon.L, coord[0], coord[1], self.axon.diam, sec=self.axon)
+            h.pt3dadd(0, self.coord[0], self.coord[1], self.axon.diam, sec=self.axon)
+            h.pt3dadd(self.axon.L, self.coord[0], self.coord[1], self.axon.diam, sec=self.axon)
             ################################################################################
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
 
-        #print list(self.axon.allseg())
-        self.set_nsegs(nsegs_method, lambda_f, d_lambda, max_nsegs_length)
-        #print list(self.axon.allseg())
+        self.set_nsegs(self.nsegs_method, self.lambda_f, self.d_lambda, self.max_nsegs_length)
 
         for sec_id in self.allseclist:
             for seg in sec_id:
@@ -382,6 +387,13 @@ class Unmyelinated(Axon):
         self.collect_geometry()
         self.channel_init(0.120,0.036,0.0003,50,-77,-54.3) # default values of hh channel are used
         
+    def delete_neuron_object(self):
+        ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
+        for sec in self.allseclist:
+            for seg in sec:
+                seg = None
+            sec = None
+        self.axon = None
 
     def axon_update_property(self):
         self.axon.L = self.L
@@ -496,27 +508,25 @@ class Myelinated(Axon):
         self.coord = coord
         self.fiberD = fiberD #choose from 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 
-        self.allseclist = h.SectionList()
-                                
         print 'Myelinated fiber diameter: ' + str(self.fiberD)
         # topological parameters
         """self.axonnodes=21"""
-        paranodes1= 2*(self.axonnodes-1)
-        paranodes2= 2*(self.axonnodes-1)
-        axoninter= 6*(self.axonnodes-1)
-        axontotal= self.axonnodes+paranodes1+paranodes2+axoninter
+        self.paranodes1= 2*(self.axonnodes-1)
+        self.paranodes2= 2*(self.axonnodes-1)
+        self.axoninter= 6*(self.axonnodes-1)
+        self.axontotal= self.axonnodes+paranodes1+paranodes2+axoninter
 
         # morphological parameters
         self.paralength1=3
         self.nodelength=1.0
-        space_p1=0.002
-        space_p2=0.004
-        space_i=0.004
+        self.space_p1=0.002
+        self.space_p2=0.004
+        self.space_i=0.004
 
         #electrical parameters
-        rhoa=0.7e6 #Ohm-um
-        mycm=0.1 #uF/cm2/lamella membrane
-        mygm=0.001 #S/cm2/lamella membrane
+        self.rhoa=0.7e6 #Ohm-um
+        self.mycm=0.1 #uF/cm2/lamella membrane
+        self.mygm=0.001 #S/cm2/lamella membrane
 
 
 
@@ -603,29 +613,41 @@ class Myelinated(Axon):
             self.paralength2=60
             nl=150
 
+        self.g = g
+        self.axonD = axonD
+        self.nodeD = nodeD
+        self.paraD1 = paraD1
+        self.paraD2 = paraD2
+        self.deltax = deltax
+        self.nl = nl
 
-        Rpn0=(rhoa*0.01)/(math.pi*((math.pow((nodeD/2)+space_p1,2))-(math.pow(nodeD/2,2))))
-        Rpn1=(rhoa*0.01)/(math.pi*((math.pow((paraD1/2)+space_p1,2))-(math.pow(paraD1/2,2))))
-        Rpn2=(rhoa*0.01)/(math.pi*((math.pow((paraD2/2)+space_p2,2))-(math.pow(paraD2/2,2))))
-        Rpx=(rhoa*0.01)/(math.pi*((math.pow((axonD/2)+space_i,2))-(math.pow(axonD/2,2))))
-        self.interlength=(deltax-self.nodelength-(2*self.paralength1)-(2*self.paralength2))/6
+        self.Rpn0=(self.rhoa*0.01)/(math.pi*((math.pow((self.nodeD/2)+self.space_p1,2))-(math.pow(nodeD/2,2))))
+        self.Rpn1=(self.rhoa*0.01)/(math.pi*((math.pow((self.paraD1/2)+self.space_p1,2))-(math.pow(paraD1/2,2))))
+        self.Rpn2=(self.rhoa*0.01)/(math.pi*((math.pow((self.paraD2/2)+self.space_p2,2))-(math.pow(paraD2/2,2))))
+        self.Rpx=(self.rhoa*0.01)/(math.pi*((math.pow((self.axonD/2)+self.space_i,2))-(math.pow(axonD/2,2))))
+
+        self.interlength=(self.deltax-self.nodelength-(2*self.paralength1)-(2*self.paralength2))/6
 
         super(Myelinated,self).__init__(layout3D, rec_v)
+
+    def create_neuron_object(self):
+
+        self.allseclist = h.SectionList()
 
         #### from initialize() ####
         self.nodes = []
         for i in range(self.axonnodes):
             node = h.Section()
             node.nseg = 1
-            node.diam = nodeD
+            node.diam = self.nodeD
             node.L = self.nodelength
-            node.Ra = rhoa/10000
+            node.Ra = self.rhoa/10000
             node.cm = 2
             node.insert('axnode')
             #h('insert extracellular xraxial=Rpn0 xg=1e10 xc=0')
             node.insert('extracellular')
-            node.xraxial[0] = Rpn0
-            node.xraxial[1] = Rpn0
+            node.xraxial[0] = self.Rpn0
+            node.xraxial[1] = self.Rpn0
             node.xg[0] =1e10
             node.xg[1] =1e10
             node.xc[0] =0
@@ -636,72 +658,72 @@ class Myelinated(Axon):
             self.allseclist.append(sec=node)
 
         self.MYSAs = [] # paranodes1
-        for i in range(paranodes1):
+        for i in range(self.paranodes1):
             MYSA = h.Section()
             MYSA.nseg = 1
             MYSA.diam = self.fiberD
             MYSA.L = self.paralength1
-            MYSA.Ra = rhoa*(1/math.pow(paraD1/self.fiberD,2))/10000
-            MYSA.cm = 2*paraD1/self.fiberD
+            MYSA.Ra = self.rhoa*(1/math.pow(self.paraD1/self.fiberD,2))/10000
+            MYSA.cm = 2*self.paraD1/self.fiberD
             MYSA.insert('pas')
-            MYSA.g_pas = 0.001*paraD1/self.fiberD
+            MYSA.g_pas = 0.001*self.paraD1/self.fiberD
             MYSA.e_pas = -80
             #h('insert extracellular xraxial=Rpn1 xg=mygm/(nl*2) xc=mycm/(nl*2)')
             MYSA.insert('extracellular')
-            MYSA.xraxial[0] = Rpn1
-            MYSA.xraxial[1] = Rpn1
-            MYSA.xg[0] = mygm/(nl*2)
-            MYSA.xg[1] = mygm/(nl*2)
-            MYSA.xc[0] = mycm/(nl*2)
-            MYSA.xc[1] = mycm/(nl*2)
+            MYSA.xraxial[0] = self.Rpn1
+            MYSA.xraxial[1] = self.Rpn1
+            MYSA.xg[0] = self.mygm/(self.nl*2)
+            MYSA.xg[1] = self.mygm/(self.nl*2)
+            MYSA.xc[0] = self.mycm/(self.nl*2)
+            MYSA.xc[1] = self.mycm/(self.nl*2)
             MYSA.insert('xtra')
 
             self.MYSAs.append(MYSA)
             self.allseclist.append(sec=MYSA)
 
         self.FLUTs = [] # paranodes2
-        for i in range(paranodes2):
+        for i in range(self.paranodes2):
             FLUT = h.Section()
             FLUT.nseg = 1
             FLUT.diam = self.fiberD
             FLUT.L = self.paralength2
-            FLUT.Ra = rhoa*(1/math.pow(paraD2/self.fiberD,2))/10000
-            FLUT.cm = 2*paraD2/self.fiberD
+            FLUT.Ra = self.rhoa*(1/math.pow(self.paraD2/self.fiberD,2))/10000
+            FLUT.cm = 2*self.paraD2/self.fiberD
             FLUT.insert('pas')
-            FLUT.g_pas = 0.0001*paraD2/self.fiberD
+            FLUT.g_pas = 0.0001*self.paraD2/self.fiberD
             FLUT.e_pas = -80
             #h('insert extracellular xraxial=Rpn2 xg=mygm/(nl*2) xc=mycm/(nl*2)')
             FLUT.insert('extracellular')
-            FLUT.xraxial[0] =Rpn2
-            FLUT.xraxial[1] =Rpn2
-            FLUT.xg[0] = mygm/(nl*2)
-            FLUT.xg[1] = mygm/(nl*2)
-            FLUT.xc[0] = mycm/(nl*2)
-            FLUT.xc[1] = mycm/(nl*2)
+            FLUT.xraxial[0] = self.Rpn2
+            FLUT.xraxial[1] = self.Rpn2
+            FLUT.xg[0] = self.mygm/(self.nl*2)
+            FLUT.xg[1] = self.mygm/(self.nl*2)
+            FLUT.xc[0] = self.mycm/(self.nl*2)
+            FLUT.xc[1] = self.mycm/(self.nl*2)
             FLUT.insert('xtra')
 
             self.FLUTs.append(FLUT)
             self.allseclist.append(sec=FLUT)
 
         self.STINs = [] # internodes
-        for i in range(axoninter):
+        for i in range(self.axoninter):
             STIN = h.Section()
             STIN.nseg = 1
             STIN.diam = self.fiberD
             STIN.L = self.interlength
-            STIN.Ra = rhoa*(1/math.pow(axonD/self.fiberD,2))/10000
-            STIN.cm = 2*axonD/self.fiberD
+            STIN.Ra = self.rhoa*(1/math.pow(self.axonD/self.fiberD,2))/10000
+            STIN.cm = 2*self.axonD/self.fiberD
             STIN.insert('pas')
-            STIN.g_pas = 0.0001*axonD/self.fiberD
+            STIN.g_pas = 0.0001*self.axonD/self.fiberD
             STIN.e_pas = -80
             #h('insert extracellular xraxial=Rpx xg=mygm/(nl*2) xc=mycm/(nl*2)')
             STIN.insert('extracellular')
-            STIN.xraxial[0] = Rpx
-            STIN.xraxial[1] = Rpx
-            STIN.xg[0] = mygm/(nl*2)
-            STIN.xg[1] = mygm/(nl*2)
-            STIN.xc[0] = mycm/(nl*2)
-            STIN.xc[1] = mycm/(nl*2)
+            STIN.xraxial[0] = self.Rpx
+            STIN.xraxial[1] = self.Rpx
+            STIN.xg[0] = self.mygm/(self.nl*2)
+            STIN.xg[1] = self.mygm/(self.nl*2)
+            STIN.xc[0] = self.mycm/(self.nl*2)
+            STIN.xc[1] = self.mycm/(self.nl*2)
             STIN.insert('xtra')
 
             self.STINs.append(STIN)
@@ -725,36 +747,36 @@ class Myelinated(Axon):
             ### PLACE AXON SPATIALLY #############################################################################################################################################################       
             for i in range(self.axonnodes-1):
                 h.pt3dclear(sec=self.nodes[i])
-                h.pt3dadd(0, coord[0], coord[1], self.nodes[i].diam, sec=self.nodes[i])
-                h.pt3dadd(self.nodelength*i+self.interlength*6*i+2*i*self.paralength1+ 2*i*self.paralength2 + self.nodelength, coord[0], coord[1], self.nodes[i].diam, sec=self.nodes[i])
+                h.pt3dadd(0, self.coord[0], self.coord[1], self.nodes[i].diam, sec=self.nodes[i])
+                h.pt3dadd(self.nodelength*i+self.interlength*6*i+2*i*self.paralength1+ 2*i*self.paralength2 + self.nodelength, self.coord[0], self.coord[1], self.nodes[i].diam, sec=self.nodes[i])
 
                 self.MYSAs[2*i].connect(self.nodes[i],1,0)
                 h.pt3dclear(sec=self.MYSAs[2*i])
-                h.pt3dadd(self.nodelength*i+self.interlength*6*i+2*i*self.paralength1+ 2*i*self.paralength2 + self.nodelength, coord[0], coord[1], self.MYSAs[2*i].diam, sec=self.MYSAs[2*i])
-                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 +self.paralength1, coord[0], coord[1], self.MYSAs[2*i].diam, sec=self.MYSAs[2*i])
+                h.pt3dadd(self.nodelength*i+self.interlength*6*i+2*i*self.paralength1+ 2*i*self.paralength2 + self.nodelength, self.coord[0], self.coord[1], self.MYSAs[2*i].diam, sec=self.MYSAs[2*i])
+                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 +self.paralength1, self.coord[0], self.coord[1], self.MYSAs[2*i].diam, sec=self.MYSAs[2*i])
 
                 self.FLUTs[2*i].connect(self.MYSAs[2*i],1,0)
                 h.pt3dclear(sec=self.FLUTs[2*i])
-                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 +self.paralength1, coord[0], coord[1], self.FLUTs[2*i].diam, sec=self.FLUTs[2*i])
-                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 + self.paralength1 + self.paralength2, coord[0], coord[1], self.FLUTs[2*i].diam, sec=self.FLUTs[2*i])
+                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 +self.paralength1, self.coord[0], self.coord[1], self.FLUTs[2*i].diam, sec=self.FLUTs[2*i])
+                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 + self.paralength1 + self.paralength2, self.coord[0], self.coord[1], self.FLUTs[2*i].diam, sec=self.FLUTs[2*i])
                 for j in range(6):
                     self.STINs[6*i+j].connect(self.FLUTs[2*i],1,0)
                     h.pt3dclear(sec=self.STINs[6*i+j])
-                    h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 + self.paralength1 + self.paralength2+ j*self.interlength, coord[0], coord[1], self.STINs[6*i+j].diam, sec=self.STINs[6*i+j])
-                    h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + (j+1)*self.interlength, coord[0], coord[1], self.STINs[6*i+j].diam, sec=self.STINs[6*i+j])
+                    h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 + self.paralength1 + self.paralength2+ j*self.interlength, self.coord[0], self.coord[1], self.STINs[6*i+j].diam, sec=self.STINs[6*i+j])
+                    h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + (j+1)*self.interlength, self.coord[0], self.coord[1], self.STINs[6*i+j].diam, sec=self.STINs[6*i+j])
                 self.FLUTs[2*i+1].connect(self.STINs[6*i+5],1,0)
                 h.pt3dclear(sec=self.FLUTs[2*i+1])
-                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + 6*self.interlength, coord[0], coord[1], self.FLUTs[2*i+1].diam, sec=self.FLUTs[2*i+1])
-                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 +self.paralength1, coord[0], coord[1], self.FLUTs[2*i+1].diam, sec=self.FLUTs[2*i+1])
+                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + 6*self.interlength, self.coord[0], self.coord[1], self.FLUTs[2*i+1].diam, sec=self.FLUTs[2*i+1])
+                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 +self.paralength1, self.coord[0], self.coord[1], self.FLUTs[2*i+1].diam, sec=self.FLUTs[2*i+1])
                 self.MYSAs[2*i+1].connect(self.FLUTs[2*i+1],1,0)
                 h.pt3dclear(sec=self.MYSAs[2*i+1])
-                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 +self.paralength1, coord[0], coord[1], self.MYSAs[2*i+1].diam, sec=self.MYSAs[2*i+1])
-                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + self.paralength1 + self.paralength2, coord[0], coord[1], self.MYSAs[2*i+1].diam, sec=self.MYSAs[2*i+1])
+                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 +self.paralength1, self.coord[0], self.coord[1], self.MYSAs[2*i+1].diam, sec=self.MYSAs[2*i+1])
+                h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + self.paralength1 + self.paralength2, self.coord[0], self.coord[1], self.MYSAs[2*i+1].diam, sec=self.MYSAs[2*i+1])
                 self.nodes[i+1].connect(self.MYSAs[2*i+1],1,0)
 
             h.pt3dclear(sec=self.nodes[self.axonnodes-1])
-            h.pt3dadd(self.nodelength*(self.axonnodes-1)+self.interlength*(self.axonnodes-1)*6+2*(self.axonnodes-1)*self.paralength1+ 2*(self.axonnodes-1)*self.paralength2, coord[0], coord[1], self.nodes[self.axonnodes-1].diam, sec=self.nodes[self.axonnodes-1])
-            h.pt3dadd(self.nodelength*(self.axonnodes-1)+self.interlength*(self.axonnodes-1)*6+2*(self.axonnodes-1)*self.paralength1+ 2*(self.axonnodes-1)*self.paralength2 +self.nodelength, coord[0], coord[1], self.nodes[self.axonnodes-1].diam, sec=self.nodes[self.axonnodes-1])
+            h.pt3dadd(self.nodelength*(self.axonnodes-1)+self.interlength*(self.axonnodes-1)*6+2*(self.axonnodes-1)*self.paralength1+ 2*(self.axonnodes-1)*self.paralength2, self.coord[0], self.coord[1], self.nodes[self.axonnodes-1].diam, sec=self.nodes[self.axonnodes-1])
+            h.pt3dadd(self.nodelength*(self.axonnodes-1)+self.interlength*(self.axonnodes-1)*6+2*(self.axonnodes-1)*self.paralength1+ 2*(self.axonnodes-1)*self.paralength2 +self.nodelength, self.coord[0], self.coord[1], self.nodes[self.axonnodes-1].diam, sec=self.nodes[self.axonnodes-1])
         #######################################################################################################################################################################################################
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
@@ -768,7 +790,17 @@ class Myelinated(Axon):
         self.interpxyz()
         self.collect_geometry()
         
+    def delete_neuron_object(self):
+        ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
+        for sec in self.allseclist:
+            for seg in sec:
+                seg = None
+            sec = None
 
+        self.nodes = None
+        self.FLUTs = None
+        self.MYSAs = None
+        self.STINs = None
 
 class Stimulus(object):
     """
@@ -917,10 +949,10 @@ class Bundle(object):
         # create Simulus instace used for all axons
         self.stim = Stimulus(self.stim_type, self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
 
-        # connect to stimulus
-        for i in range(self.virtual_number_axons):
-            axon = self.axons[i]
-            self.stim.connectAxon(axon)
+        # # connect to stimulus
+        # for i in range(self.virtual_number_axons):
+        #     axon = self.axons[i]
+        #     self.stim.connectAxon(axon)
 
     def simulateBundle(self):
 
@@ -977,6 +1009,9 @@ class Bundle(object):
 
     def simulateAxons(self):
 
+        # where are the electrodes
+        [angles,X,Y,Z,N] = self.setup_recording_elec()
+
         runFlag = False
         for axonIndex in range(self.virtual_number_axons):
 
@@ -984,9 +1019,6 @@ class Bundle(object):
 
             # where is the axon
             axonPosition = axon.coord
-
-            # where are the electrodes
-            [angles,X,Y,Z,N] = self.setup_recording_elec()
 
             electrodeParameters = {         #parameters for RecExtElectrode class
                     'sigma' : 0.3,              #Extracellular potential
@@ -1001,6 +1033,12 @@ class Bundle(object):
 
             ### LAUNCH SIMULATION ###
             temp = time.time()
+
+            # create the neuron object specified in the axon class object
+            axon.create_neuron_object()
+
+            # connect to stimulus
+            self.stim.connectAxon(axon)
 
             if axonIndex == 0:
             # record time variable
@@ -1024,17 +1062,21 @@ class Bundle(object):
             elif axon.rec_v:
                 # just run a normal NEURON simulation to record the voltage
                 axon.set_voltage_recorders()
-                runFlag = True #h.run() #
+                h.run() #runFlag = True #
                 self.voltages.append(axon.vreclist)
-                #elapsed = time.time()-temp
-                #print "Elapsed time to simulate V: " + str(elapsed)
+                elapsed = time.time()-temp
+                print "Elapsed time to simulate V: " + str(elapsed)
             else:
                 print "You are probably recording nothing for this axon"
-                runFlag = True #h.run() #
-        if runFlag:
-            startTime = time.time()
-            h.run()
-            print 'Elapsed time for voltage simulation ' + str(time.time() - startTime)
+                h.run() #runFlag = True #
+
+            # delete the object
+            axon.delete_neuron_object()
+
+        # if runFlag:
+        #     startTime = time.time()
+        #     h.run()
+        #     print 'Elapsed time for voltage simulation ' + str(time.time() - startTime)
             # ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
             # for sec in h.allsec():
             #     for seg in sec:

@@ -17,11 +17,11 @@ h.finitialize(-65) # initialize voltage state
 calculationFlag = True
 plottingFlag = True
 
-plotCAP = False
+plotCAP = True
 plotCAP1D = True
 plotCAP2D = False
 
-plotVoltage = True
+plotVoltage = False
 
 # bundle characteristics
 p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
@@ -79,7 +79,7 @@ if fiberD_C == 'draw':
 
 
 
-for VoltCAPSelector in [2]:#[1,2]:
+for VoltCAPSelector in [1]:#[1,2]:
     rec_CAP = (VoltCAPSelector==1)
     rec_v = (VoltCAPSelector==2)
     for j in range(len(duty_cycles)):
