@@ -11,17 +11,9 @@ import os
 import shutil
 import copy
 
-# import matplotlib as mpl
 import matplotlib.pyplot as plt
-# import matplotlib.pylab as pyl
-# import matplotlib.gridspec as gridspec
 import matplotlib.cm as cm
 import matplotlib.colors as colors
-# from matplotlib.colors import LogNorm
-# from matplotlib.font_manager import FontProperties
-# from mpl_toolkits.axes_grid1 import make_axes_locatable
-# import os.path
-# import random
 
 from nameSetters import getDirectoryName
 """
