@@ -56,6 +56,7 @@ class Axon(object):
             i += sec.nseg
 
         return i
+
     
     def collect_geometry(self):
         '''Collects x, y, z-coordinates from NEURON'''
@@ -375,6 +376,7 @@ class Unmyelinated(Axon):
         self.axon.insert('extracellular')
         self.axon.insert('xtra')
         self.axon_update_property()
+
         if (self.layout3D == "DEFINE_SHAPE"):
             h.define_shape()
         elif (self.layout3D == "PT3D"):
