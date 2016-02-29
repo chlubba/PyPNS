@@ -27,7 +27,7 @@ plotCAP2D = True
 plotVoltage = True
 
 # bundle characteristics
-p_A = [0.5]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [1.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 5.7# 16.0 #'draw' #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5 #'draw' #'draw'
 

@@ -528,6 +528,7 @@ class Myelinated(Axon):
         print 'Myelinated fiber diameter: ' + str(self.fiberD)
         # topological parameters
         """self.axonnodes=21"""
+
         self.paranodes1= 2*(self.axonnodes-1)
         self.paranodes2= 2*(self.axonnodes-1)
         self.axoninter= 6*(self.axonnodes-1)
@@ -647,13 +648,9 @@ class Myelinated(Axon):
 
         super(Myelinated,self).__init__(layout3D, rec_v)
 
-    def create_neuron_object(self):
+    def createSingleNode(self, nodeType):
 
-        self.allseclist = h.SectionList()
-
-        #### from initialize() ####
-        self.nodes = []
-        for i in range(self.axonnodes):
+        if nodeType == 'n':
             node = h.Section()
             node.nseg = 1
             node.diam = self.nodeD
@@ -674,8 +671,7 @@ class Myelinated(Axon):
             self.nodes.append(node)
             self.allseclist.append(sec=node)
 
-        self.MYSAs = [] # paranodes1
-        for i in range(self.paranodes1):
+        if nodeType == 'm':
             MYSA = h.Section()
             MYSA.nseg = 1
             MYSA.diam = self.fiberD
@@ -698,8 +694,7 @@ class Myelinated(Axon):
             self.MYSAs.append(MYSA)
             self.allseclist.append(sec=MYSA)
 
-        self.FLUTs = [] # paranodes2
-        for i in range(self.paranodes2):
+        if nodeType == 'f':
             FLUT = h.Section()
             FLUT.nseg = 1
             FLUT.diam = self.fiberD
@@ -722,8 +717,7 @@ class Myelinated(Axon):
             self.FLUTs.append(FLUT)
             self.allseclist.append(sec=FLUT)
 
-        self.STINs = [] # internodes
-        for i in range(self.axoninter):
+        if nodeType == 's':
             STIN = h.Section()
             STIN.nseg = 1
             STIN.diam = self.fiberD
@@ -745,6 +739,119 @@ class Myelinated(Axon):
 
             self.STINs.append(STIN)
             self.allseclist.append(sec=STIN)
+
+    def create_neuron_object(self):
+
+        self.allseclist = h.SectionList()
+
+        #### from initialize() ####
+        self.nodes = []
+        self.MYSAs = []
+        self.FLUTs = []
+        self.STINs = []
+
+        nodeSequence = ['n', 'm', 'f', 's', 's', 's', 's', 's', 's', 'f', 'm']
+
+        for i in range(self.axonnodes-1):
+            for j in range(len(nodeSequence)):
+                nodeType = nodeSequence[j]
+                self.createSingleNode(nodeType)
+        self.createSingleNode('n')
+
+        # #### from initialize() ####
+        # self.nodes = []
+        # for i in range(self.axonnodes):
+        #     node = h.Section()
+        #     node.nseg = 1
+        #     node.diam = self.nodeD
+        #     node.L = self.nodelength
+        #     node.Ra = self.rhoa/10000
+        #     node.cm = 2
+        #     node.insert('axnode')
+        #     #h('insert extracellular xraxial=Rpn0 xg=1e10 xc=0')
+        #     node.insert('extracellular')
+        #     node.xraxial[0] = self.Rpn0
+        #     node.xraxial[1] = self.Rpn0
+        #     node.xg[0] =1e10
+        #     node.xg[1] =1e10
+        #     node.xc[0] =0
+        #     node.xc[1] =0
+        #     node.insert('xtra')
+        #
+        #     self.nodes.append(node)
+        #     self.allseclist.append(sec=node)
+        #
+        # self.MYSAs = [] # paranodes1
+        # for i in range(self.paranodes1):
+        #     MYSA = h.Section()
+        #     MYSA.nseg = 1
+        #     MYSA.diam = self.fiberD
+        #     MYSA.L = self.paralength1
+        #     MYSA.Ra = self.rhoa*(1/math.pow(self.paraD1/self.fiberD,2))/10000
+        #     MYSA.cm = 2*self.paraD1/self.fiberD
+        #     MYSA.insert('pas')
+        #     MYSA.g_pas = 0.001*self.paraD1/self.fiberD
+        #     MYSA.e_pas = -80
+        #     #h('insert extracellular xraxial=Rpn1 xg=mygm/(nl*2) xc=mycm/(nl*2)')
+        #     MYSA.insert('extracellular')
+        #     MYSA.xraxial[0] = self.Rpn1
+        #     MYSA.xraxial[1] = self.Rpn1
+        #     MYSA.xg[0] = self.mygm/(self.nl*2)
+        #     MYSA.xg[1] = self.mygm/(self.nl*2)
+        #     MYSA.xc[0] = self.mycm/(self.nl*2)
+        #     MYSA.xc[1] = self.mycm/(self.nl*2)
+        #     MYSA.insert('xtra')
+        #
+        #     self.MYSAs.append(MYSA)
+        #     self.allseclist.append(sec=MYSA)
+        #
+        # self.FLUTs = [] # paranodes2
+        # for i in range(self.paranodes2):
+        #     FLUT = h.Section()
+        #     FLUT.nseg = 1
+        #     FLUT.diam = self.fiberD
+        #     FLUT.L = self.paralength2
+        #     FLUT.Ra = self.rhoa*(1/math.pow(self.paraD2/self.fiberD,2))/10000
+        #     FLUT.cm = 2*self.paraD2/self.fiberD
+        #     FLUT.insert('pas')
+        #     FLUT.g_pas = 0.0001*self.paraD2/self.fiberD
+        #     FLUT.e_pas = -80
+        #     #h('insert extracellular xraxial=Rpn2 xg=mygm/(nl*2) xc=mycm/(nl*2)')
+        #     FLUT.insert('extracellular')
+        #     FLUT.xraxial[0] = self.Rpn2
+        #     FLUT.xraxial[1] = self.Rpn2
+        #     FLUT.xg[0] = self.mygm/(self.nl*2)
+        #     FLUT.xg[1] = self.mygm/(self.nl*2)
+        #     FLUT.xc[0] = self.mycm/(self.nl*2)
+        #     FLUT.xc[1] = self.mycm/(self.nl*2)
+        #     FLUT.insert('xtra')
+        #
+        #     self.FLUTs.append(FLUT)
+        #     self.allseclist.append(sec=FLUT)
+        #
+        # self.STINs = [] # internodes
+        # for i in range(self.axoninter):
+        #     STIN = h.Section()
+        #     STIN.nseg = 1
+        #     STIN.diam = self.fiberD
+        #     STIN.L = self.interlength
+        #     STIN.Ra = self.rhoa*(1/math.pow(self.axonD/self.fiberD,2))/10000
+        #     STIN.cm = 2*self.axonD/self.fiberD
+        #     STIN.insert('pas')
+        #     STIN.g_pas = 0.0001*self.axonD/self.fiberD
+        #     STIN.e_pas = -80
+        #     #h('insert extracellular xraxial=Rpx xg=mygm/(nl*2) xc=mycm/(nl*2)')
+        #     STIN.insert('extracellular')
+        #     STIN.xraxial[0] = self.Rpx
+        #     STIN.xraxial[1] = self.Rpx
+        #     STIN.xg[0] = self.mygm/(self.nl*2)
+        #     STIN.xg[1] = self.mygm/(self.nl*2)
+        #     STIN.xc[0] = self.mycm/(self.nl*2)
+        #     STIN.xc[1] = self.mycm/(self.nl*2)
+        #     STIN.insert('xtra')
+        #
+        #     self.STINs.append(STIN)
+        #     self.allseclist.append(sec=STIN)
 
         if (self.layout3D == "DEFINE_SHAPE"):
             for i in range(self.axonnodes-1):
