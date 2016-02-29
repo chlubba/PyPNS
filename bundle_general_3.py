@@ -26,10 +26,10 @@ plotCAP = False
 plotCAP1D = True
 plotCAP2D = True
 
-plotVoltage = False
+plotVoltage = True
 
 # bundle characteristics
-p_A = [1.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 5.7# 16.0 #'draw' #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5 #'draw' #'draw'
 
@@ -129,7 +129,7 @@ for VoltCAPSelector in [1,2]:
                 'name': "myelinated_axonA", # axon name (for neuron)
                 'Nnodes': 11, #Number of nodes
                 'fiberD': fiberD_A, #fiberD_A, #Diameter of the fiber
-                'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
+                'layout3D': "PT3D",#"DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
                 'rec_v': rec_v, # set voltage recorders True or False
                 # 'nodelength' : nodelength, #set node length (um)
                 # 'paralength1': paralength1, #set the length of the nearest paranode segment to the node
@@ -144,7 +144,7 @@ for VoltCAPSelector in [1,2]:
                 'diam': fiberD_C, #Axon diameter (micrometer)
                 'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
                 'Ra': 200.0, #Specific axial resistance (Ohm cm)
-                'layout3D': "DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
+                'layout3D': "PT3D",#"DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
                 'rec_v': rec_v, # set voltage recorders True or False
             }
             bundleParameters = {         #parameters for Bundle classe

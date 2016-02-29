@@ -380,18 +380,18 @@ class Unmyelinated(Axon):
         self.axon.insert('xtra')
         self.axon_update_property()
 
+        self.set_nsegs(self.nsegs_method, self.lambda_f, self.d_lambda, self.max_nsegs_length)
+
         if (self.layout3D == "DEFINE_SHAPE"):
             h.define_shape()
         elif (self.layout3D == "PT3D"):
              ### PLACE AXON SPATIALLY #######################################################        
             h.pt3dclear(sec=self.axon)
-            h.pt3dadd(0, self.coord[0], self.coord[1], self.axon.diam, sec=self.axon)
-            h.pt3dadd(self.axon.L, self.coord[0], self.coord[1], self.axon.diam, sec=self.axon)
+            h.pt3dadd(0, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
+            h.pt3dadd(self.L, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
             ################################################################################
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
-
-        self.set_nsegs(self.nsegs_method, self.lambda_f, self.d_lambda, self.max_nsegs_length)
 
         for sec_id in self.allseclist:
             for seg in sec_id:
@@ -1095,7 +1095,7 @@ class Bundle(object):
         try:
             newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
-            print 'No CAP calculation has been performed yet with this set of parameter.'
+            print 'No CAP calculation has been performed yet with this set of parameters.'
             quit()
 
         CAPraw = np.transpose(np.loadtxt(newestFile))
