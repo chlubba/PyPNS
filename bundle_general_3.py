@@ -1,4 +1,6 @@
-from classes import *
+from neuron import h
+h('load_file("noload.hoc")')
+from bundleClass import *
 import time
 time.sleep(0) # delays for x seconds
 
@@ -13,14 +15,14 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = True
+calculationFlag = False
 
 calculateCAP = False
 calculateVoltage = True
 
 plottingFlag = True
 
-plotGeometry = True
+plotGeometry = False
 
 plotCAP = False
 plotCAP1D = True
@@ -29,9 +31,10 @@ plotCAP2D = True
 plotVoltage = True
 
 # bundle characteristics
-p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [0.3]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 5.7# 16.0 #'draw' #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5 #'draw' #'draw'
+myelinatedCurviness = 0.314
 
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
@@ -41,8 +44,8 @@ lengthOfBundle = 5000
 
 
 # stimulus characteristics
-stim_types = ["NONE"]#, "INTRA", "EXTRA"
-waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"
+stim_types = ["NONE"]#, "INTRA", "EXTRA", "NONE"
+waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
 amplitudes = [2.0]#,2.0,0.5]
@@ -129,7 +132,7 @@ for VoltCAPSelector in [1,2]:
                 'name': "myelinated_axonA", # axon name (for neuron)
                 'Nnodes': 11, #Number of nodes
                 'fiberD': fiberD_A, #fiberD_A, #Diameter of the fiber
-                'layout3D': "PT3D",#"DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
+                'layout3D': "DEFINE_SHAPE",#"PT3D",# # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
                 'rec_v': rec_v, # set voltage recorders True or False
                 # 'nodelength' : nodelength, #set node length (um)
                 # 'paralength1': paralength1, #set the length of the nearest paranode segment to the node
