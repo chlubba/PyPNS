@@ -1,6 +1,8 @@
 from neuron import h
 h('load_file("noload.hoc")')
 from bundleClass import *
+import cPickle as pickle
+from pprint import pprint
 import time
 time.sleep(0) # delays for x seconds
 
@@ -17,21 +19,21 @@ h.finitialize(-65) # initialize voltage state
 # Set parameters
 calculationFlag = False
 
-calculateCAP = False
-calculateVoltage = True
+calculateCAP = True
+calculateVoltage = False
 
 plottingFlag = True
 
-plotGeometry = False
+plotGeometry = True
 
-plotCAP = False
+plotCAP = True
 plotCAP1D = True
 plotCAP2D = True
 
-plotVoltage = True
+plotVoltage = False
 
 # bundle characteristics
-p_A = [0.3]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [0.1]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 5.7# 16.0 #'draw' #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5 #'draw' #'draw'
 myelinatedCurviness = 0.314
@@ -39,7 +41,7 @@ myelinatedCurviness = 0.314
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons =  50
+number_of_axons =  10#50
 lengthOfBundle = 5000
 
 
@@ -164,22 +166,34 @@ for VoltCAPSelector in [1,2]:
             Parameters1 = dict(bundleParameters, **stimulusParameters)
             Parameters = dict(Parameters1, **recordingParameters)
 
-            bundle = Bundle(**Parameters)
+            saveParams={'elecCount': len(recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
+                    'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
+                    'L': unmyelinatedParameters['L'], 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
+                    'stimDutyCycle': stimulusParameters['duty_cycle'], 'stimAmplitude' : stimulusParameters['amplitude']}
 
-            if upstreamSpikingOn:
-                bundle.addUpstreamSpiking(**upstreamSpikingDict)
 
+
+            bundleDirectory = getDirectoryName('bundle', **saveParams)
+            if not os.path.exists(bundleDirectory):
+                os.makedirs(bundleDirectory)
             if calculationFlag:
+
+                bundle = Bundle(**Parameters)
+
+                if upstreamSpikingOn:
+                    bundle.addUpstreamSpiking(**upstreamSpikingDict)
+
                 bundle.simulateBundle()
 
+                # save the whole bundle
+                pickle.dump(bundle,open( bundleDirectory+"bundle.class", "wb" ))
+            else:
+                bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
                 # bundle = None
 
             if plottingFlag:
 
-                saveParams={'elecCount': len(recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
-                    'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
-                    'L': unmyelinatedParameters['L'], 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
-                    'stimDutyCycle': stimulusParameters['duty_cycle'], 'stimAmplitude' : stimulusParameters['amplitude']}
+
 
                 if plotGeometry:
 

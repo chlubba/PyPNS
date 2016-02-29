@@ -97,7 +97,7 @@ class Bundle(object):
         self.virtual_number_axons = 0
         for i in range(self.number_of_axons):
             # if within the desired subsection of the bundle, create axon
-            if ((self.axons_pos[i,1]>=0 and self.axons_pos[i,1]< self.axons_pos[i,0]) or (self.axons_pos[i,0]== 0 and self.axons_pos[i,1]==0)):
+            if True:#((self.axons_pos[i,1]>=0 and self.axons_pos[i,1]< self.axons_pos[i,0]) or (self.axons_pos[i,0]== 0 and self.axons_pos[i,1]==0)):
                 # print self.axons_pos[i,:]
                 self.create_axon(self.axons_pos[i,:])
                 self.virtual_number_axons +=1
@@ -134,6 +134,34 @@ class Bundle(object):
             self.save_CAP_to_file()
 
         self.save_voltage_to_file()
+
+        # get rid of the all Neuron objects to be able to pickle the bundle-class. pickle. lick it.
+        h('forall delete_section()')
+        self.trec = None
+
+        if not self.stim_type == 'NONE':
+            self.stim.svec = None
+        for axon in self.axons:
+            # from Stimulus
+            axon.stim = None
+            # from upstreamSpiking
+            axon.synapse = None
+            axon.netCon = None
+            axon.spikeVec = None
+            axon.vecStim = None
+
+            if 'axon.memireclist' in locals():
+                for memirec in axon.memireclist:
+                    memirec = None
+                axon.memireclist = None
+            if 'axon.vreclist' in locals():
+                for vrec in axon.vreclist:
+                    vrec = None
+            axon.vreclist = None
+
+            axon.allseclist = None
+
+
 
     def save_CAP_to_file(self):
         filename = self.get_filename("CAP")
@@ -208,6 +236,16 @@ class Bundle(object):
             ax.plot(axon.xmid, axon.ymid, axon.zmid, label='axon '+str(axonID))
             axonID += 1
         plt.legend()
+
+        elecCoords = self.electrodeCoords
+        ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
+        for i in range(self.number_elecs):
+            selectionIndices = range(i, self.number_contact_points*self.number_elecs, self.number_elecs)
+            ringCoords = elecCoords[selectionIndices,:]
+            ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
+            ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
+
+
 
     def plot_CAP1D(self, maxNumberOfSubplots = 10):
 
@@ -600,6 +638,9 @@ class Bundle(object):
         N = np.empty((self.number_contact_points*self.number_elecs*len(self.recording_elec_pos), 3))
         for i in xrange(N.shape[0]):
             N[i,] = [1, 0, 0] #normal vec. of contacts
+
+        self.electrodeCoords = np.transpose(np.row_stack((X,Y,Z)))
+
         return [angles,X,Y,Z,N]
 
     def build_disk(self,number_of_axons,radius_bundle):

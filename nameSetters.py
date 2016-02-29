@@ -35,7 +35,9 @@ def getDirectoryName(keyword, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyel
         'draw': "draws/",
         'CAP': "CAP/",
         'CAP2': "CAP2/",
-        'V': "Voltage/"
+        'V': "Voltage/",
+        'bundle': "Bundles/",
+        'bundle2': "Bundles/"
     }.get(keyword,-1)
 
     return homeDirectory+suffix+pathString
