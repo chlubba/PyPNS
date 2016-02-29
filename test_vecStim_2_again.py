@@ -3,6 +3,7 @@ from neuron import h
 # import neuron.gui
 import numpy as np
 from matplotlib import pyplot
+import spikeTrainGeneration
 h.load_file('noload.hoc')
 
 # set neuron simulation parameters
@@ -34,11 +35,12 @@ stim.i = 0.2
 stim.tau = 3
 
 # create random spike train
-
+spikeTrains = spikeTrainGeneration.generateCorrelaSpikeTimes(1)
+spikeTrain = spikeTrains[0]
 
 # configure input to synapse
 vecStim = h.VecStim()
-vec = h.Vector([5, 25])#[1, 2])
+vec = h.Vector(spikeTrain)#[1, 2])
 vecStim.play(vec)
 
 # connect synapse and VecStim input
