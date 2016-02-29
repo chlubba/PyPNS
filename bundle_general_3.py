@@ -28,7 +28,7 @@ plottingFlag = True
 plotGeometry = False
 
 plotCAP = True
-plotCAP1D = False
+plotCAP1D = True
 plotCAP2D = False
 plotCAP1D_1Axon = False
 
@@ -45,7 +45,7 @@ myelinatedCurviness = 0.314
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons =  10#50
+number_of_axons =  50
 lengthOfBundle = 5000
 
 
@@ -185,11 +185,12 @@ for VoltCAPSelector in [1,2]:
                 bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
                 # bundle = None
 
-            # # pprint (vars(bundle))
+            # pprint (vars(bundle))
             # print bundle.nbytes
             # for axon in bundle.axons:
-            #     print axon.nbytes
-            #     # pprint (vars(axon))
+            #     # print axon.nbytes
+            #     pprint (vars(axon))
+            pprint(vars(bundle.axons[0]))
 
             if plottingFlag:
 

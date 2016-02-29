@@ -221,7 +221,7 @@ class Axon(object):
                         every timestep be multiplied by the membrane currents.
                         Presumably useful for memory efficient csd or lfp calcs
             '''
-        self.collect_tvec()
+        # self.collect_tvec()
 
         if rec_imem:
             self.set_imem_recorders()

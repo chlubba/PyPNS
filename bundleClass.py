@@ -140,7 +140,6 @@ class Bundle(object):
         # get rid of the all Neuron objects to be able to pickle the bundle-class. pickle. lick it.
         h('forall delete_section()')
         self.trec = None
-
         if not self.stim_type == 'NONE':
             self.stim.svec = None
         for axon in self.axons:
@@ -160,8 +159,9 @@ class Bundle(object):
                 for vrec in axon.vreclist:
                     vrec = None
             axon.vreclist = None
-
             axon.allseclist = None
+            # also delete unnecessary data that will no longer been used to keep the pickled file small
+            axon.imem = None
 
 
 
