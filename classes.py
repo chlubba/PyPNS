@@ -926,6 +926,11 @@ class Myelinated(Axon):
         self.MYSAs = None
         self.STINs = None
 
+        if not self.synapse == []:
+            self.synapse = None
+            self.vecStim = None
+            self.netCon = None
+
 class UpstreamSpiking(object):
 
     def __init__(self, nAxons, tStart, tStop, lambd = 1000., correlation = 0.1):
