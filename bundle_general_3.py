@@ -3,6 +3,7 @@ h('load_file("noload.hoc")')
 from bundleClass import *
 import cPickle as pickle
 from pprint import pprint
+import sys
 import time
 time.sleep(0) # delays for x seconds
 
@@ -17,20 +18,23 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = False
+calculationFlag = True
 
 calculateCAP = True
 calculateVoltage = False
 
 plottingFlag = True
 
-plotGeometry = True
+plotGeometry = False
 
 plotCAP = True
-plotCAP1D = True
-plotCAP2D = True
+plotCAP1D = False
+plotCAP2D = False
+plotCAP1D_1Axon = False
 
 plotVoltage = False
+
+
 
 # bundle characteristics
 p_A = [0.1]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
@@ -65,9 +69,6 @@ number_contact_points=  8 #Number of points on the circle constituing the cuff e
 recording_elec_pos = [math.floor(lengthOfBundle*0.9)] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
 number_elecs =  10#150#150, #number of electrodes along the bundle
 
-
-### !!! USING MYELINATED DISTRUTION NOT COMPATIBLE WITH VOLTAGE RECORDING ###
-### ANYWAY VOLTAGE RECORDING SHOULD LOGICALLY BE PERFORMED FOR ONLY ONE AXON AT A TIME ###
 myelinatedDistribution = {
     'densities':[100,300,1150,2750,3650,2850,1750,900,500,250,200,150,110,100,110,100,105], #fibers densities can be given either in No/mm2 or percentage
     'diameters': [ 1., 1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 5.5, 6., 6.5, 7.,7.5, 8., 8.5, 9.],  # corresponding diameters for each densities
@@ -83,13 +84,6 @@ unmyelinatedDistribution = {
 if fiberD_A == 'draw':
     del fiberD_A
     fiberD_A = myelinatedDistribution
-# else:
-#     ### PARAMETERS BELOW ARE ACTUALLY SET IN THE CODE BUT USEFUL FOR THE HEADER AND PLOTS ###
-#     ## Values of nodelength and paralength1 are constant
-#     ## Values of paralength2 and interlength are to be set according to the chosen fiberD value
-#     nodelength = 1.0 #um
-#     paralength1 = 1.3 #um
-#     [paralength2_A, interlength_A] = fiberD_dependent_param(fiberD_A, nodelength, paralength1)
 if fiberD_C == 'draw':
     del fiberD_C
     fiberD_C = unmyelinatedDistribution
@@ -191,15 +185,23 @@ for VoltCAPSelector in [1,2]:
                 bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
                 # bundle = None
 
+            # # pprint (vars(bundle))
+            # print bundle.nbytes
+            # for axon in bundle.axons:
+            #     print axon.nbytes
+            #     # pprint (vars(axon))
+
             if plottingFlag:
-
-
 
                 if plotGeometry:
 
                     bundle.plot_geometry()
 
                 if plotCAP:
+
+                    if plotCAP1D_1Axon:
+
+                        bundle.plot_CAP1D_singleAxon(0)
 
                     if plotCAP1D:
 

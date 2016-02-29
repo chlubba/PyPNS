@@ -133,6 +133,8 @@ class Bundle(object):
                 self.compute_CAP1D_fromfile()
             self.save_CAP_to_file()
 
+            self.sum_CAP = None
+
         self.save_voltage_to_file()
 
         # get rid of the all Neuron objects to be able to pickle the bundle-class. pickle. lick it.
@@ -245,6 +247,11 @@ class Bundle(object):
             ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
             ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
 
+    def plot_CAP1D_singleAxon(self, axonID):
+
+        CAP = self.CAP
+
+        print 'hm'
 
 
     def plot_CAP1D(self, maxNumberOfSubplots = 10):
@@ -563,24 +570,24 @@ class Bundle(object):
 
     def compute_CAP1D_fromfile(self):
         self.load_electrodes()
-        self.CAP = []
+        CAP = []
         self.sum_CAP = 0
         for i in range(0,len(self.recording_elec_pos)*self.number_contact_points,len(self.recording_elec_pos)):
             if len(self.recording_elec_pos) == 1:
-                self.CAP.append(self.electrodes[0][i])
+                CAP.append(self.electrodes[0][i])
             elif len(self.recording_elec_pos) == 2:
-                self.CAP.append(self.electrodes[0][i]-self.electrodes[0][i+1])
+                CAP.append(self.electrodes[0][i]-self.electrodes[0][i+1])
         for i in range(len(self.recording_elec_pos),len(self.recording_elec_pos)*self.number_contact_points,len(self.recording_elec_pos)):
             for j in range(1,self.virtual_number_axons):
                 if len(self.recording_elec_pos) == 1:
-                    self.CAP[int(float(i))] +=  self.electrodes[j][i]
+                    CAP[int(float(i))] +=  self.electrodes[j][i]
                 elif len(self.recording_elec_pos) == 2:
-                    self.CAP[int(float(i)/2)] += (self.electrodes[j][i]- self.electrodes[j][i+1])
+                    CAP[int(float(i)/2)] += (self.electrodes[j][i]- self.electrodes[j][i+1])
 
             if len(self.recording_elec_pos) == 1:
-                self.sum_CAP += self.CAP[int(float(i))]
+                self.sum_CAP += CAP[int(float(i))]
             elif len(self.recording_elec_pos) == 2:
-                self.sum_CAP += self.CAP[int(float(i)/2)]
+                self.sum_CAP += CAP[int(float(i)/2)]
 
 
 
@@ -669,12 +676,13 @@ class Bundle(object):
         filename = 'recording.dat'
 
         number = 0
-        while os.path.isfile(directory+filename):
+        filenameTemp = filename
+        while os.path.isfile(directory+filenameTemp):
             number += 1
             print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
-            filename = str(number) + filename
+            filenameTemp = str(number).zfill(5) + filename
 
-        self.filename = directory+filename
+        self.filename = directory+filenameTemp
 
         return self.filename
 
