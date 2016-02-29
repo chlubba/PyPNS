@@ -20,11 +20,13 @@ calculateVoltage = True
 
 plottingFlag = True
 
+plotGeometry = True
+
 plotCAP = False
 plotCAP1D = True
 plotCAP2D = True
 
-plotVoltage = True
+plotVoltage = False
 
 # bundle characteristics
 p_A = [1.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
@@ -175,6 +177,10 @@ for VoltCAPSelector in [1,2]:
                     'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
                     'L': unmyelinatedParameters['L'], 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
                     'stimDutyCycle': stimulusParameters['duty_cycle'], 'stimAmplitude' : stimulusParameters['amplitude']}
+
+                if plotGeometry:
+
+                    bundle.plot_geometry()
 
                 if plotCAP:
 

@@ -14,6 +14,7 @@ import copy
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
+from mpl_toolkits.mplot3d import Axes3D
 
 from nameSetters import getDirectoryName
 import spikeTrainGeneration
@@ -57,7 +58,8 @@ class Axon(object):
 
         return i
 
-    
+
+
     def collect_geometry(self):
         '''Collects x, y, z-coordinates from NEURON'''
         #None-type some attributes if they do not exis:
@@ -74,7 +76,8 @@ class Axon(object):
 
         self.collect_geometry_neuron()
         self.calc_midpoints()
-        
+
+
     def collect_geometry_neuron(self):
         '''Loop over allseclist to determine area, diam, xyz-start- and
         endpoints, embed geometry to self object'''
@@ -396,6 +399,7 @@ class Unmyelinated(Axon):
                 h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
         self.interpxyz()
         self.collect_geometry()
+        self.calc_midpoints()
         self.channel_init(0.120,0.036,0.0003,50,-77,-54.3) # default values of hh channel are used
         
     def delete_neuron_object(self):
@@ -750,108 +754,13 @@ class Myelinated(Axon):
         self.FLUTs = []
         self.STINs = []
 
+        # iterate through nodes in the way they are ordered in the axon in order to have an ordered allsectionlist
         nodeSequence = ['n', 'm', 'f', 's', 's', 's', 's', 's', 's', 'f', 'm']
-
         for i in range(self.axonnodes-1):
             for j in range(len(nodeSequence)):
                 nodeType = nodeSequence[j]
                 self.createSingleNode(nodeType)
         self.createSingleNode('n')
-
-        # #### from initialize() ####
-        # self.nodes = []
-        # for i in range(self.axonnodes):
-        #     node = h.Section()
-        #     node.nseg = 1
-        #     node.diam = self.nodeD
-        #     node.L = self.nodelength
-        #     node.Ra = self.rhoa/10000
-        #     node.cm = 2
-        #     node.insert('axnode')
-        #     #h('insert extracellular xraxial=Rpn0 xg=1e10 xc=0')
-        #     node.insert('extracellular')
-        #     node.xraxial[0] = self.Rpn0
-        #     node.xraxial[1] = self.Rpn0
-        #     node.xg[0] =1e10
-        #     node.xg[1] =1e10
-        #     node.xc[0] =0
-        #     node.xc[1] =0
-        #     node.insert('xtra')
-        #
-        #     self.nodes.append(node)
-        #     self.allseclist.append(sec=node)
-        #
-        # self.MYSAs = [] # paranodes1
-        # for i in range(self.paranodes1):
-        #     MYSA = h.Section()
-        #     MYSA.nseg = 1
-        #     MYSA.diam = self.fiberD
-        #     MYSA.L = self.paralength1
-        #     MYSA.Ra = self.rhoa*(1/math.pow(self.paraD1/self.fiberD,2))/10000
-        #     MYSA.cm = 2*self.paraD1/self.fiberD
-        #     MYSA.insert('pas')
-        #     MYSA.g_pas = 0.001*self.paraD1/self.fiberD
-        #     MYSA.e_pas = -80
-        #     #h('insert extracellular xraxial=Rpn1 xg=mygm/(nl*2) xc=mycm/(nl*2)')
-        #     MYSA.insert('extracellular')
-        #     MYSA.xraxial[0] = self.Rpn1
-        #     MYSA.xraxial[1] = self.Rpn1
-        #     MYSA.xg[0] = self.mygm/(self.nl*2)
-        #     MYSA.xg[1] = self.mygm/(self.nl*2)
-        #     MYSA.xc[0] = self.mycm/(self.nl*2)
-        #     MYSA.xc[1] = self.mycm/(self.nl*2)
-        #     MYSA.insert('xtra')
-        #
-        #     self.MYSAs.append(MYSA)
-        #     self.allseclist.append(sec=MYSA)
-        #
-        # self.FLUTs = [] # paranodes2
-        # for i in range(self.paranodes2):
-        #     FLUT = h.Section()
-        #     FLUT.nseg = 1
-        #     FLUT.diam = self.fiberD
-        #     FLUT.L = self.paralength2
-        #     FLUT.Ra = self.rhoa*(1/math.pow(self.paraD2/self.fiberD,2))/10000
-        #     FLUT.cm = 2*self.paraD2/self.fiberD
-        #     FLUT.insert('pas')
-        #     FLUT.g_pas = 0.0001*self.paraD2/self.fiberD
-        #     FLUT.e_pas = -80
-        #     #h('insert extracellular xraxial=Rpn2 xg=mygm/(nl*2) xc=mycm/(nl*2)')
-        #     FLUT.insert('extracellular')
-        #     FLUT.xraxial[0] = self.Rpn2
-        #     FLUT.xraxial[1] = self.Rpn2
-        #     FLUT.xg[0] = self.mygm/(self.nl*2)
-        #     FLUT.xg[1] = self.mygm/(self.nl*2)
-        #     FLUT.xc[0] = self.mycm/(self.nl*2)
-        #     FLUT.xc[1] = self.mycm/(self.nl*2)
-        #     FLUT.insert('xtra')
-        #
-        #     self.FLUTs.append(FLUT)
-        #     self.allseclist.append(sec=FLUT)
-        #
-        # self.STINs = [] # internodes
-        # for i in range(self.axoninter):
-        #     STIN = h.Section()
-        #     STIN.nseg = 1
-        #     STIN.diam = self.fiberD
-        #     STIN.L = self.interlength
-        #     STIN.Ra = self.rhoa*(1/math.pow(self.axonD/self.fiberD,2))/10000
-        #     STIN.cm = 2*self.axonD/self.fiberD
-        #     STIN.insert('pas')
-        #     STIN.g_pas = 0.0001*self.axonD/self.fiberD
-        #     STIN.e_pas = -80
-        #     #h('insert extracellular xraxial=Rpx xg=mygm/(nl*2) xc=mycm/(nl*2)')
-        #     STIN.insert('extracellular')
-        #     STIN.xraxial[0] = self.Rpx
-        #     STIN.xraxial[1] = self.Rpx
-        #     STIN.xg[0] = self.mygm/(self.nl*2)
-        #     STIN.xg[1] = self.mygm/(self.nl*2)
-        #     STIN.xc[0] = self.mycm/(self.nl*2)
-        #     STIN.xc[1] = self.mycm/(self.nl*2)
-        #     STIN.insert('xtra')
-        #
-        #     self.STINs.append(STIN)
-        #     self.allseclist.append(sec=STIN)
 
         if (self.layout3D == "DEFINE_SHAPE"):
             for i in range(self.axonnodes-1):
@@ -913,6 +822,7 @@ class Myelinated(Axon):
                 h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
         self.interpxyz()
         self.collect_geometry()
+        self.calc_midpoints()
         
     def delete_neuron_object(self):
         ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
@@ -1193,6 +1103,21 @@ class Bundle(object):
         CAP = CAPraw[1:,:]
 
         return time, CAP
+
+    def plot_geometry(self):
+
+        if len(self.axons[0].xmid) == 0:
+            print 'Bundle has not been run yet. No geometry information was generated in Neuron.'
+            return
+
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+
+        axonID = 0
+        for axon in self.axons:
+            ax.plot(axon.xmid, axon.ymid, axon.zmid, label='axon '+str(axonID))
+            axonID += 1
+        plt.legend()
 
     def plot_CAP1D(self, maxNumberOfSubplots = 10):
 
