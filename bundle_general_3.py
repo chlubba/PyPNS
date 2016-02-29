@@ -13,14 +13,14 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = False
+calculationFlag = True
 
-calculateCAP = True
-calculateVoltage = False
+calculateCAP = False
+calculateVoltage = True
 
 plottingFlag = True
 
-plotCAP = True
+plotCAP = False
 plotCAP1D = True
 plotCAP2D = True
 
@@ -39,12 +39,19 @@ lengthOfBundle = 5000
 
 
 # stimulus characteristics
-stim_types = ["EXTRA"]#, "INTRA", "EXTRA"
+stim_types = ["NONE"]#, "INTRA", "EXTRA"
 waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
 amplitudes = [2.0]#,2.0,0.5]
 stimDur = [10]
+
+# upstream nerve stream activity characteristics
+upstreamSpikingOn = True
+spikingRate = 1000. # mean number of pulses per second
+spikingCorrelation = 0.1 # pairwise corrleation between neurons
+startTimeSpiking = 0
+stopTimeSpiking = h.tstop
 
 # recoding params
 number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
@@ -80,7 +87,11 @@ if fiberD_C == 'draw':
     del fiberD_C
     fiberD_C = unmyelinatedDistribution
 
-
+upstreamSpikingDict = { #'upstreamSpikingOn' : upstreamSpikingOn,
+                        'lambd' : spikingRate, # mean number of pulses per second
+                        'correlation' : spikingCorrelation, # pairwise corrleation between neurons
+                        'tStart' : startTimeSpiking,
+                        'tStop' : stopTimeSpiking}
 
 for VoltCAPSelector in [1,2]:
     rec_CAP = (VoltCAPSelector==1)
@@ -150,14 +161,15 @@ for VoltCAPSelector in [1,2]:
 
             bundle = Bundle(**Parameters)
 
-            if calculationFlag:
+            if upstreamSpikingOn:
+                bundle.addUpstreamSpiking(**upstreamSpikingDict)
 
+            if calculationFlag:
                 bundle.simulateBundle()
 
                 # bundle = None
 
             if plottingFlag:
-
 
                 saveParams={'elecCount': len(recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
                     'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],

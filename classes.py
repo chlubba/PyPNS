@@ -16,6 +16,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 
 from nameSetters import getDirectoryName
+import spikeTrainGeneration
 """
     Some methods in the Axon class are based on existing methods in the Python package LFPY
 """
@@ -30,6 +31,7 @@ class Axon(object):
     def __init__(self,layout3D,rec_v):
         self.layout3D = layout3D
         self.rec_v = rec_v
+        self.synapse = []
         # LFPy initilizations        
         self.verbose = False
         self.dotprodresults = None # Not in class cell of LFPY but present in run_simulation as cell.dotprodresults
@@ -401,6 +403,12 @@ class Unmyelinated(Axon):
                 seg = None
             sec = None
         self.axon = None
+
+        if not self.synapse == []:
+            self.synapse = None
+            self.vecStim = None
+            self.netCon = None
+
 
     def axon_update_property(self):
         self.axon.L = self.L
@@ -809,6 +817,34 @@ class Myelinated(Axon):
         self.MYSAs = None
         self.STINs = None
 
+class UpstreamSpiking(object):
+
+    def __init__(self, nAxons, tStart, tStop, lambd = 1000., correlation = 0.1):
+        self.spikeTrains = spikeTrainGeneration.generateCorrelaSpikeTimes(nAxons, tStart, tStop, lambd, correlation)
+        self.axonIndex = 0 # select one specific of the nAxon spike trains in the connectAxon function
+
+    def connectAxon(self, axon):
+        # configure ExpSyn synapse
+        axon.synapse = h.ExpSyn(1e-3, axon.allseclist)#1e-3
+        axon.synapse.e = 10
+        axon.synapse.i = 0.2
+        axon.synapse.tau = 0.1
+
+        # get spike train
+        axon.spikeTrain = self.spikeTrains[self.axonIndex]
+        self.axonIndex += 1
+
+        # configure input to synapse
+        axon.vecStim = h.VecStim()
+        axon.spikeVec = h.Vector(axon.spikeTrain)
+        # axon.spikeVec = h.Vector([1,2,3])
+        axon.vecStim.play(axon.spikeVec)
+
+        # connect synapse and VecStim input
+        axon.netCon = h.NetCon(axon.vecStim, axon.synapse)
+        axon.netCon.weight[0] = 1
+
+
 class Stimulus(object):
     """
     stim_type: INTRA or EXTRA cellular stimulation
@@ -953,13 +989,24 @@ class Bundle(object):
                 self.virtual_number_axons +=1
                 print "Number axons created:" + str(self.virtual_number_axons)
 
-        # create Simulus instace used for all axons
-        self.stim = Stimulus(self.stim_type, self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
+
+        if not self.stim_type == 'NONE':
+            # create Simulus instace used for all axons
+            self.stim = Stimulus(self.stim_type, self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
+
+
+        # # create upstream activity
+        # self.upstreamSpiking = UpstreamSpiking(self.number_of_axons, tStart=0., tStop=h.tstop, lambd = 1000.)
+
 
         # # connect to stimulus
         # for i in range(self.virtual_number_axons):
         #     axon = self.axons[i]
         #     self.stim.connectAxon(axon)
+
+    def addUpstreamSpiking(self, tStart=0., tStop=h.tstop, lambd = 1000., correlation = 0.1):
+        # create upstream activity
+        self.upstreamSpiking = UpstreamSpiking(self.number_of_axons, tStart=tStart, tStop=tStop, lambd=lambd, correlation=correlation)
 
     def simulateBundle(self):
 
@@ -1242,8 +1289,12 @@ class Bundle(object):
             # create the neuron object specified in the axon class object
             axon.create_neuron_object()
 
-            # connect to stimulus
-            self.stim.connectAxon(axon)
+            if not self.stim_type == 'NONE':
+                # connect to stimulus
+                self.stim.connectAxon(axon)
+
+            # connect up stream nerve spiking
+            self.upstreamSpiking.connectAxon(axon)
 
             if axonIndex == 0:
             # record time variable

@@ -16,7 +16,7 @@ def stationary_poisson(nsyn,lambd,tstart,tstop):
 
     return spiketimes
 
-def generateCorrelaSpikeTimes(n_axons, tstart=0, tstop=300, lambd = 20., correlation = 0.1):
+def generateCorrelaSpikeTimes(n_axons, tstart=0, tstop=300, lambd = 1000., correlation = 0.1):
 
     # function adapted from LFPy example 3
 
@@ -53,5 +53,3 @@ def generateCorrelaSpikeTimes(n_axons, tstart=0, tstop=300, lambd = 20., correla
         signalArray.append(np.array(signal))
 
     return signalArray
-
-spikeTrains = generateCorrelaSpikeTimes(10)

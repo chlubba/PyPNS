@@ -13,7 +13,7 @@ def getDirectoryName(keyword, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyel
 
     p_C = 1 - p_A
 
-    if stimType in ["EXTRA", "INTRA"]:
+    if stimType in ["EXTRA", "INTRA", "NONE"]:
         stimulusPathString = "stimType="+stimType+" stimWaveform="+stimWaveform+" stimDutyCycle="+str(stimDutyCycle)+" stimAmplitude="+str(stimAmplitude)+"/"
 
     if type(myelinatedDiam) in [int, float]:
