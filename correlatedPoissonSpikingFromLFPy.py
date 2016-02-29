@@ -33,57 +33,104 @@ def stationary_poisson(nsyn,lambd,tstart,tstop):
 
     return spiketimes
 
+def generateCorrelaSpikeTimes(n_axons, tstart=0, tstop=300, lambd = 20., correlation = 0.1):
 
-wanted_correlation = 0.1
+    # function adapted from LFPy example 3
 
-#number of units
-n_axons = 2
-axon_id = 1
+    #set the numpy random seeds
+    global_seed = 1234
+    np.random.seed(global_seed)
 
-#set the numpy random seeds
-global_seed = 1234
-np.random.seed(global_seed)
+    #synaptic spike times
+    n_pre_syn = 1000
 
-#synaptic spike times
-n_pre_syn = 10000
-pre_syn_sptimes = stationary_poisson(nsyn=n_pre_syn, lambd=5., tstart=0, tstop=300)
+    #assign spike times to different units
+    n_synapses = int(n_pre_syn*correlation)
 
-#assign spike times to different units
-n_synapses = int(n_pre_syn*wanted_correlation)
+    pre_syn_sptimes = stationary_poisson(nsyn=n_pre_syn, lambd=lambd/n_synapses, tstart=tstart, tstop=tstop)
 
 
-# FIRST AXON
 
-# re-seed the random number generator
-cell_seed = global_seed + axon_id
-np.random.seed(cell_seed)
+    signalArray = [] # np.empty(n_axons)
 
-# Create synapse and set time of synaptic input
-pre_syn_pick = np.random.permutation(np.arange(n_pre_syn))[0:n_synapses]
+    for axon_id in range(n_axons):
 
-signal1 = []
-for i in range(n_synapses):
-    signal1 = np.concatenate((signal1, pre_syn_sptimes[pre_syn_pick[i]])) #[1:n_synapses]
+        # re-seed the random number generator
+        cell_seed = global_seed + axon_id
+        np.random.seed(cell_seed)
 
-# SECOND AXON
+        # Create synapse and set time of synaptic input
+        pre_syn_pick = np.random.permutation(np.arange(n_pre_syn))[0:n_synapses]
 
-axon_id = 2
+        signal = []
+        for i in range(n_synapses):
+            signal = np.concatenate((signal, pre_syn_sptimes[pre_syn_pick[i]]))
+        signal = np.sort(signal)
 
-# re-seed the random number generator
-cell_seed = global_seed + axon_id
-np.random.seed(cell_seed)
+        signalArray.append(np.array(signal))
 
-# Create synapse and set time of synaptic input
-pre_syn_pick = np.random.permutation(np.arange(n_pre_syn))[0:n_synapses]
+    return signalArray
 
-signal2 = []
-for i in range(n_synapses):
-    signal2 = np.concatenate((signal2, pre_syn_sptimes[pre_syn_pick[i]])) #[1:n_synapses]
+spikeTrains = generateCorrelaSpikeTimes(10)
 
+spikeCounts = []
+for i in range(len(spikeTrains)):
+    spikeCounts.append(len(spikeTrains[i]))
+    plt.plot(spikeTrains[i])
 
-sigHist1 = np.histogram(signal1, bins = range(301))[0]
-sigHist2 = np.histogram(signal2, bins = range(301))[0]
+print 'mean spike rate over all runs : ' + str(np.mean(np.array(spikeCounts)))
 
-print 'correlation = ' + str(np.corrcoef(sigHist1, sigHist2))
+plt.show()
 
 
+
+# correlation = 0.1
+# #number of units
+# n_axons = 2
+# axon_id = 1
+#
+# #set the numpy random seeds
+# global_seed = 1234
+# np.random.seed(global_seed)
+#
+# #synaptic spike times
+# n_pre_syn = 10000
+# pre_syn_sptimes = stationary_poisson(nsyn=n_pre_syn, lambd=5., tstart=0, tstop=300)
+#
+# #assign spike times to different units
+# n_synapses = int(n_pre_syn*correlation)
+#
+#
+# # FIRST AXON
+#
+# # re-seed the random number generator
+# cell_seed = global_seed + axon_id
+# np.random.seed(cell_seed)
+#
+# # Create synapse and set time of synaptic input
+# pre_syn_pick = np.random.permutation(np.arange(n_pre_syn))[0:n_synapses]
+#
+# signal1 = []
+# for i in range(n_synapses):
+#     signal1 = np.concatenate((signal1, pre_syn_sptimes[pre_syn_pick[i]])) #[1:n_synapses]
+#
+# # SECOND AXON
+#
+# axon_id = 2
+#
+# # re-seed the random number generator
+# cell_seed = global_seed + axon_id
+# np.random.seed(cell_seed)
+#
+# # Create synapse and set time of synaptic input
+# pre_syn_pick = np.random.permutation(np.arange(n_pre_syn))[0:n_synapses]
+#
+# signal2 = []
+# for i in range(n_synapses):
+#     signal2 = np.concatenate((signal2, pre_syn_sptimes[pre_syn_pick[i]])) #[1:n_synapses]
+#
+#
+# # sigHist1 = np.histogram(signal1, bins = range(301))[0]
+# # sigHist2 = np.histogram(signal2, bins = range(301))[0]
+# #
+# # print 'correlation = ' + str(np.corrcoef(sigHist1, sigHist2))

@@ -51,8 +51,6 @@ number_contact_points=  8 #Number of points on the circle constituing the cuff e
 recording_elec_pos = [math.floor(lengthOfBundle*0.9)] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
 number_elecs =  10#150#150, #number of electrodes along the bundle
 
-# Do not change from here
-
 
 ### !!! USING MYELINATED DISTRUTION NOT COMPATIBLE WITH VOLTAGE RECORDING ###
 ### ANYWAY VOLTAGE RECORDING SHOULD LOGICALLY BE PERFORMED FOR ONLY ONE AXON AT A TIME ###
@@ -65,6 +63,8 @@ unmyelinatedDistribution = {
     'densities':[250,1250,5000,8000,9800,10200,8900,7600,5700,4000,3900,2300,2000,1300,900,750,600,600,500,250], #fibers densities can be given either in No/mm2 or percentage
     'diameters': [ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.], # corresponding diameters for each densities
 }
+
+# Do not change from here
 
 if fiberD_A == 'draw':
     del fiberD_A
