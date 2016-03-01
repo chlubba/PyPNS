@@ -37,6 +37,8 @@ def getDirectoryName(keyword, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyel
         'draw': "draws/",
         'CAP': "CAP/",
         'CAP2': "CAP2/",
+        'CAP1A': "CAPSingleAxons/",
+        'CAP1A2': "CAPSingleAxons2/",
         'V': "Voltage/",
         'bundle': "Bundles/",
         'bundle2': "Bundles/"
@@ -57,7 +59,7 @@ def getFileName(recordingType, saveParams):
         filenameTemp = filename
         while os.path.isfile(directory+filenameTemp):
             number += 1
-            print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
+            # print "Be careful this file name already exist! We concatenate a number to the name to avoid erasing your previous file."
             filenameTemp = str(number).zfill(5) + filename
 
         filename = directory+filenameTemp

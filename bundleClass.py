@@ -129,7 +129,7 @@ class Bundle(object):
         if self.rec_CAP:
             self.compute_CAP_fromfiles()
             self.save_CAP_to_file()
-            self.sum_CAP = None
+            self.clear_CAP_vars()
 
         self.save_voltage_to_file()
 
@@ -176,11 +176,20 @@ class Bundle(object):
         # header would be useful.
         # header = repr(parameters)
         DataOut = np.array(self.trec)
-
-        for i in range(len(self.sum_CAP)):
-                DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP[i])))
+        DataOut = np.column_stack( (DataOut, np.transpose(np.array(self.sum_CAP))))
 
         np.savetxt(filename, DataOut)
+
+        # now save the extracellular signals of every cell
+        DataOut = np.array(self.trec)
+        DataOut = np.column_stack((DataOut, np.transpose(self.AP_axonwise)))
+
+        filename = getFileName("CAP1A", self.saveParams)
+        print "Save location for signel axon differentiated CAP file: " + filename
+
+    def clear_CAP_vars(self):
+        self.AP_axonwise = None
+        self.CAP = None
 
     def save_voltage_to_file(self):
         # filename = self.get_filename("V")
@@ -459,7 +468,6 @@ class Bundle(object):
         # where are the electrodes
         [angles,X,Y,Z,N] = self.setup_recording_elec()
 
-        runFlag = False
         for axonIndex in range(self.virtual_number_axons):
 
             axon = self.axons[axonIndex]
@@ -530,22 +538,6 @@ class Bundle(object):
             # delete the object
             axon.delete_neuron_object()
 
-        # if runFlag:
-        #     startTime = time.time()
-        #     h.run()
-        #     print 'Elapsed time for voltage simulation ' + str(time.time() - startTime)
-            # ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
-            # for sec in h.allsec():
-            #     for seg in sec:
-            #         seg = None
-            #     sec = None
-            # if draw[i] == 1:
-            #     self.axons[i].axon = None
-            # else:
-            #     self.axons[i].nodes = None
-            #     self.axons[i].FLUTs = None
-            #     self.axons[i].MYSAs = None
-            #     self.axons[i].STINs = None
 
 
     def store_geometry(self):
@@ -581,7 +573,11 @@ class Bundle(object):
     def compute_CAP_fromfiles(self):
         temp = time.time()
 
+        # variable to save the sum over all axons
         self.sum_CAP = np.zeros((self.number_elecs,len(self.trec)))
+
+        # variable to save the extracellular signal from each cell separately, at the last electrode position.
+        self.AP_axonwise = np.zeros((self.virtual_number_axons, len(self.trec)))
 
         # load the recordings for every axon one by one and add them.
         for elecIndex in range(self.virtual_number_axons):
@@ -591,7 +587,11 @@ class Bundle(object):
         # recording location along the axon
             for i in range(self.number_elecs):
                 contactPointIndices = range(i, self.number_elecs*self.number_contact_points, self.number_elecs)
-                self.sum_CAP[i,:] = self.sum_CAP[i,:] +  np.sum(electrodeData[contactPointIndices, :], 0)
+                sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
+                self.sum_CAP[i,:] = self.sum_CAP[i,:] +  sumOverContactPoints
+
+                if i == self.number_elecs-1:
+                    self.AP_axonwise[elecIndex,:] = sumOverContactPoints
 
         elapsed = time.time()-temp
         print "Elapsed time to compute CAP " + str(elapsed)
