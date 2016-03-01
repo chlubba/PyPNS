@@ -242,7 +242,11 @@ class Bundle(object):
 
         axonID = 0
         for axon in self.axons:
-            ax.plot(axon.xmid, axon.ymid, axon.zmid, label='axon '+str(axonID))
+            if type(axon) == Myelinated:
+                style = '-'
+            else:
+                style = '--'
+            ax.plot(axon.xmid, axon.ymid, axon.zmid, style, label='axon '+str(axonID))
             axonID += 1
         plt.legend()
 
