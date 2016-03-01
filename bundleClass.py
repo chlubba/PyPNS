@@ -127,10 +127,11 @@ class Bundle(object):
         self.simulateAxons()
 
         if self.rec_CAP:
-            if self.number_elecs !=1:
-                self.compute_CAP2D_fromfile()
-            else:
-                self.compute_CAP1D_fromfile()
+            # if self.number_elecs !=1:
+            #     self.compute_CAP2D_fromfile()
+            # else:
+            #     self.compute_CAP1D_fromfile()
+            self.compute_CAP2D_fromfile()
             self.save_CAP_to_file()
 
             self.sum_CAP = None
@@ -180,11 +181,14 @@ class Bundle(object):
         # header would be useful.
         # header = repr(parameters)
         DataOut = np.array(self.trec)
-        if self.number_elecs != 1:
-            for i in range(len(self.sum_CAP)):
+        # if self.number_elecs != 1:
+        #     for i in range(len(self.sum_CAP)):
+        #         DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP[i])))
+        # else:
+        #     DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP)))
+
+        for i in range(len(self.sum_CAP)):
                 DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP[i])))
-        else:
-            DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP)))
 
         np.savetxt(filename, DataOut)
 
@@ -294,11 +298,30 @@ class Bundle(object):
 
                 if i == numberOfPlots - 1:
                     axarr[i].set_xlabel('time [ms]')
+        else:
+            fig = plt.figure()
+            CAPSingleElectrode =  CAP[0,:]
+            distanceFromOrigin = self.recording_elec_pos
+
+            plt.plot(time, CAPSingleElectrode)
+            plt.title('distance ' + str(distanceFromOrigin) + ' [um]')
+            plt.ylabel('CAP [mV]')
+            plt.xlabel('time [ms]')
+
 
     def plot_CAP2D(self):
 
         # first load the desired data from file
         time, CAP = self.get_CAP_from_file()
+
+        # check if plotting makes sense
+        numberOfRecordingSites = np.shape(CAP)[0]
+
+        if numberOfRecordingSites <= 10:
+            print 'Plotting of the CAP in two dimensions (time, space) does not make sense with fewer than 10 electrodes. ' \
+                  'Please select anotherplotting mechanism or restart the simulation with more electrodes.'
+            return
+
 
         # print as an image
         fig = plt.figure()
@@ -582,23 +605,26 @@ class Bundle(object):
 
     def compute_CAP1D_fromfile(self):
         self.load_electrodes()
+
         CAP = []
         self.sum_CAP = 0
-        for i in range(0,len(self.recording_elec_pos)*self.number_contact_points,len(self.recording_elec_pos)):
-            if len(self.recording_elec_pos) == 1:
+
+        numPoles = len(self.recording_elec_pos)
+        for i in range(0,numPoles*self.number_contact_points,numPoles):
+            if numPoles == 1:
                 CAP.append(self.electrodes[0][i])
-            elif len(self.recording_elec_pos) == 2:
+            elif numPoles == 2:
                 CAP.append(self.electrodes[0][i]-self.electrodes[0][i+1])
-        for i in range(len(self.recording_elec_pos),len(self.recording_elec_pos)*self.number_contact_points,len(self.recording_elec_pos)):
+        for i in range(numPoles,numPoles*self.number_contact_points,numPoles):
             for j in range(1,self.virtual_number_axons):
-                if len(self.recording_elec_pos) == 1:
+                if numPoles == 1:
                     CAP[int(float(i))] +=  self.electrodes[j][i]
-                elif len(self.recording_elec_pos) == 2:
+                elif numPoles == 2:
                     CAP[int(float(i)/2)] += (self.electrodes[j][i]- self.electrodes[j][i+1])
 
-            if len(self.recording_elec_pos) == 1:
+            if numPoles == 1:
                 self.sum_CAP += CAP[int(float(i))]
-            elif len(self.recording_elec_pos) == 2:
+            elif numPoles == 2:
                 self.sum_CAP += CAP[int(float(i)/2)]
 
 
