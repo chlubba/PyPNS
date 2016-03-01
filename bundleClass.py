@@ -266,7 +266,7 @@ class Bundle(object):
 
         numberOfRecordingSites = np.shape(CAP)[0]
 
-        if not numberOfRecordingSites == 1:
+        if numberOfRecordingSites > 2:
 
             numberOfPlots = min(maxNumberOfSubplots, numberOfRecordingSites-1)
 
@@ -290,8 +290,8 @@ class Bundle(object):
                     axarr[i].set_xlabel('time [ms]')
         else:
             fig = plt.figure()
-            CAPSingleElectrode =  CAP[0,:]
-            distanceFromOrigin = self.recording_elec_pos
+            CAPSingleElectrode =  CAP[numberOfRecordingSites-1,:]
+            distanceFromOrigin = self.recording_elec_pos[0]/numberOfRecordingSites
 
             plt.plot(time, CAPSingleElectrode)
             plt.title('distance ' + str(distanceFromOrigin) + ' [um]')
@@ -562,40 +562,61 @@ class Bundle(object):
                 shutil.rmtree(directory)
                 os.makedirs(directory)
         filename = "electrode_"+str(i)+".dat"
-        DataOut = np.array(self.electrodes[i].LFP[0])
-        for j in range(len(self.electrodes[i].LFP)):
-            DataOut = np.column_stack((DataOut, np.array(self.electrodes[i].LFP[j])))
+        DataOut = np.array(self.electrodes[i].LFP[0])#,1:-1
+        for j in range(1,len(self.electrodes[i].LFP)):
+            DataOut = np.column_stack((DataOut, np.array(self.electrodes[i].LFP[j])))#,1:-1
         np.savetxt(directory+filename, DataOut)
 
+    def load_one_electrode(self, elecIndex):
 
+        directory = getDirectoryName("elec", **self.saveParams)
+        filename = "electrode_"+str(elecIndex)+".dat"
+
+        t0 = time.time()
+        electrodeData = np.loadtxt(directory + filename, unpack=True)
+        print "loaded electrode "+ str(elecIndex) +  " in " + str(time.time()-t0)
+
+        return electrodeData
 
     def compute_CAP_fromfiles(self):
-        directory = getDirectoryName("elec", **self.saveParams)
+        # directory = getDirectoryName("elec", **self.saveParams)
+        #
+        # temp = time.time()
+        # CAP = []
+        # print "loading electrode"
+        # t0 = time.time()
+        #
+        # filename = "electrode_"+str(0)+".dat"
+        # electrodesData = np.loadtxt(directory + filename, unpack=True)
 
         temp = time.time()
-        CAP = []
-        print "loading electrode"
-        t0 = time.time()
 
-        filename = "electrode_"+str(0)+".dat"
-        electrodesData = np.loadtxt(directory + filename, unpack=True)
-        print "loaded in: "+str(time.time()-t0)
-        self.sum_CAP = np.zeros((self.number_elecs,len(electrodesData[0])))
-        for i in range(self.number_contact_points):
-            for j in range(self.number_elecs):
-                CAP.append(electrodesData[i*self.number_elecs+j])
+        self.sum_CAP = np.zeros((self.number_elecs,len(self.trec)))
 
-        del electrodesData
-        for k in range(1,self.virtual_number_axons):
-            t0 = time.time()
-            filename = "electrode_"+str(k)+".dat"
-            electrodesData = np.loadtxt(directory + filename, unpack=True)
-            print "electrode_"+str(k)+ "loaded in: "+str(time.time()-t0)
-            for j in range(self.number_elecs):
-                for i in range(self.number_contact_points):
-                    CAP[i*self.number_elecs+j] += electrodesData[i*self.number_elecs+j]
-                    self.sum_CAP[j,:] += CAP[i*self.number_elecs+j]
-            del electrodesData
+        # load the recordings for every axon one by one and add them.
+        for elecIndex in range(self.virtual_number_axons):
+            electrodeData = self.load_one_electrode(elecIndex)
+
+        # The contactpoints that constitute one cuff electrode ring have to be recovered, summed up together per
+        # recording location along the axon
+        # for i in range(self.number_contact_points):
+        #     for j in range(self.number_elecs):
+        #         CAP.append(electrodesData[i*self.number_elecs+j])
+
+            for i in range(self.number_elecs):
+                contactPointIndices = range(i*self.number_contact_points, (i+1)*self.number_contact_points)
+                self.sum_CAP[i,:] = self.sum_CAP[i,:] +  np.sum(electrodeData[contactPointIndices, :], 0)
+
+        # for k in range(1,self.virtual_number_axons):
+        #     t0 = time.time()
+        #     filename = "electrode_"+str(k)+".dat"
+        #     electrodesData = np.loadtxt(directory + filename, unpack=True)
+        #     print "electrode_"+str(k)+ "loaded in: "+str(time.time()-t0)
+        #     for j in range(self.number_elecs):
+        #         for i in range(self.number_contact_points):
+        #             CAP[i*self.number_elecs+j] += electrodesData[i*self.number_elecs+j]
+        #             self.sum_CAP[j,:] += CAP[i*self.number_elecs+j]
+        #     del electrodesData
 
         elapsed = time.time()-temp
         print "Elapsed time to compute CAP:" + str(elapsed)
