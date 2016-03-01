@@ -389,7 +389,7 @@ class Bundle(object):
                 cNorm = colors.Normalize(vmin=0, vmax=Nnodes-1)#len(diameters_m)-1)#
                 scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
 
-                nodePositions = range(0,Nnodes,11)
+                nodePositions = range(0,(Nnodes-1)*11,11)
 
                 for j in nodePositions:
                     colorVal = scalarMap.to_rgba(j)

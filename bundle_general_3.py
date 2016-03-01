@@ -18,16 +18,13 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = False
-
-# calculateCAP = True
-# calculateVoltage = False
+calculationFlag = False# True
 
 plottingFlag = True
 
-plotGeometry = True
+plotGeometry = False#True
 
-plotCAP = True
+plotCAP = False#True
 plotCAP1D = True
 plotCAP2D = True
 plotCAP1D_1Axon = False
@@ -37,7 +34,7 @@ plotVoltage = True
 
 
 # bundle characteristics
-p_A = [0.1]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [0.5]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 5.7# 16.0 #'draw' #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5 #'draw' #'draw'
 myelinatedCurviness = 0.314
@@ -45,7 +42,7 @@ myelinatedCurviness = 0.314
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons = 3
+number_of_axons = 10
 lengthOfBundle = 5000
 
 
@@ -115,7 +112,7 @@ for j in range(len(duty_cycles)):
             'recording_elec_pos': recording_elec_pos,#[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
             'number_elecs': number_elecs,#150, #number of electrodes along the bundle
             'dur': h.tstop, # Simulation duration (ms)
-            'rec_CAP': rec_CAP, #If false means we avoid spending time using LFPy functions
+            'rec_CAP': True, #If false means we avoid spending time using LFPy functions
         }
         myelinatedParametersA = {
             'name': "myelinated_axonA", # axon name (for neuron)
@@ -175,7 +172,11 @@ for j in range(len(duty_cycles)):
             # save the whole bundle
             pickle.dump(bundle,open( bundleDirectory+"bundle.class", "wb" ))
         else:
-            bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
+            try:
+                bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
+            except:
+                print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
+                quit()
             # bundle = None
 
         # pprint (vars(bundle))
