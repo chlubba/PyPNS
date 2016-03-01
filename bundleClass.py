@@ -109,15 +109,6 @@ class Bundle(object):
             self.stim = Stimulus(self.stim_type, self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
 
 
-        # # create upstream activity
-        # self.upstreamSpiking = UpstreamSpiking(self.number_of_axons, tStart=0., tStop=h.tstop, lambd = 1000.)
-
-
-        # # connect to stimulus
-        # for i in range(self.virtual_number_axons):
-        #     axon = self.axons[i]
-        #     self.stim.connectAxon(axon)
-
     def addUpstreamSpiking(self, tStart=0., tStop=h.tstop, lambd = 1000., correlation = 0.1):
         # create upstream activity
         self.upstreamSpiking = UpstreamSpiking(self.number_of_axons, tStart=tStart, tStop=tStop, lambd=lambd, correlation=correlation)
@@ -167,16 +158,17 @@ class Bundle(object):
 
 
     def save_CAP_to_file(self):
-        # filename = self.get_filename("CAP")
-        filename = getFileName("CAP", self.saveParams)
-        print "Save location for CAP file: " + filename
+
+        DataOut = np.array(self.trec)
+        DataOut = np.column_stack( (DataOut, np.transpose(np.array(self.sum_CAP))))
 
         # maybe add the header later. Right now we assume that the simulation is defined by the bundle object that get
         # always generated during the whole simulation. If files are opened independently from a bundle object, such a
         # header would be useful.
         # header = repr(parameters)
-        DataOut = np.array(self.trec)
-        DataOut = np.column_stack( (DataOut, np.transpose(np.array(self.sum_CAP))))
+
+        filename = getFileName("CAP", self.saveParams)
+        print "Save location for CAP file: " + filename
 
         np.savetxt(filename, DataOut)
 
@@ -186,6 +178,8 @@ class Bundle(object):
 
         filename = getFileName("CAP1A", self.saveParams)
         print "Save location for signel axon differentiated CAP file: " + filename
+
+        np.savetxt(filename, DataOut)
 
     def clear_CAP_vars(self):
         self.AP_axonwise = None
@@ -261,11 +255,48 @@ class Bundle(object):
             ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
             ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
 
-    def plot_CAP1D_singleAxon(self, axonID):
+    def plot_CAP1D_singleAxon(self, maxNumberOfAxons):
 
-        CAP = self.CAP
+        # get the whole CAP, can be single electrode or multiple
+        directory = getDirectoryName("CAP1A", **self.saveParams)
+        try:
+            newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+        except ValueError:
+            print 'No CAP calculation has been performed yet with this set of parameters.'
+            quit()
 
-        print 'hm'
+        CAPraw = np.transpose(np.loadtxt(newestFile))
+        time = CAPraw[0,:]
+        CAP = CAPraw[1:,:]
+
+        numberOfPlots = min(maxNumberOfAxons, self.virtual_number_axons)
+        axonSelection = np.floor(np.linspace(0,self.virtual_number_axons-1, numberOfPlots))
+
+        # Subplots
+        f, axarr = plt.subplots(numberOfPlots, sharex=True)
+
+        for i in range(len(axonSelection)):
+            axonIndex = int(axonSelection[i])
+
+            axon = self.axons[i]
+
+            axonDiameter = axon.fiberD
+
+            if type(self.axons[axonIndex]) == Myelinated:
+                axonType = 'myelinated'
+            else:
+                axonType = 'unmyelinated'
+
+            CAPSingleAxon = CAP[axonIndex,:]
+
+            axarr[i].plot(time, CAPSingleAxon)
+            axarr[i].set_title('Axon ' + str(axonIndex) + ' (' + axonType + ') with diameter ' + str(axonDiameter) + 'um')
+            axarr[i].set_ylabel('CAP [mV]')
+
+
+
+
+
 
 
     def plot_CAP1D(self, maxNumberOfSubplots = 10):

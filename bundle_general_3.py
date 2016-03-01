@@ -18,7 +18,7 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = True
+calculationFlag = False
 
 plottingFlag = True
 
@@ -27,7 +27,7 @@ plotGeometry = True
 plotCAP = True
 plotCAP1D = True
 plotCAP2D = True
-plotCAP1D_1Axon = False
+plotCAP1D_1Axon = True
 
 plotVoltage = True
 
@@ -61,7 +61,7 @@ stopTimeSpiking = h.tstop
 
 # recoding params
 number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
-recording_elec_pos = [math.floor(lengthOfBundle*0.9)] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+recording_elec_pos = [math.floor(lengthOfBundle*0.8)] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
 number_elecs =  5#150#150, #number of electrodes along the bundle
 
 myelinatedDistribution = {
@@ -200,7 +200,7 @@ for j in range(len(duty_cycles)):
 
                 if plotCAP1D_1Axon:
 
-                    bundle.plot_CAP1D_singleAxon(0)
+                    bundle.plot_CAP1D_singleAxon(10)
 
                 if plotCAP1D:
 
