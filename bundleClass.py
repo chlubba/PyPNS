@@ -291,7 +291,7 @@ class Bundle(object):
         else:
             fig = plt.figure()
             CAPSingleElectrode =  CAP[numberOfRecordingSites-1,:]
-            distanceFromOrigin = self.recording_elec_pos[0]/numberOfRecordingSites
+            distanceFromOrigin = self.recording_elec_pos[0]
 
             plt.plot(time, CAPSingleElectrode)
             plt.title('distance ' + str(distanceFromOrigin) + ' [um]')
