@@ -22,7 +22,7 @@ calculationFlag = False# True
 
 plottingFlag = True
 
-plotGeometry = False#True
+plotGeometry = True#True
 
 plotCAP = False#True
 plotCAP1D = True
