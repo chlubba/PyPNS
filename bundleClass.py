@@ -579,16 +579,6 @@ class Bundle(object):
         return electrodeData
 
     def compute_CAP_fromfiles(self):
-        # directory = getDirectoryName("elec", **self.saveParams)
-        #
-        # temp = time.time()
-        # CAP = []
-        # print "loading electrode"
-        # t0 = time.time()
-        #
-        # filename = "electrode_"+str(0)+".dat"
-        # electrodesData = np.loadtxt(directory + filename, unpack=True)
-
         temp = time.time()
 
         self.sum_CAP = np.zeros((self.number_elecs,len(self.trec)))
@@ -599,27 +589,12 @@ class Bundle(object):
 
         # The contactpoints that constitute one cuff electrode ring have to be recovered, summed up together per
         # recording location along the axon
-        # for i in range(self.number_contact_points):
-        #     for j in range(self.number_elecs):
-        #         CAP.append(electrodesData[i*self.number_elecs+j])
-
             for i in range(self.number_elecs):
-                contactPointIndices = range(i*self.number_contact_points, (i+1)*self.number_contact_points)
+                contactPointIndices = range(i, self.number_elecs*self.number_contact_points, self.number_elecs)
                 self.sum_CAP[i,:] = self.sum_CAP[i,:] +  np.sum(electrodeData[contactPointIndices, :], 0)
 
-        # for k in range(1,self.virtual_number_axons):
-        #     t0 = time.time()
-        #     filename = "electrode_"+str(k)+".dat"
-        #     electrodesData = np.loadtxt(directory + filename, unpack=True)
-        #     print "electrode_"+str(k)+ "loaded in: "+str(time.time()-t0)
-        #     for j in range(self.number_elecs):
-        #         for i in range(self.number_contact_points):
-        #             CAP[i*self.number_elecs+j] += electrodesData[i*self.number_elecs+j]
-        #             self.sum_CAP[j,:] += CAP[i*self.number_elecs+j]
-        #     del electrodesData
-
         elapsed = time.time()-temp
-        print "Elapsed time to compute CAP:" + str(elapsed)
+        print "Elapsed time to compute CAP " + str(elapsed)
 
 
     def setup_recording_elec(self):
@@ -679,7 +654,7 @@ class Bundle(object):
         filenameTemp = filename
         while os.path.isfile(directory+filenameTemp):
             number += 1
-            print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
+            # print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
             filenameTemp = str(number).zfill(5) + filename
 
         self.filename = directory+filenameTemp
