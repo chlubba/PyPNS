@@ -127,13 +127,8 @@ class Bundle(object):
         self.simulateAxons()
 
         if self.rec_CAP:
-            # if self.number_elecs !=1:
-            #     self.compute_CAP2D_fromfile()
-            # else:
-            #     self.compute_CAP1D_fromfile()
-            self.compute_CAP2D_fromfile()
+            self.compute_CAP_fromfiles()
             self.save_CAP_to_file()
-
             self.sum_CAP = None
 
         self.save_voltage_to_file()
@@ -181,11 +176,6 @@ class Bundle(object):
         # header would be useful.
         # header = repr(parameters)
         DataOut = np.array(self.trec)
-        # if self.number_elecs != 1:
-        #     for i in range(len(self.sum_CAP)):
-        #         DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP[i])))
-        # else:
-        #     DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP)))
 
         for i in range(len(self.sum_CAP)):
                 DataOut = np.column_stack( (DataOut, np.array(self.sum_CAP[i])))
@@ -560,6 +550,7 @@ class Bundle(object):
 
     def store_geometry(self):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
+
     def save_electrode(self,i):
         directory = getDirectoryName("elec", **self.saveParams)
 
@@ -576,60 +567,9 @@ class Bundle(object):
             DataOut = np.column_stack((DataOut, np.array(self.electrodes[i].LFP[j])))
         np.savetxt(directory+filename, DataOut)
 
-    def load_electrodes(self):
-        directory = getDirectoryName("elec", **self.saveParams)
-
-        print "loading electrode"
-        t0 = time.time()
-        self.electrodes = [[] for j in range(self.virtual_number_axons)]
-        if self.number_contact_points == 1:
-            for k in range(self.virtual_number_axons):
-                filename = "electrode_"+str(k)+".dat"
-                self.electrodes[k] = np.loadtxt(directory + filename, unpack=True)
-                #for i in range(self.number_contact_points*len(self.recording_elec_pos)):
-                    #for j in range(self.number_elecs):
-                        #self.electrodes[k].append(np.loadtxt(directory + filename, unpack=True, usecols=[i*self.number_elecs+j]))
-        else:
-            for k in range(self.virtual_number_axons):
-                filename = "electrode_"+str(k)+".dat"
-                self.electrodes[k] = np.loadtxt(directory + filename, unpack=True)
-
-        print "loaded in: "+str(time.time()-t0)
 
 
-
-
-
-
-
-
-    def compute_CAP1D_fromfile(self):
-        self.load_electrodes()
-
-        CAP = []
-        self.sum_CAP = 0
-
-        numPoles = len(self.recording_elec_pos)
-        for i in range(0,numPoles*self.number_contact_points,numPoles):
-            if numPoles == 1:
-                CAP.append(self.electrodes[0][i])
-            elif numPoles == 2:
-                CAP.append(self.electrodes[0][i]-self.electrodes[0][i+1])
-        for i in range(numPoles,numPoles*self.number_contact_points,numPoles):
-            for j in range(1,self.virtual_number_axons):
-                if numPoles == 1:
-                    CAP[int(float(i))] +=  self.electrodes[j][i]
-                elif numPoles == 2:
-                    CAP[int(float(i)/2)] += (self.electrodes[j][i]- self.electrodes[j][i+1])
-
-            if numPoles == 1:
-                self.sum_CAP += CAP[int(float(i))]
-            elif numPoles == 2:
-                self.sum_CAP += CAP[int(float(i)/2)]
-
-
-
-    def compute_CAP2D_fromfile(self):
+    def compute_CAP_fromfiles(self):
         directory = getDirectoryName("elec", **self.saveParams)
 
         temp = time.time()
@@ -784,103 +724,3 @@ class Bundle(object):
             raise('Wrong axon type given to function getDiam. Valid ones: u or m')
 
         return diam
-
-    # def draw_distrib(self):
-    #     startTime = time.time()
-    #
-    #     draw = np.random.choice(2,self.number_of_axons,p = [self.p_A, self.p_C])
-    #     diams = []
-    #     for i in range(len(draw)):
-    #         if (isinstance(self.myelinated_A['fiberD'],float) and (isinstance(self.unmyelinated['diam'],float) or isinstance(self.unmyelinated['diam'],int))):
-    #             pass
-    #         else:
-    #             if draw[i] == 0:
-    #                 fiberD = self.myelinated_A['fiberD'];
-    #                 densities = fiberD['densities'];
-    #                 sum_d = float(sum(densities))
-    #                 normalize_densities = [x / sum_d for x in densities]
-    #                 draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-    #                 axonD = fiberD['diameters'][draw_diam]+2.8
-    #                 # choose the closest from existing axonD
-    #                 axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
-    #                 diff_axonD = [abs(x-axonD) for x in axonD_choices]
-    #                 fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
-    #                 fiberD = fiberD_choices[np.argmin(diff_axonD)]
-    #                 diams.append(fiberD)
-    #             else:
-    #                 """print "Unmyelinated in the function"
-    #                 print self.unmyelinated
-    #                 print "\n" """
-    #                 diam = self.unmyelinated['diam']
-    #                 densities = diam['densities'];
-    #                 sum_d = float(sum(densities))
-    #                 normalize_densities = [x / sum_d for x in densities]
-    #                 draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-    #                 D = diam['diameters'][draw_diam]
-    #                 diams.append(D)
-    #
-    #     print 'Time to draw from diameter distribution: ' + str(time.time() - startTime)
-    #
-    #
-    #     parameters_to_save = {'p_A': self.p_A, 'p_C': self.p_C, 'radius_bundle': self.radius_bundle, 'number_of_axons':self.number_of_axons, 'unmyelinated': self.unmyelinated, 'myelinated': self.myelinated_A}
-    #     header = repr(parameters_to_save)
-    #     filename = self.get_filename_for_draw()
-    #     directory = "FOR_PAPER/CAP2D/draws/"
-    #     if not os.path.exists(directory):
-    #         os.makedirs(directory)
-    #     DataOut = np.column_stack( (draw, diams))
-    #     filename_org = filename
-    #     number  = 0
-    #     while os.path.isfile(directory+filename):
-    #         number += 1
-    #         print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
-    #         filename = str(number) + filename_org
-    #     np.savetxt(directory+filename, DataOut, header=header)
-    #     return [draw, diams]
-
-
-    def load_distrib(self):
-        #directory = "draws/biphasic/"
-        # saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
-        #             'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
-        #             'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
-        #             'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
-        directory = getDirectoryName("draw", **self.saveParams)
-        filename = self.get_filename_for_draw()
-        draw = np.loadtxt(directory +filename, unpack=True, usecols=[0])
-        diams = np.loadtxt(directory +filename, unpack=True, usecols=[1])
-        return [draw,diams]
-
-
-## METHOD USED TO SET SOME HEADER PARAMETERS ###
-def fiberD_dependent_param(fiberD, nodelength, paralength1):
-    if (fiberD==5.7):
-        deltax=500
-        paralength2=35
-    if (fiberD==7.3):
-        deltax=750
-        paralength2=38
-    if (fiberD==8.7):
-        deltax=1000
-        paralength2=40
-    if (fiberD==10.0):
-        deltax=1150
-        paralength2=46
-    if (fiberD==11.5):
-        deltax=1250
-        paralength2=50
-    if (fiberD==12.8):
-        deltax=1350
-        paralength2=54
-    if (fiberD==14.0):
-        deltax=1400
-        paralength2=56
-    if (fiberD==15.0):
-        deltax=1450
-        paralength2=58
-    if (fiberD==16.0):
-        deltax=1500
-        paralength2=60
-
-    interlength = (deltax-nodelength-(2*paralength1)-(2*paralength2))/6.0
-    return [paralength2,interlength]
