@@ -18,13 +18,13 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = False# True
+calculationFlag = True# True
 
 plottingFlag = True
 
-plotGeometry = True#True
+plotGeometry = True
 
-plotCAP = False#True
+plotCAP = True
 plotCAP1D = True
 plotCAP2D = True
 plotCAP1D_1Axon = False
@@ -34,7 +34,7 @@ plotVoltage = True
 
 
 # bundle characteristics
-p_A = [0.5]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [.5]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 5.7# 16.0 #'draw' #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 1.5 #'draw' #'draw'
 myelinatedCurviness = 0.314
@@ -47,7 +47,7 @@ lengthOfBundle = 5000
 
 
 # stimulus characteristics
-stim_types = ["NONE"]#, "INTRA", "EXTRA", "NONE"
+stim_types = ["INTRA"]#, "INTRA", "EXTRA", "NONE"
 waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
@@ -55,7 +55,7 @@ amplitudes = [2.0]#,2.0,0.5]
 stimDur = [10]
 
 # upstream nerve stream activity characteristics
-upstreamSpikingOn = True
+upstreamSpikingOn = False
 spikingRate = 1000. # mean number of pulses per second
 spikingCorrelation = 0.1 # pairwise corrleation between neurons
 startTimeSpiking = 0
@@ -64,7 +64,7 @@ stopTimeSpiking = h.tstop
 # recoding params
 number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
 recording_elec_pos = [math.floor(lengthOfBundle*0.9)] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-number_elecs =  10#150#150, #number of electrodes along the bundle
+number_elecs =  150#150, #number of electrodes along the bundle
 
 myelinatedDistribution = {
     'densities':[100,300,1150,2750,3650,2850,1750,900,500,250,200,150,110,100,110,100,105], #fibers densities can be given either in No/mm2 or percentage

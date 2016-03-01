@@ -386,10 +386,19 @@ class Bundle(object):
             else:
                 Nnodes = self.myelinated_A['Nnodes']
 
-                cNorm = colors.Normalize(vmin=0, vmax=Nnodes-1)#len(diameters_m)-1)#
+                numberOfRecordingSites = np.shape(voltageMatrix)[1]
+
+                cNorm = colors.Normalize(vmin=0, vmax=numberOfRecordingSites-1)#len(diameters_m)-1)#
                 scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
 
                 nodePositions = range(0,(Nnodes-1)*11,11)
+
+                # numberOfRecordingSites = np.shape(voltageMatrix)[1]
+                #
+                # cNorm = colors.Normalize(vmin=0, vmax=numberOfRecordingSites)#len(diameters_m)-1)#
+                # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+                #
+                # nodePositions = range(numberOfRecordingSites)
 
                 for j in nodePositions:
                     colorVal = scalarMap.to_rgba(j)
@@ -474,8 +483,11 @@ class Bundle(object):
                 # connect to stimulus
                 self.stim.connectAxon(axon)
 
-            # connect up stream nerve spiking
-            self.upstreamSpiking.connectAxon(axon)
+            try:
+                # connect up stream nerve spiking
+                self.upstreamSpiking.connectAxon(axon)
+            except:
+                pass
 
             if axonIndex == 0:
             # record time variable
