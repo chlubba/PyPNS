@@ -69,6 +69,7 @@ class Bundle(object):
 
         self.number_of_axons = number_of_axons
         self.axons = []
+        self.axonColors = np.zeros([self.number_of_axons,4])
         self.radius_bundle = radius_bundle # um
         self.electrodes = []
         self.voltages = []
@@ -90,7 +91,11 @@ class Bundle(object):
         # else:
         #     delay = np.random.normal(self.delay_mu, self.delay_sigma, self.number_of_axons)
 
-        # create axons within wanted nerve-slice
+        # maybe place this somewhere else, but for now:
+        # create axon-specific color
+        jet = plt.get_cmap('Paired')
+        cNorm = colors.Normalize(vmin=0, vmax=self.number_of_axons)#len(diameters_m)-1)#
+        scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
 
 
         # create axons within one fourth slice of the whole bundle.
@@ -100,6 +105,8 @@ class Bundle(object):
             if True:#((self.axons_pos[i,1]>=0 and self.axons_pos[i,1]< self.axons_pos[i,0]) or (self.axons_pos[i,0]== 0 and self.axons_pos[i,1]==0)):
                 # print self.axons_pos[i,:]
                 self.create_axon(self.axons_pos[i,:])
+                self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
+
                 self.virtual_number_axons +=1
                 print "Number axons created:" + str(self.virtual_number_axons)
 
@@ -243,7 +250,8 @@ class Bundle(object):
                 style = '-'
             else:
                 style = '--'
-            ax.plot(axon.xmid, axon.ymid, axon.zmid, style, label='axon '+str(axonID))
+            ax.plot(axon.xmid, axon.ymid, axon.zmid, style, label='axon '+str(axonID), color= tuple(self.axonColors[axonID,:]))
+            ax.text(axon.xmid[-1], axon.ymid[-1], axon.zmid[-1], str(axonID))
             axonID += 1
         plt.legend()
 
@@ -289,7 +297,7 @@ class Bundle(object):
 
             CAPSingleAxon = CAP[axonIndex,:]
 
-            axarr[i].plot(time, CAPSingleAxon)
+            axarr[i].plot(time, CAPSingleAxon, color= tuple(self.axonColors[axonIndex,:]))
             axarr[i].set_title('Axon ' + str(axonIndex) + ' (' + axonType + ') with diameter ' + str(axonDiameter) + 'um')
             axarr[i].set_ylabel('CAP [mV]')
 
