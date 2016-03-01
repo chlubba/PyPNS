@@ -19,7 +19,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 
-from nameSetters import getDirectoryName
+from nameSetters import getDirectoryName, getFileName
 
 class Bundle(object):
     """
@@ -171,7 +171,8 @@ class Bundle(object):
 
 
     def save_CAP_to_file(self):
-        filename = self.get_filename("CAP")
+        # filename = self.get_filename("CAP")
+        filename = getFileName("CAP", self.saveParams)
         print "Save location for CAP file: " + filename
 
         # maybe add the header later. Right now we assume that the simulation is defined by the bundle object that get
@@ -188,7 +189,8 @@ class Bundle(object):
         np.savetxt(filename, DataOut)
 
     def save_voltage_to_file(self):
-        filename = self.get_filename("V")
+        # filename = self.get_filename("V")
+        filename = getFileName("V", self.saveParams)
         print "Save location for voltage file: " + filename
         #header= repr(parameters)
 
@@ -424,20 +426,6 @@ class Bundle(object):
             axonParameters = dict( {'coord': axonPosition},**unmyel)
             self.axons.append(Unmyelinated(**axonParameters))
 
-            # print 'before appending axon'
-            # for i in range(len(self.axons)):
-            #     print list(list(self.axons[i].allseclist)[0].allseg())
-            #
-            # newAxon = Unmyelinated(**axonParameters )
-            #
-            # print 'Segments of new axon:'
-            # print list(list(newAxon.allseclist)[0].allseg())
-            #
-            # self.axons.append(newAxon)
-            #
-            # print 'after appending axon'
-            # for i in range(len(self.axons)):
-            #     print list(list(self.axons[i].allseclist)[0].allseg())
 
         elif axonTypeIndex == 0:
             myel = copy.copy(self.myelinated_A)
@@ -693,7 +681,8 @@ class Bundle(object):
         if not os.path.exists(directory):
             os.makedirs(directory)
 
-        filename = 'recording.dat'
+        # filename = 'recording.dat'
+        filename = recordingType+'.dat'
 
         number = 0
         filenameTemp = filename

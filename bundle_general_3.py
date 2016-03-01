@@ -31,8 +31,6 @@ plotCAP1D_1Axon = False
 
 plotVoltage = True
 
-
-
 # bundle characteristics
 p_A = [.5]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 5.7# 16.0 #'draw' #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
@@ -157,9 +155,11 @@ for j in range(len(duty_cycles)):
 
 
 
-        bundleDirectory = getDirectoryName('bundle', **saveParams)
-        if not os.path.exists(bundleDirectory):
-            os.makedirs(bundleDirectory)
+        # bundleDirectory = getDirectoryName('bundle', **saveParams)
+        # if not os.path.exists(bundleDirectory):
+        #     os.makedirs(bundleDirectory)
+
+        bundleSaveLocation = getFileName("bundle", saveParams)
         if calculationFlag:
 
             bundle = Bundle(**Parameters)
@@ -170,10 +170,12 @@ for j in range(len(duty_cycles)):
             bundle.simulateBundle()
 
             # save the whole bundle
-            pickle.dump(bundle,open( bundleDirectory+"bundle.class", "wb" ))
+            # pickle.dump(bundle,open( bundleDirectory+"bundle.class", "wb" ))
+            pickle.dump(bundle,open( bundleSaveLocation, "wb" ))
         else:
             try:
-                bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
+                # bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
+                bundle = pickle.load(open(bundleSaveLocation, "rb" ))
             except:
                 print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
                 quit()

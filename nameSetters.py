@@ -1,3 +1,5 @@
+import os
+
 def getDirectoryName(keyword, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, elecCount=2, stimType = "EXTRA", stimWaveform = "", stimDutyCycle = 0, stimAmplitude = 0):
     # retrieve directory name based on the purpose defined by keyword and the bundleParameters
     # 4 possible keywords:
@@ -42,3 +44,22 @@ def getDirectoryName(keyword, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyel
 
     return homeDirectory+suffix+pathString
 
+def getFileName(recordingType, saveParams):
+
+        directory = getDirectoryName(recordingType, **saveParams)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        # filename = 'recording.dat'
+        filename = recordingType+'.dat'
+
+        number = 0
+        filenameTemp = filename
+        while os.path.isfile(directory+filenameTemp):
+            number += 1
+            print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
+            filenameTemp = str(number).zfill(5) + filename
+
+        filename = directory+filenameTemp
+
+        return filename
