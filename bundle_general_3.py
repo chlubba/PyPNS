@@ -18,21 +18,21 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = True
+calculationFlag = False
 
-calculateCAP = True
-calculateVoltage = False
+# calculateCAP = True
+# calculateVoltage = False
 
 plottingFlag = True
 
-plotGeometry = False
+plotGeometry = True
 
 plotCAP = True
 plotCAP1D = True
-plotCAP2D = False
+plotCAP2D = True
 plotCAP1D_1Axon = False
 
-plotVoltage = False
+plotVoltage = True
 
 
 
@@ -45,7 +45,7 @@ myelinatedCurviness = 0.314
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons =  50
+number_of_axons = 3
 lengthOfBundle = 5000
 
 
@@ -94,131 +94,124 @@ upstreamSpikingDict = { #'upstreamSpikingOn' : upstreamSpikingOn,
                         'tStart' : startTimeSpiking,
                         'tStop' : stopTimeSpiking}
 
-for VoltCAPSelector in [1,2]:
-    rec_CAP = (VoltCAPSelector==1)
-    rec_v = (VoltCAPSelector==2)
-
-    if rec_CAP and not calculateCAP:
-        continue
-    if rec_v and not calculateVoltage:
-        continue
-
-    for j in range(len(duty_cycles)):
-        for k in range(len(p_A)):#[0]:#range(1,len(p_A)):#
-            stimulusParameters = {
-                'jitter_para': [0,0], #Mean and standard deviation of the delay
-                'stim_type': stim_types[j], #Stimulation type either "INTRA" or "EXTRA"
-                # stim_coord is NOT USED default value is used directly
-                'stim_coord': [[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
-                'amplitude': amplitudes[j], # Pulse amplitude (nA)
-                'freq': frequencies[j], # Frequency of the sin pulse (kHz)
-                'duty_cycle': duty_cycles[j], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-                'stim_dur' : stimDur[j], # Stimulus duration (ms)
-                'waveform': waveforms[j], # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-            }
-
-            recordingParameters = {
-                "number_contact_points": number_contact_points, #Number of points on the circle constituing the cuff electrode
-                'recording_elec_pos': recording_elec_pos,#[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-                'number_elecs': number_elecs,#150, #number of electrodes along the bundle
-                'dur': h.tstop, # Simulation duration (ms)
-                'rec_CAP': rec_CAP, #If false means we avoid spending time using LFPy functions
-            }
-            myelinatedParametersA = {
-                'name': "myelinated_axonA", # axon name (for neuron)
-                'Nnodes': 11, #Number of nodes
-                'fiberD': fiberD_A, #fiberD_A, #Diameter of the fiber
-                'layout3D': "DEFINE_SHAPE",#"PT3D",# # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
-                'rec_v': rec_v, # set voltage recorders True or False
-                # 'nodelength' : nodelength, #set node length (um)
-                # 'paralength1': paralength1, #set the length of the nearest paranode segment to the node
-                # 'paralength2': paralength2_A,  #set the length of the second paranode segment followed by the internodes segments
-                # 'interlength': interlength_A, #set the length of the internode part comprising the 6 segments between two paranodes2
-            }
 
 
-            unmyelinatedParameters = {
-                'name': "unmyelinated_axon", # axon name (for neuron)
-                'L': lengthOfBundle,#Axon length (micrometer)
-                'diam': fiberD_C, #Axon diameter (micrometer)
-                'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
-                'Ra': 200.0, #Specific axial resistance (Ohm cm)
-                'layout3D': "PT3D",#"DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
-                'rec_v': rec_v, # set voltage recorders True or False
-            }
-            bundleParameters = {         #parameters for Bundle classe
-                'radius_bundle': radius_bundle, #um Radius of the bundle (typically 0.5-1.5mm)
-                'draw_distribution': draw_distribution, #Boolean stating the distribution of fibre should be drawn
-                'number_of_axons': number_of_axons,#640, # Number of axons in the bundle
-                'p_A': p_A[k], # Percentage of myelinated fiber type A
-                'p_C': 1-p_A[k], #Percentage of unmyelinated fiber type C
-                'myelinated_A': myelinatedParametersA, #parameters for fiber type A
-                'unmyelinated': unmyelinatedParameters, #parameters for fiber type C
-            }
+for j in range(len(duty_cycles)):
+    for k in range(len(p_A)):#[0]:#range(1,len(p_A)):#
+        stimulusParameters = {
+            'jitter_para': [0,0], #Mean and standard deviation of the delay
+            'stim_type': stim_types[j], #Stimulation type either "INTRA" or "EXTRA"
+            # stim_coord is NOT USED default value is used directly
+            'stim_coord': [[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
+            'amplitude': amplitudes[j], # Pulse amplitude (nA)
+            'freq': frequencies[j], # Frequency of the sin pulse (kHz)
+            'duty_cycle': duty_cycles[j], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+            'stim_dur' : stimDur[j], # Stimulus duration (ms)
+            'waveform': waveforms[j], # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+        }
+
+        recordingParameters = {
+            "number_contact_points": number_contact_points, #Number of points on the circle constituing the cuff electrode
+            'recording_elec_pos': recording_elec_pos,#[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+            'number_elecs': number_elecs,#150, #number of electrodes along the bundle
+            'dur': h.tstop, # Simulation duration (ms)
+            'rec_CAP': rec_CAP, #If false means we avoid spending time using LFPy functions
+        }
+        myelinatedParametersA = {
+            'name': "myelinated_axonA", # axon name (for neuron)
+            'Nnodes': 11, #Number of nodes
+            'fiberD': fiberD_A, #fiberD_A, #Diameter of the fiber
+            'layout3D': "DEFINE_SHAPE",#"PT3D",# # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
+            'rec_v': True, # set voltage recorders True or False
+            # 'nodelength' : nodelength, #set node length (um)
+            # 'paralength1': paralength1, #set the length of the nearest paranode segment to the node
+            # 'paralength2': paralength2_A,  #set the length of the second paranode segment followed by the internodes segments
+            # 'interlength': interlength_A, #set the length of the internode part comprising the 6 segments between two paranodes2
+        }
 
 
-            Parameters1 = dict(bundleParameters, **stimulusParameters)
-            Parameters = dict(Parameters1, **recordingParameters)
+        unmyelinatedParameters = {
+            'name': "unmyelinated_axon", # axon name (for neuron)
+            'L': lengthOfBundle,#Axon length (micrometer)
+            'diam': fiberD_C, #Axon diameter (micrometer)
+            'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
+            'Ra': 200.0, #Specific axial resistance (Ohm cm)
+            'layout3D': "PT3D",#"DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
+            'rec_v': True, # set voltage recorders True or False
+        }
+        bundleParameters = {         #parameters for Bundle classe
+            'radius_bundle': radius_bundle, #um Radius of the bundle (typically 0.5-1.5mm)
+            'draw_distribution': draw_distribution, #Boolean stating the distribution of fibre should be drawn
+            'number_of_axons': number_of_axons,#640, # Number of axons in the bundle
+            'p_A': p_A[k], # Percentage of myelinated fiber type A
+            'p_C': 1-p_A[k], #Percentage of unmyelinated fiber type C
+            'myelinated_A': myelinatedParametersA, #parameters for fiber type A
+            'unmyelinated': unmyelinatedParameters, #parameters for fiber type C
+        }
 
-            saveParams={'elecCount': len(recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
-                    'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
-                    'L': unmyelinatedParameters['L'], 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
-                    'stimDutyCycle': stimulusParameters['duty_cycle'], 'stimAmplitude' : stimulusParameters['amplitude']}
+
+        Parameters1 = dict(bundleParameters, **stimulusParameters)
+        Parameters = dict(Parameters1, **recordingParameters)
+
+        saveParams={'elecCount': len(recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
+                'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
+                'L': unmyelinatedParameters['L'], 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
+                'stimDutyCycle': stimulusParameters['duty_cycle'], 'stimAmplitude' : stimulusParameters['amplitude']}
 
 
 
-            bundleDirectory = getDirectoryName('bundle', **saveParams)
-            if not os.path.exists(bundleDirectory):
-                os.makedirs(bundleDirectory)
-            if calculationFlag:
+        bundleDirectory = getDirectoryName('bundle', **saveParams)
+        if not os.path.exists(bundleDirectory):
+            os.makedirs(bundleDirectory)
+        if calculationFlag:
 
-                bundle = Bundle(**Parameters)
+            bundle = Bundle(**Parameters)
 
-                if upstreamSpikingOn:
-                    bundle.addUpstreamSpiking(**upstreamSpikingDict)
+            if upstreamSpikingOn:
+                bundle.addUpstreamSpiking(**upstreamSpikingDict)
 
-                bundle.simulateBundle()
+            bundle.simulateBundle()
 
-                # save the whole bundle
-                pickle.dump(bundle,open( bundleDirectory+"bundle.class", "wb" ))
-            else:
-                bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
-                # bundle = None
+            # save the whole bundle
+            pickle.dump(bundle,open( bundleDirectory+"bundle.class", "wb" ))
+        else:
+            bundle = pickle.load(open( bundleDirectory+"bundle.class", "rb" ))
+            # bundle = None
 
-            # pprint (vars(bundle))
-            # print bundle.nbytes
-            # for axon in bundle.axons:
-            #     # print axon.nbytes
-            #     pprint (vars(axon))
-            pprint(vars(bundle.axons[0]))
+        # pprint (vars(bundle))
+        # print bundle.nbytes
+        # for axon in bundle.axons:
+        #     # print axon.nbytes
+        #     pprint (vars(axon))
+        # pprint(vars(bundle.axons[0]))
 
-            if plottingFlag:
+        if plottingFlag:
 
-                if plotGeometry:
+            if plotGeometry:
 
-                    bundle.plot_geometry()
+                bundle.plot_geometry()
 
-                if plotCAP:
+            if plotCAP:
 
-                    if plotCAP1D_1Axon:
+                if plotCAP1D_1Axon:
 
-                        bundle.plot_CAP1D_singleAxon(0)
+                    bundle.plot_CAP1D_singleAxon(0)
 
-                    if plotCAP1D:
+                if plotCAP1D:
 
-                        bundle.plot_CAP1D()
+                    bundle.plot_CAP1D()
 
-                    if plotCAP2D:
+                if plotCAP2D:
 
-                        bundle.plot_CAP2D()
+                    bundle.plot_CAP2D()
 
-                if plotVoltage:
+            if plotVoltage:
 
-                    bundle.plot_voltage()
+                bundle.plot_voltage()
 
-            if plottingFlag:
-                # finally show result
-                plt.show()
+        if plottingFlag:
+            # finally show result
+            plt.show()
 
 bundle = None
 

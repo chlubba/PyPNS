@@ -151,17 +151,22 @@ class Bundle(object):
             axon.spikeVec = None
             axon.vecStim = None
 
-            if 'axon.memireclist' in locals():
+            try:
                 for memirec in axon.memireclist:
                     memirec = None
                 axon.memireclist = None
-            if 'axon.vreclist' in locals():
+            except AttributeError:
+                pass
+            try:
                 for vrec in axon.vreclist:
                     vrec = None
-            axon.vreclist = None
+                axon.vreclist = None
+            except AttributeError:
+                pass
             axon.allseclist = None
             # also delete unnecessary data that will no longer been used to keep the pickled file small
             axon.imem = None
+        self.voltages = None
 
 
 
@@ -490,6 +495,9 @@ class Bundle(object):
                 self.save_electrode(axonIndex)
                 self.electrodes[axonIndex]= None
                 self.CAP_to_file = True
+
+                # test if voltages can be recorded on the side
+                self.voltages.append(axon.vreclist)
 
             elif axon.rec_v:
                 # just run a normal NEURON simulation to record the voltage
