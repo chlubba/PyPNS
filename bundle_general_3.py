@@ -18,7 +18,7 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = False
+calculationFlag = True
 
 plottingFlag = True
 
@@ -40,7 +40,7 @@ myelinatedCurviness = 0.314
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons = 3#25
+number_of_axons = 50#25
 lengthOfBundle = 5000#8000
 
 
@@ -53,8 +53,8 @@ amplitudes = [2.0]#,2.0,0.5]
 stimDur = [10]
 
 # upstream nerve stream activity characteristics
-upstreamSpikingOn = False
-spikingRate = 1000. # mean number of pulses per second
+upstreamSpikingOn = True
+spikingRate = 500. # mean number of pulses per second
 spikingCorrelation = 0.1 # pairwise corrleation between neurons
 startTimeSpiking = 0
 stopTimeSpiking = h.tstop
@@ -174,9 +174,9 @@ for j in range(len(duty_cycles)):
             pickle.dump(bundle,open( bundleSaveLocation+'bundle.cl', "wb" ))
         else:
             #directory = getDirectoryName("bundle", **saveParams)
-            directory = getBundleDirectory(new = False, **saveParams)
+            bundleSaveLocation = getBundleDirectory(new = False, **saveParams)
             try:
-                bundle = pickle.load(open(directory+'bundle.cl', "rb" ))
+                bundle = pickle.load(open(bundleSaveLocation+'bundle.cl', "rb" ))
             except:
                 print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
                 quit()
