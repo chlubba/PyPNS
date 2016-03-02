@@ -19,7 +19,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 
-from nameSetters import getDirectoryName, getFileName
+from nameSetters import getDirectoryName, getFileName, getBundleDirectory
 
 class Bundle(object):
     """
@@ -83,6 +83,8 @@ class Bundle(object):
                     'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
                     'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
                     'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
+
+        self.basePath = getBundleDirectory(new = True, **self.saveParams)
 
         # ### JITTER (random gaussian delay for individual fiber stimulation) ###
         # self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
@@ -178,7 +180,7 @@ class Bundle(object):
         # header would be useful.
         # header = repr(parameters)
 
-        filename = getFileName("CAP", self.saveParams)
+        filename = getFileName("CAP", self.basePath)
         print "Save location for CAP file: " + filename
 
         np.savetxt(filename, DataOut)
@@ -187,7 +189,7 @@ class Bundle(object):
         DataOut = np.array(self.trec)
         DataOut = np.column_stack((DataOut, np.transpose(self.AP_axonwise)))
 
-        filename = getFileName("CAP1A", self.saveParams)
+        filename = getFileName("CAP1A", self.basePath)
         print "Save location for single axon differentiated CAP file: " + filename
 
         np.savetxt(filename, DataOut)
@@ -198,7 +200,7 @@ class Bundle(object):
 
     def save_voltage_to_file(self):
         # filename = self.get_filename("V")
-        filename = getFileName("V", self.saveParams)
+        filename = getFileName("V", self.basePath)
         print "Save location for voltage file: " + filename
         #header= repr(parameters)
 
@@ -244,7 +246,7 @@ class Bundle(object):
     def get_CAP_from_file(self):
 
         # get the whole CAP, can be single electrode or multiple
-        directory = getDirectoryName("CAP", **self.saveParams)
+        directory = getDirectoryName("CAP", self.basePath)
         try:
             newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
@@ -291,7 +293,7 @@ class Bundle(object):
     def plot_CAP1D_singleAxon(self, maxNumberOfAxons):
 
         # get the whole CAP, can be single electrode or multiple
-        directory = getDirectoryName("CAP1A", **self.saveParams)
+        directory = getDirectoryName("CAP1A", self.basePath)
         try:
             newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
@@ -410,12 +412,12 @@ class Bundle(object):
 
     def plot_voltage(self):
         # get the whole CAP, can be signle electrode or multiple
-        directory = getDirectoryName("V", **self.saveParams)
+        directory = getDirectoryName("V", self.basePath)
         try:
             newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
             print 'No voltage calculation has been performed yet with this set of parameter.'
-            quit()
+            return
 
         # load the raw voltage file
         timeStart = time.time()
@@ -608,7 +610,7 @@ class Bundle(object):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
 
     def save_electrode(self,i):
-        directory = getDirectoryName("elec", **self.saveParams)
+        directory = getDirectoryName("elec", self.basePath)
 
         print "saving electrode: "+str(i)
         if i==0:
@@ -625,7 +627,7 @@ class Bundle(object):
 
     def load_one_electrode(self, elecIndex):
 
-        directory = getDirectoryName("elec", **self.saveParams)
+        directory = getDirectoryName("elec", self.basePath)
         filename = "electrode_"+str(elecIndex)+".dat"
 
         t0 = time.time()
@@ -707,7 +709,7 @@ class Bundle(object):
 
     def get_filename(self, recordingType):
 
-        directory = getDirectoryName(recordingType, **self.saveParams)
+        directory = getDirectoryName(recordingType, self.basePath)
         if not os.path.exists(directory):
             os.makedirs(directory)
 

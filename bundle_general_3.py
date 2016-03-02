@@ -45,8 +45,8 @@ lengthOfBundle = 5000#8000
 
 
 # stimulus characteristics
-stim_types = ["INTRA"]#, "INTRA", "EXTRA", "NONE"
-waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"
+stim_types = ["EXTRA"]#, "INTRA", "EXTRA", "NONE"
+waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
 amplitudes = [2.0]#,2.0,0.5]
@@ -169,15 +169,14 @@ for j in range(len(duty_cycles)):
             bundle.simulateBundle()
 
             # save the whole bundle
-            bundleSaveLocation = getFileName("bundle", saveParams)
-            pickle.dump(bundle,open( bundleSaveLocation, "wb" ))
+            # bundleSaveLocation = getFileName("bundle", saveParams)
+            bundleSaveLocation = bundle.basePath
+            pickle.dump(bundle,open( bundleSaveLocation+'bundle.cl', "wb" ))
         else:
-            # get the whole CAP, can be single electrode or multiple
-            directory = getDirectoryName("bundle", **saveParams)
+            #directory = getDirectoryName("bundle", **saveParams)
+            directory = getBundleDirectory(new = False, **saveParams)
             try:
-                newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
-
-                bundle = pickle.load(open(newestFile, "rb" ))
+                bundle = pickle.load(open(directory+'bundle.cl', "rb" ))
             except:
                 print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
                 quit()
