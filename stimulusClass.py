@@ -40,7 +40,7 @@ class Stimulus(object):
         if self.stim_type == "INTRA":
             self.init_intra(axon)
         elif self.stim_type == "EXTRA":
-            axon.setrx(self.stim_coord, axon.coord)
+            axon.setrx(self.stim_coord, axon.axonPosition)
             self.init_xtra()
         else:
             raise NameError('stim_type only "INTRA" or "EXTRA"')

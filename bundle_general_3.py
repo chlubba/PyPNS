@@ -29,7 +29,7 @@ plotCAP1D = True
 plotCAP2D = False
 plotCAP1D_1Axon = True
 
-plotVoltage = True
+plotVoltage = False
 
 # bundle characteristics
 p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
@@ -40,12 +40,12 @@ myelinatedCurviness = 0.314
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons = 50#25
-lengthOfBundle = 5000#8000
+number_of_axons = 40#25
+lengthOfBundle = 1000#8000
 
 
 # stimulus characteristics
-stim_types = ["EXTRA"]#, "INTRA", "EXTRA", "NONE"
+stim_types = ["NONE"]#, "INTRA", "EXTRA", "NONE"
 waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
@@ -61,8 +61,8 @@ stopTimeSpiking = h.tstop
 
 # recoding params
 number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
-recording_elec_pos = [math.floor(lengthOfBundle*0.7), math.floor(lengthOfBundle*0.7) + 100] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-number_elecs =  1#150#150, #number of electrodes along the bundle
+recording_elec_pos = [math.floor(lengthOfBundle*0.7)]#, math.floor(lengthOfBundle*0.7) + 100] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+number_elecs =  3#150#150, #number of electrodes along the bundle
 
 myelinatedDistribution = {
     'densities':[100,300,1150,2750,3650,2850,1750,900,500,250,200,150,110,100,110,100,105], #fibers densities can be given either in No/mm2 or percentage

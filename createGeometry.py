@@ -36,9 +36,12 @@ def rotation_matrix(axis, theta):
                      [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
-def create_random_axon(bundleCoords, bundleRadius, segmentLengthAxon, diameter = 1, maximumAngle = 0.314):
+def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon, diameter = 1, maximumAngle = 0.314):
 
-    coords = bundleCoords[0:2,:]
+    pos1 = np.concatenate(([bundleCoords[0,0]], axonCoords+bundleCoords[0,1:3]))
+    pos2 = np.concatenate(([bundleCoords[1,0]], axonCoords+bundleCoords[1,1:3]))
+
+    coords = np.row_stack((pos1, pos2))
 
     rhoMax = tan(maximumAngle)*segmentLengthAxon
     rhoArray = np.zeros(5)
@@ -70,7 +73,8 @@ def create_random_axon(bundleCoords, bundleRadius, segmentLengthAxon, diameter =
 
         # assure axon stays within bundle. If too far away -> next direction
         # equals bundle direction
-        factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.5)))
+        # factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.5)))
+        factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.3)))
         factorBundleDirection = 1 - factorAxonDirection
 
 
@@ -101,3 +105,76 @@ def create_random_axon(bundleCoords, bundleRadius, segmentLengthAxon, diameter =
             currentBundleSegment = currentBundleSegment + 1
 
     return coords
+
+def lengthFromCoords(coords):
+    # get the length of the wanted axon geometry
+
+    # do calculate that by summing over lenghts of segments, calculate the difference in coords between each consecutive
+    # pair of segments
+    dCoords = np.diff(coords,axis=0)
+
+    # pythagoras
+    radicand = np.sum(np.power(dCoords,2), axis=1)
+    dL = np.sqrt(radicand)
+
+    # sum over all segments
+    return sum(dL)
+
+def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes, numberOfContacts, recElectrodePositions):
+
+    print 'Caution, when setting the electrode positions along a non-stylized axon, the electrode position coordinates ' \
+          'will be ignored.'
+
+    electrodeRadius = bundleRadius*1.2
+
+    numberOfPoles = len(recElectrodePositions)
+
+    if numberOfPoles == 2:
+        poleDistance = numberOfPoles[1] - numberOfPoles[0]
+        bipolar = True
+    elif numberOfPoles == 1:
+        poleDistance = 0
+        bipolar = False
+    else:
+        print 'Wrong number of recording poles.'
+        return
+
+    for i in range(numberOfElectrodes):
+        segmentNumber = floor(np.shape(bundleGuide)[0]/numberOfElectrodes)*(i+1) - 1
+
+        segmentStartingPos = bundleGuide[segmentNumber - 1,:]
+        segmentEndPos = bundleGuide[segmentNumber,:]
+
+        segmentMiddle = (segmentStartingPos + segmentEndPos)/2
+        segmentOrientation = segmentStartingPos - segmentEndPos
+        segmentOrientation = segmentOrientation/np.linalg.norm(segmentOrientation)
+
+        # get one random orthogonal vector
+        orthogonalVector = random_perpendicular_vectors(segmentOrientation)[0,:]
+
+        for j in range(numberOfContacts):
+            electrodePositionPole1 = np.dot(rotation_matrix(segmentOrientation, 2*pi/numberOfContacts*j),(orthogonalVector*electrodeRadius)) + segmentMiddle
+            if bipolar:
+                electrodePositionPole2 = electrodePositionPole1 + segmentOrientation*poleDistance
+
+
+            if j == 0: # how to get a truly empty array?!
+                electrodePositionsPole1 = electrodePositionPole1
+                if bipolar:
+                    electrodePositionsPole2 = electrodePositionPole2
+            else:
+                electrodePositionsPole1 = np.row_stack((electrodePositionsPole1, electrodePositionPole1))
+                if bipolar:
+                    electrodePositionsPole2 = np.row_stack((electrodePositionsPole2, electrodePositionPole2))
+        if bipolar:
+            electrodPositionsAllPoles = np.row_stack((electrodePositionsPole1,electrodePositionsPole2))
+        else:
+            electrodPositionsAllPoles = electrodePositionsPole1
+
+        if i == 0:
+            allElectrodePositions = electrodPositionsAllPoles
+        else:
+            allElectrodePositions = np.row_stack((allElectrodePositions,electrodPositionsAllPoles))
+
+
+    return allElectrodePositions

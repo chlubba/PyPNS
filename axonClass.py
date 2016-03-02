@@ -4,6 +4,8 @@ import run_simulation
 import numpy as np # for arrays managing
 import math
 
+import createGeometry
+
 """
     Some methods in the Axon class are based on existing methods in the Python package LFPY
 """
@@ -343,7 +345,8 @@ class Unmyelinated(Axon):
 
         # set all properties
         self.coord = coord
-        self.L = L
+        self.L = createGeometry.lengthFromCoords(coord)
+        #self.L = L
         self.diam = diam
         self.fiberD = diam
         print "Unmyelinated axon diameter: " +str(self.diam)
@@ -373,8 +376,10 @@ class Unmyelinated(Axon):
         elif (self.layout3D == "PT3D"):
              ### PLACE AXON SPATIALLY #######################################################
             h.pt3dclear(sec=self.axon)
-            h.pt3dadd(0, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
-            h.pt3dadd(self.L, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
+            # h.pt3dadd(0, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
+            # h.pt3dadd(self.L, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
+            for i in range(np.shape(self.coord)[0]):
+                h.pt3dadd(self.coord[i,0], self.coord[i,1], self.coord[i,2], self.fiberD, sec=self.axon)
             ################################################################################
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
