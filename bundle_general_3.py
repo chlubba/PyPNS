@@ -18,7 +18,7 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = True
+calculationFlag = False
 
 plottingFlag = True
 

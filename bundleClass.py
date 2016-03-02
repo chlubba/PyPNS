@@ -290,6 +290,8 @@ class Bundle(object):
                 ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
                 ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
 
+        plt.savefig(self.basePath+'geometry.png')
+
     def plot_CAP1D_singleAxon(self, maxNumberOfAxons):
 
         # get the whole CAP, can be single electrode or multiple
@@ -328,7 +330,7 @@ class Bundle(object):
             axarr[i].set_title('Axon ' + str(axonIndex) + ' (' + axonType + ') with diameter ' + str(axonDiameter) + 'um')
             axarr[i].set_ylabel('CAP [mV]')
 
-
+        plt.savefig(self.basePath+'CAPSingleAxons.png')
 
 
 
@@ -373,6 +375,8 @@ class Bundle(object):
             plt.ylabel('CAP [mV]')
             plt.xlabel('time [ms]')
 
+        plt.savefig(self.basePath+'CAP1D.png')
+
 
     def plot_CAP2D(self):
 
@@ -409,6 +413,8 @@ class Bundle(object):
         plt.xlabel('time [ms]')
         plt.ylabel('Distance from axon origin [um]')
         cbar = plt.colorbar(im)
+
+        plt.savefig(self.basePath+'CAP2D.png')
 
     def plot_voltage(self):
         # get the whole CAP, can be signle electrode or multiple
@@ -501,6 +507,8 @@ class Bundle(object):
                 axarr[i].set_ylabel('Voltage [mV]')
                 axarr[i].set_xlabel('time [ms]')
                 axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
+
+        plt.savefig(self.basePath+'voltage.png')
 
     def create_axon(self, axonPosition):
 

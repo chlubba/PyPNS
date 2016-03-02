@@ -79,10 +79,11 @@ def getBundleDirectory(dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedD
         while os.path.isdir(pathString+folderName):
             versionIndex += 1
             folderName = 'bundle'+str(versionIndex).zfill(5)+'/'
+        finalBasePath = pathString+folderName
     else:
-        folderName = max(glob.iglob(pathString), key=os.path.getmtime)
+        latestFolder = max(glob.iglob(pathString+'bundle*'), key=os.path.getmtime)
 
-    finalBasePath = pathString+folderName
+        finalBasePath = latestFolder + '/'
 
     return finalBasePath
 
