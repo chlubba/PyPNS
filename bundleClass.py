@@ -129,7 +129,11 @@ class Bundle(object):
             self.save_CAP_to_file()
             self.clear_CAP_vars()
 
-        self.save_voltage_to_file()
+        axonLimit = 26
+        if self.virtual_number_axons < axonLimit:
+            self.save_voltage_to_file()
+        else:
+           print 'Voltage not saved, too many axons (' +str(self.virtual_number_axons) + ', but maximum ' + str(axonLimit) + ').'
 
         # get rid of the all Neuron objects to be able to pickle the bundle-class. pickle. lick it.
         h('forall delete_section()')
@@ -184,7 +188,7 @@ class Bundle(object):
         DataOut = np.column_stack((DataOut, np.transpose(self.AP_axonwise)))
 
         filename = getFileName("CAP1A", self.saveParams)
-        print "Save location for signel axon differentiated CAP file: " + filename
+        print "Save location for single axon differentiated CAP file: " + filename
 
         np.savetxt(filename, DataOut)
 
@@ -198,15 +202,33 @@ class Bundle(object):
         print "Save location for voltage file: " + filename
         #header= repr(parameters)
 
-        DataOut = np.concatenate(([0],np.array(self.trec)))
-
         voltages = np.array(self.voltages)
 
         if np.size(voltages) == 0:
             return
 
+        # # append voltages to file to save memory usage. Open file first with mode ab (append, binary)
+        # f=open(filename,'ab')
+        #
+        # firstLine = np.concatenate(([0],np.array(self.trec)))
+        # np.savetxt(f,firstLine)
+
+
+        DataOut = np.concatenate(([0],np.array(self.trec)))
+
         # as np.array(...) only converts outer Vector to python-readable format, we need to iterate through elements to convert
         # inner vectors where the actual voltage signals are stored.
+
+        # for i in range(len(voltages)):
+        #     voltageSingleAxon = np.transpose(np.array(voltages[i]))
+        #
+        #     # append the sectionlength in the first column in order to differentiate different axons later
+        #     numberOfSegments = np.shape(voltageSingleAxon)[1]
+        #     numberOfSegmentsArray = np.multiply(np.ones(numberOfSegments),np.array(numberOfSegments))
+        #     voltageSingleAxonFormatted = np.row_stack((numberOfSegmentsArray, voltageSingleAxon))
+        #
+        #     np.savetxt(f, voltageSingleAxonFormatted)
+        # f.close()
 
         for i in range(len(voltages)):
             voltageSingleAxon = np.transpose(np.array(voltages[i]))
@@ -257,11 +279,14 @@ class Bundle(object):
 
         elecCoords = self.electrodeCoords
         ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
+
+        elecPoles = len(self.recording_elec_pos)
         for i in range(self.number_elecs):
-            selectionIndices = range(i, self.number_contact_points*self.number_elecs, self.number_elecs)
-            ringCoords = elecCoords[selectionIndices,:]
-            ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
-            ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
+            for j in range(elecPoles):
+                selectionIndices = range(i+j*self.number_contact_points, self.number_contact_points*self.number_elecs + j*self.number_contact_points, self.number_elecs)
+                ringCoords = elecCoords[selectionIndices,:]
+                ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
+                ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
 
     def plot_CAP1D_singleAxon(self, maxNumberOfAxons):
 
@@ -653,8 +678,8 @@ class Bundle(object):
         angles = np.linspace(0,360, self.number_contact_points, endpoint = False)
         Y1 = np.round(self.radius_bundle*np.cos(angles*np.pi/180.0),2)
         Z1 = np.round(self.radius_bundle*np.sin(angles*np.pi/180.0),2)
-        Y = np.repeat(Y1,self.number_elecs*len(self.recording_elec_pos))
-        Z = np.repeat(Z1,self.number_elecs*len(self.recording_elec_pos))
+        Y = np.tile(Y1,self.number_elecs*len(self.recording_elec_pos))
+        Z = np.tile(Z1,self.number_elecs*len(self.recording_elec_pos))
         N = np.empty((self.number_contact_points*self.number_elecs*len(self.recording_elec_pos), 3))
         for i in xrange(N.shape[0]):
             N[i,] = [1, 0, 0] #normal vec. of contacts

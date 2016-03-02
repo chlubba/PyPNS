@@ -130,10 +130,10 @@ class RecExtElectrodeSetup(object):
                 if abs(sum_imem).max() >= tolerance:
                     warnings.warn('Membrane currents do not sum to zero')
                     [inds] = np.where((abs(sum_imem) >= tolerance))
-                    for i in inds:
-                        print 'refextelectrode.py : membrane current above tolerance for celltimesteps ' + str(inds)
-                        # print(('membrane current sum of celltimestep %i: %.3e' \
-                        #     % (i, sum_imem[i])))
+                    print 'refextelectrode.py : membrane current above tolerance'# for celltimesteps ' + str(inds)
+                    # for i in inds:
+                    #     print(('membrane current sum of celltimestep %i: %.3e' \
+                    #         % (i, sum_imem[i])))
 
                 else:
                     pass

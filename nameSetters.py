@@ -40,6 +40,7 @@ def getDirectoryName(keyword, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyel
         'CAP1A': "CAPSingleAxons/",
         'CAP1A2': "CAPSingleAxons2/",
         'V': "Voltage/",
+        'V2': "Voltage2/",
         'bundle': "Bundles/",
         'bundle2': "Bundles/"
     }.get(keyword,-1)
