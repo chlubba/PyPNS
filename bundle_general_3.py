@@ -40,7 +40,7 @@ myelinatedCurviness = 0.314
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons = 40#25
+number_of_axons = 20#25
 lengthOfBundle = 1000#8000
 
 

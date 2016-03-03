@@ -58,15 +58,15 @@ def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon
         # current bundle direction
         bundleDirection = bundleCoords[currentBundleSegment,:] - bundleCoords[currentBundleSegment-1,:]
         lastPointBundle = bundleCoords[currentBundleSegment-1,:]
+        bundleDirectionNorm = bundleDirection/np.linalg.norm(bundleDirection)
 
-        # get orthogonal space to current direction vector
-
-        cp = np.inner(bundleDirection, lastPointAxon-lastPointBundle)/np.linalg.norm(bundleDirection)
+        # get orthogonal vector to current direction vector
+        cp = np.inner(bundleDirectionNorm, lastPointAxon-lastPointBundle)
         if cp == 0:
             radiusVectorNorm = [0, 0, 0]
             distance = 0
         else:
-            radiusVector = -(lastPointAxon - (cp*bundleDirection + lastPointBundle))
+            radiusVector = -(lastPointAxon - (cp*bundleDirectionNorm + lastPointBundle))
             distance = np.linalg.norm(radiusVector)
             radiusVectorNorm = radiusVector/distance
 
@@ -74,11 +74,11 @@ def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon
         # assure axon stays within bundle. If too far away -> next direction
         # equals bundle direction
         # factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.5)))
-        factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.3)))
+        factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.5)))
         factorBundleDirection = 1 - factorAxonDirection
 
 
-        correctionVector = radiusVectorNorm + 4*bundleDirection
+        correctionVector = radiusVectorNorm + 2*bundleDirectionNorm
         correctionVector = correctionVector/np.linalg.norm(correctionVector)
         combinedDirection = lastAxonDirection + correctionVector*factorBundleDirection + 0.1*bundleDirection
 

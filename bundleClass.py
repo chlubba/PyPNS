@@ -92,16 +92,25 @@ class Bundle(object):
         # bundle properties
         self.bundleLength = unmyelinated['L']
         self.maximumAngle = math.pi/8
-        self.segmentLengthAxon = 5
-        self.bundleSegmentLength = self.segmentLengthAxon
+        self.segmentLengthAxon = 10
+        self.bundleSegmentLength = self.segmentLengthAxon*3
 
         numBundleGuideSteps = int(np.floor(self.bundleLength/self.bundleSegmentLength))
         bundleGuideStepSize = self.bundleSegmentLength
 
-        self.bundleCoords = np.empty([numBundleGuideSteps, 3])
+        halfIndex = float(numBundleGuideSteps)/2
+        turningPointIndex1 = int(np.floor(halfIndex))
+        turningPointIndex2 = turningPointIndex1 + int(np.ceil(halfIndex - turningPointIndex1))
+
+        self.bundleCoords = np.zeros([numBundleGuideSteps, 3])
         self.bundleCoords[:,0] = range(0, numBundleGuideSteps*bundleGuideStepSize, bundleGuideStepSize)
-        self.bundleCoords[:,1] = np.concatenate((np.zeros(numBundleGuideSteps/2),np.multiply(range(numBundleGuideSteps/2), bundleGuideStepSize)))
-        self.bundleCoords[:,2] = np.concatenate((np.zeros(numBundleGuideSteps/2),np.multiply(range(numBundleGuideSteps/2), bundleGuideStepSize)))
+        self.bundleCoords[:,1] = np.concatenate((np.zeros(turningPointIndex1),np.multiply(range(turningPointIndex2), bundleGuideStepSize)))
+        self.bundleCoords[:,2] = np.concatenate((np.zeros(turningPointIndex1),np.multiply(range(turningPointIndex2), bundleGuideStepSize)))
+
+        # self.bundleCoords = np.empty([numBundleGuideSteps, 3])
+        # self.bundleCoords[:,0] = range(0, numBundleGuideSteps*bundleGuideStepSize, bundleGuideStepSize)
+        # self.bundleCoords[:,1] = np.concatenate((np.zeros(numBundleGuideSteps/2),np.multiply(range(numBundleGuideSteps/2), bundleGuideStepSize)))
+        # self.bundleCoords[:,2] = np.concatenate((np.zeros(numBundleGuideSteps/2),np.multiply(range(numBundleGuideSteps/2), bundleGuideStepSize)))
 
         # self.bundleCoords = np.empty([self.bundleLength, 3])
         # self.bundleCoords[:,0] = range(self.bundleLength)
