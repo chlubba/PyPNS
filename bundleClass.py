@@ -308,7 +308,9 @@ class Bundle(object):
         elecPoles = len(self.recording_elec_pos)
         for i in range(self.number_elecs):
             for j in range(elecPoles):
-                selectionIndices = range(i+j*self.number_contact_points, self.number_contact_points*self.number_elecs + j*self.number_contact_points, self.number_elecs)
+                # selectionIndices = range(i+j*self.number_contact_points, self.number_contact_points*self.number_elecs + j*self.number_contact_points, self.number_elecs)
+                selectionIndices = range((i+j)*self.number_contact_points, self.number_contact_points*(i+j+1))
+
                 ringCoords = elecCoords[selectionIndices,:]
                 ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
                 ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
