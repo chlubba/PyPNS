@@ -103,12 +103,11 @@ class Bundle(object):
         for i in range(self.number_of_axons):
             # if within the desired subsection of the bundle, create axon
             if True:#((self.axons_pos[i,1]>=0 and self.axons_pos[i,1]< self.axons_pos[i,0]) or (self.axons_pos[i,0]== 0 and self.axons_pos[i,1]==0)):
-                # print self.axons_pos[i,:]
+                print "Creating axon " + str(i)
+
                 self.create_axon(self.axons_pos[i,:])
                 self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
-
                 self.virtual_number_axons +=1
-                print "Number axons created:" + str(self.virtual_number_axons)
 
 
         if not self.stim_type == 'NONE':
@@ -481,7 +480,7 @@ class Bundle(object):
                 for j in range(currentNumberOfSegments):
                     colorVal = scalarMap.to_rgba(j)
                     axarr[i].plot(timeRec, voltageMatrix[:,j], color=colorVal)
-                # axarr[i].set_title('distance ' + str(555) + ' [um]')
+
                 axarr[i].set_ylabel('Voltage [mV]')
                 axarr[i].set_xlabel('time [ms]')
                 axarr[i].set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
@@ -522,7 +521,7 @@ class Bundle(object):
         # then get diameter. Either drawn from distribution or constant.
         axonDiameter = self.getDiam(axonType)
 
-        axonCoords = np.row_stack((np.concatenate(([0], axonPosition)), np.concatenate(([self.bundleLength], axonPosition))))
+        # axonCoords = np.row_stack((np.concatenate(([0], axonPosition)), np.concatenate(([self.bundleLength], axonPosition))))
 
         if True:
             # calculate the random axon coordinates
@@ -558,6 +557,8 @@ class Bundle(object):
         [X,Y,Z] = self.setup_recording_elec()
 
         for axonIndex in range(self.virtual_number_axons):
+
+            print "Starting simulation of axon " + str(axonIndex)
 
             axon = self.axons[axonIndex]
 
@@ -635,7 +636,8 @@ class Bundle(object):
     def save_electrode(self,i):
         directory = getDirectoryName("elec", self.basePath)
 
-        print "saving electrode: "+str(i)
+        print "Saving extracellular potential of axon "+str(i)+" to disk.\n"
+
         if i==0:
             if not os.path.exists(directory):
                 os.makedirs(directory)
@@ -684,7 +686,7 @@ class Bundle(object):
                     self.AP_axonwise[elecIndex,:] = sumOverContactPoints
 
         elapsed = time.time()-temp
-        print "Elapsed time to compute CAP " + str(elapsed)
+        print "Elapsed time to compute CAP " + str(elapsed) + " \n"
 
 
     def setup_recording_elec(self):

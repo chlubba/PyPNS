@@ -136,8 +136,8 @@ def lengthFromCoords(coords):
 
 def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes, numberOfContacts, recElectrodePositions):
 
-    print 'Caution, when setting the electrode positions along a non-stylized axon, the electrode position coordinates ' \
-          'will be ignored.'
+    print '\nCaution, when setting the electrode positions along a non-stylized axon, the electrode position coordinates ' \
+          'will be ignored.\n'
 
     electrodeRadius = bundleRadius*1.2
 

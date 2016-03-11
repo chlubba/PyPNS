@@ -6,40 +6,28 @@ import math
 
 import createGeometry
 
-"""
-    Some methods in the Axon class are based on existing methods in the Python package LFPY
-"""
-class Axon(object):
-    """
-    Own initialization method of the superclass Axon
-    rec_v: set voltage recorders True or False
-    layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
-    # "PT3D" option has not been tested
-    """
 
-    def __init__(self,layout3D,rec_v):
+# Some methods in the Axon class are based on existing methods in the Python package LFPY
+
+class Axon(object):
+    # Own initialization method of the superclass Axon
+    # rec_v: set voltage recorders True or False
+    # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
+
+
+    def __init__(self, layout3D, rec_v, name, fiberD, coord):
         self.layout3D = layout3D
         self.rec_v = rec_v
+        self.name = name
+        self.fiberD = fiberD
+        self.coord = coord
         self.synapse = []
         # LFPy initilizations
         self.verbose = False
         self.dotprodresults = None # Not in class cell of LFPY but present in run_simulation as cell.dotprodresults
-        # self.create_sectionlists()
-        # self.allseclist = []
-        #self.totnsegs = self.calc_totnsegs()
-
-    # def create_sectionlists(self):
-    #     '''Create section lists for different kinds of sections'''
-    #     #list with all sections
-    #     self.allsecnames = []
-    #     self.allseclist = self.sections
-    #     # self.allseclist = h.SectionList()
-    #     # for sec in neuron.h.allsec():
-    #     #     self.allsecnames.append(sec.name())
-    #     #     self.allseclist.append(sec=sec)
 
     def calc_totnsegs(self):
-        '''Calculate the number of segments in the allseclist'''
+        # Calculate the number of segments in the allseclist
         i = 0
         for sec in self.allseclist:
             i += sec.nseg
@@ -67,8 +55,8 @@ class Axon(object):
 
 
     def collect_geometry_neuron(self):
-        '''Loop over allseclist to determine area, diam, xyz-start- and
-        endpoints, embed geometry to self object'''
+        # Loop over allseclist to determine area, diam, xyz-start- and
+        # endpoints, embed geometry to self object
         areavec = np.zeros(self.totnsegs)
         diamvec = np.zeros(self.totnsegs)
         lengthvec = np.zeros(self.totnsegs)
@@ -143,9 +131,9 @@ class Axon(object):
         self.zmid = .5*(self.zstart+self.zend).flatten()
 
     def set_imem_recorders(self):
-        '''
-        Record membrane currents for all segments
-        '''
+
+        # Record membrane currents for all segments
+
         self.memireclist = neuron.h.List()
         for sec in self.allseclist:
             for seg in sec:
@@ -153,9 +141,9 @@ class Axon(object):
                 memirec.record(seg._ref_i_membrane)
                 self.memireclist.append(memirec)
     def set_voltage_recorders(self):
-        '''
-        Record voltage for all segments (not from LFPy sources)
-        '''
+
+        # Record voltage for all segments (not from LFPy sources)
+
         self.vreclist = h.List()
 
         for sec in self.allseclist:
@@ -173,10 +161,10 @@ class Axon(object):
 
 
     def calc_imem(self):
-        '''
-        Fetch the vectors from the memireclist and calculate self.imem
-        containing all the membrane currents.
-        '''
+
+        # Fetch the vectors from the memireclist and calculate self.imem
+        # containing all the membrane currents.
+
         self.imem = np.array(self.memireclist)
         for i in range(self.imem.shape[0]):
             self.imem[i, ] *= self.area[i] * 1E-2
@@ -184,88 +172,78 @@ class Axon(object):
         del self.memireclist
 
     def collect_tvec(self):
-        '''
-        Set the tvec to be a monotonically increasing numpy array after sim.
-        '''
+
+        # Set the tvec to be a monotonically increasing numpy array after sim.
         self.tvec = np.arange(h.tstop /h.dt + 1)*h.dt
 
     def simulate(self, electrode=None, rec_imem=True,
                  rec_variables=[], variable_dt=False, atol=0.001,
                  to_memory=True, to_file=False, file_name=None,
                  dotprodcoeffs=None):
-        '''rec_vmem=False,
-                 rec_ipas=False, rec_icap=False,
-                 rec_isyn=False, rec_vmemsyn=False, rec_istim=False,'''
-        '''
-        This is the main function running the simulation of the NEURON model.
-        Start NEURON simulation and record variables specified by arguments.
 
-        Arguments:
-        ::
 
-            electrode:  Either an LFPy.RecExtElectrode object or a list of such.
-                        If supplied, LFPs will be calculated at every time step
-                        and accessible as electrode.LFP. If a list of objects
-                        is given, accessible as electrode[0].LFP etc.
-            rec_imem:   If true, segment membrane currents will be recorded
-                        If no electrode argument is given, it is necessary to
-                        set rec_imem=True in order to calculate LFP later on.
-                        Units of (nA).
-            rec_v:   record segment voltages (mV)
-            rec_istim:  record currents of StimIntraElectrode (nA)
-            rec_variables: list of variables to record, i.e arg=['cai', ]
-            variable_dt: boolean, using variable timestep in NEURON
-            atol:       absolute tolerance used with NEURON variable timestep
-            to_memory:  only valid with electrode, store lfp in -> electrode.LFP
-            to_file:    only valid with electrode, save LFPs in hdf5 file format
-            file_name:  name of hdf5 file, '.h5' is appended if it doesnt exist
-            dotprodcoeffs :  list of N x Nseg np.ndarray. These arrays will at
-                        every timestep be multiplied by the membrane currents.
-                        Presumably useful for memory efficient csd or lfp calcs
-            '''
-        # self.collect_tvec()
+        # This is the main function running the simulation of the NEURON model.
+        # Start NEURON simulation and record variables specified by arguments.
+        #
+        # Arguments:
+        # ::
+        #
+        #     electrode:  Either an LFPy.RecExtElectrode object or a list of such.
+        #                 If supplied, LFPs will be calculated at every time step
+        #                 and accessible as electrode.LFP. If a list of objects
+        #                 is given, accessible as electrode[0].LFP etc.
+        #     rec_imem:   If true, segment membrane currents will be recorded
+        #                 If no electrode argument is given, it is necessary to
+        #                 set rec_imem=True in order to calculate LFP later on.
+        #                 Units of (nA).
+        #     rec_v:      record segment voltages (mV)
+        #     rec_istim:  record currents of StimIntraElectrode (nA)
+        #     rec_variables: list of variables to record, i.e arg=['cai', ]
+        #     variable_dt: boolean, using variable timestep in NEURON
+        #     atol:       absolute tolerance used with NEURON variable timestep
+        #     to_memory:  only valid with electrode, store lfp in -> electrode.LFP
+        #     to_file:    only valid with electrode, save LFPs in hdf5 file format
+        #     file_name:  name of hdf5 file, '.h5' is appended if it doesnt exist
+        #     dotprodcoeffs :  list of N x Nseg np.ndarray. These arrays will at
+        #                 every timestep be multiplied by the membrane currents.
+        #                 Presumably useful for memory efficient csd or lfp calcs
+
 
         if rec_imem:
             self.set_imem_recorders()
         if self.rec_v:
             self.set_voltage_recorders()
 
-
-        #run fadvance until t >= tstopms, and calculate LFP if asked for
-        """if electrode is None and dotprodcoeffs is None:
-            if not rec_imem:
-                print(("rec_imem = %s, membrane currents will not be recorded!" \
-                                  % str(rec_imem)))
-            _run_simulation(self, variable_dt, atol)
-        else:"""
-        #allow using both electrode and additional coefficients:
         run_simulation._run_simulation_with_electrode(self, electrode, variable_dt, atol,
                                                to_memory, to_file, file_name,
                                                dotprodcoeffs)
         if rec_imem:
             self.calc_imem()
 
-    """
-    Equivalent methods interpxyz and setrx from the xtra mechanism available on the NEURON website from Ted Carnevale
-    Setrx has been modified to integrate the use of multipolar electrodes
-    """
+
+    # Equivalent methods interpxyz and setrx from the xtra mechanism available on the NEURON website from Ted Carnevale
+    # Setrx has been modified to integrate the use of multipolar electrodes
     def interpxyz(self):
-        """ interpolated data, spaced at regular intervals
-        """
+        # interpolated data, spaced at regular intervals
+
         # First, need to interpolate centers unto all compartments; from interpxyz.hoc
         for sec in self.allseclist:
+
             if h.ismembrane('xtra',sec=sec):
+
                 nn = int(h.n3d(sec=sec))
                 xx = h.Vector(nn)
                 yy = h.Vector(nn)
                 zz = h.Vector(nn)
                 length = h.Vector(nn)
+
                 for ii in xrange(nn):
                     xx.x[ii] = h.x3d(ii,sec=sec)
                     yy.x[ii] = h.y3d(ii,sec=sec)
                     zz.x[ii] = h.z3d(ii,sec=sec)
                     length.x[ii] = h.arc3d(ii,sec=sec)
-                '''to use Vector class's .interpolate() must first scale the independent variable i.e. normalize length along centroid'''
+
+                # to use Vector class's .interpolate() must first scale the independent variable i.e. normalize length along centroid
                 length.div(length.x[nn-1])
                 # initialize the destination "independent" vector
                 rr = h.Vector(sec.nseg+2)
@@ -273,10 +251,12 @@ class Axon(object):
                 rr.sub(1./(2.*sec.nseg))
                 rr.x[0]=0.
                 rr.x[sec.nseg+1]=1.
-                ''' length contains the normalized distances of the pt3d points along the centroid of the section.
-                These are spaced at irregular intervals.
-                range contains the normalized distances of the nodes along the centroid of the section.
-                These are spaced at regular intervals.'''
+
+                # length contains the normalized distances of the pt3d points along the centroid of the section.
+                # These are spaced at irregular intervals.
+                # range contains the normalized distances of the nodes along the centroid of the section.
+                # These are spaced at regular intervals.
+
                 # Ready to interpolate.
                 xint = h.Vector(sec.nseg+2)
                 yint = h.Vector(sec.nseg+2)
@@ -284,9 +264,10 @@ class Axon(object):
                 xint.interpolate(rr, length, xx)
                 yint.interpolate(rr, length, yy)
                 zint.interpolate(rr, length, zz)
-                '''for each node, assign the xyz values to x_xtra, y_xtra, z_xtra
-                don't bother computing coords of the 0 and 1 ends
-                also avoid writing coords of the 1 end into the last internal node's coords'''
+
+                # for each node, assign the xyz values to x_xtra, y_xtra, z_xtra
+                # don't bother computing coords of the 0 and 1 ends
+                # also avoid writing coords of the 1 end into the last internal node's coords
                 for ii in range(1,sec.nseg+1):
                     xr = rr.x[ii]
                     sec(xr).x_xtra = xint.x[ii]
@@ -297,17 +278,25 @@ class Axon(object):
         stimulation_mode = len(stim_elec) #1: monopolar,2: bipolar,3: tripolar, above just considered as multiple monopolar
         r = np.zeros(stimulation_mode)
         # now expects xyc coords as arguments
+
         for sec in h.allsec():
+
             if h.ismembrane('xtra',sec=sec):
+
                 for seg in sec:
+
                     for j in range(stimulation_mode):
+
                         [xe,ye,ze] = stim_elec[j]
+
                         #avoid nodes at 0 and 1 ends, so as not to override values at internal nodes
                         r[j] = math.sqrt(math.pow(seg.x_xtra - xe,2) + math.pow(seg.y_xtra-axon_pos[0] - ye,2) + math.pow(seg.z_xtra-axon_pos[1] - ze,2))
-                        """ 0.01 converts rho's cm to um and ohm to megohm
-                        if electrode is exactly at a node, r will be 0
-                        this would be meaningless since the location would be inside the cell
-                        so force r to be at least as big as local radius """
+
+                        # 0.01 converts rho's cm to um and ohm to megohm
+                        # if electrode is exactly at a node, r will be 0
+                        # this would be meaningless since the location would be inside the cell
+                        # so force r to be at least as big as local radius
+
                         if (r[j]==0):
                             r[j] = seg.diam/2.0
                     if stimulation_mode == 1:
@@ -324,40 +313,39 @@ class Axon(object):
 
 
 class Unmyelinated(Axon):
-    """
-    name: axon name (for neuron)
 
-    nsegs_method: ['lambda100']/'lambda_f'/'fixed_length': nseg rule
-    max_nsegs_length: [None]: max segment length for method 'fixed_length'
-    lambda_f: [100]: AC frequency for method 'lambda_f'
-    d_lambda: [0.1]: parameter for d_lambda rule
+    # name: axon name (for neuron)
+    #
+    # nsegs_method: ['lambda100']/'lambda_f'/'fixed_length': nseg rule
+    # max_nsegs_length: [None]: max segment length for method 'fixed_length'
+    # lambda_f: [100]: AC frequency for method 'lambda_f'
+    # d_lambda: [0.1]: parameter for d_lambda rule
+    #
+    # diam: Axon diameter (micrometer)
+    # cm : Specific membrane capacitance (microfarad/cm2)
+    # Ra: Specific axial resistance (Ohm cm)
+    # coord: y,z coordinates to spatially place the axon once created
+    # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
+    # rec_v: set voltage recorders True or False
 
-    L: Axon length (micrometer)
-    diam: Axon diameter (micrometer)
-    cm : Specific membrane capacitance (microfarad/cm2)
-    Ra: Specific axial resistance (Ohm cm)
-    coord: y,z coordinates to spatially place the axon once created
-    layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
-    rec_v: set voltage recorders True or False
-    """
     def __init__(self, name, diam, cm, Ra, coord, layout3D, rec_v, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
-        super(Unmyelinated,self).__init__(layout3D, rec_v)
+        super(Unmyelinated,self).__init__(layout3D, rec_v, name, diam, coord)
 
         # set all properties
-        self.coord = coord
+        # self.coord = coord
+        # self.fiberD = diam
+        # self.name = name
+
         self.L = createGeometry.lengthFromCoords(coord)
-        self.diam = diam
-        self.fiberD = diam
-        print "Unmyelinated axon diameter: " +str(self.diam)
         self.cm = cm
         self.Ra = Ra
         self.hhDraw = hhDraw
-        self.name = name
         self.nsegs_method = nsegs_method
         self.lambda_f = lambda_f
         self.d_lambda = d_lambda
         self.max_nsegs_length = max_nsegs_length
-        ## End insertion
+
+        print "Unmyelinated axon diameter: " +str(self.fiberD)
 
     def create_neuron_object(self):
         self.axon = h.Section(name = str(self.name))
@@ -373,13 +361,14 @@ class Unmyelinated(Axon):
         if (self.layout3D == "DEFINE_SHAPE"):
             h.define_shape()
         elif (self.layout3D == "PT3D"):
-             ### PLACE AXON SPATIALLY #######################################################
-            h.pt3dclear(sec=self.axon)
-            # h.pt3dadd(0, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
-            # h.pt3dadd(self.L, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
-            for i in range(np.shape(self.coord)[0]):
-                h.pt3dadd(self.coord[i,0], self.coord[i,1], self.coord[i,2], self.fiberD, sec=self.axon)
-            ################################################################################
+
+            if True:
+                h.pt3dclear(sec=self.axon)
+                for i in range(np.shape(self.coord)[0]):
+                    h.pt3dadd(self.coord[i,0], self.coord[i,1], self.coord[i,2], self.fiberD, sec=self.axon)
+            else:
+                h.pt3dadd(0, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
+                h.pt3dadd(self.L, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
 
@@ -390,10 +379,10 @@ class Unmyelinated(Axon):
         self.interpxyz()
         self.collect_geometry()
         self.calc_midpoints()
-        self.channel_init(0.120,0.036,0.0003,50,-77,-54.3) # default values of hh channel are used
+        self.channel_init() # default values of hh channel are used
 
     def delete_neuron_object(self):
-        ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
+
         for sec in self.allseclist:
             for seg in sec:
                 seg = None
@@ -408,21 +397,24 @@ class Unmyelinated(Axon):
 
     def axon_update_property(self):
         self.axon.L = self.L
-        self.axon.diam = self.diam
+        self.axon.diam = self.fiberD
         self.axon.cm = self.cm
         self.axon.Ra = self.Ra
 
 
-    """
-    g unit S/cm2 and e unit mV
-    gna: maximum specific sodium channel conductance
-    gk: maximum specific potassium channel conductance
-    gl: maximum specific leakage conductance
-    ena: reversal potential for the sodium channel
-    ek: reversal potential for the potassium channel
-    el: reversal potential for the leakage channel
-    """
-    def channel_init(self, gna,gk,gl, ena,ek,el):
+
+
+
+    def channel_init(self, gna=0.120, gk=0.036, gl=0.0003, ena=50, ek=-77, el=-54.3):
+
+        # g unit S/cm2 and e unit mV
+        # gna: maximum specific sodium channel conductance
+        # gk: maximum specific potassium channel conductance
+        # gl: maximum specific leakage conductance
+        # ena: reversal potential for the sodium channel
+        # ek: reversal potential for the potassium channel
+        # el: reversal potential for the leakage channel
+
         self.axon.insert('hh') # insert a Hodgkin & Huxley channel
         if not self.hhDraw:
             self.axon.gnabar_hh = gna
@@ -443,8 +435,8 @@ class Unmyelinated(Axon):
     # http://www.neuron.yale.edu/neuron/static/docs/d_lambda/d_lambda.html
 
     def set_nsegs(self, nsegs_method, lambda_f, d_lambda, max_nsegs_length):
-        '''Set number of segments per section according to the lambda-rule,
-        or according to maximum length of segments'''
+        # Set number of segments per section according to the lambda-rule,
+        # or according to maximum length of segments
         if nsegs_method == 'lambda100':
             self.set_nsegs_lambda100(d_lambda)
         elif nsegs_method == 'lambda_f':
@@ -457,25 +449,25 @@ class Unmyelinated(Axon):
         self.totnsegs = self.calc_totnsegs()
 
     def set_nsegs_lambda_f(self, frequency=100, d_lambda=0.1):
-        '''Set the number of segments for section according to the
-        d_lambda-rule for a given input frequency
-            frequency: float, frequency at whihc AC length constant is computed
-            d_lambda: float,
-        '''
+        # Set the number of segments for section according to the
+        # d_lambda-rule for a given input frequency
+        #     frequency: float, frequency at whihc AC length constant is computed
+        #     d_lambda: float,
+
         for sec in self.allseclist:
             sec.nseg = int((sec.L / (d_lambda*h.lambda_f(frequency,
                                                            sec=sec)) + .9)
                 / 2 )*2 + 1
-            print "Number of segments for unmyelinated axons via d_lambda: "+ str(sec.nseg)
+            print "Number of segments for unmyelinated axon via d_lambda: "+ str(sec.nseg)
         if self.verbose:
             print(("set nsegs using lambda-rule with frequency %i." % frequency))
 
     def set_nsegs_lambda100(self, d_lambda=0.1):
-        '''Set the numbers of segments using d_lambda(100)'''
+        # Set the numbers of segments using d_lambda(100)
         self.set_nsegs_lambda_f(frequency=100, d_lambda=d_lambda)
 
     def set_nsegs_fixed_length(self, maxlength):
-        '''Set nseg for sections so that every segment L < maxlength'''
+        # Set nseg for sections so that every segment L < maxlength
         for sec in self.allseclist:
             sec.nseg = int(sec.L / maxlength) + 1
 
@@ -512,17 +504,17 @@ class Myelinated(Axon):
     interlength: set the length of the internode part comprising the 6 segments between two paranodes2
     """
     def __init__(self, name, Nnodes, fiberD, coord, layout3D, rec_v):#, nodelength, paralength1, paralength2, interlength):
+        super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord)
 
-        self.name = name
-        self.layout3D = layout3D
+        # self.name = name
+        # self.fiberD = fiberD
+        # self.coord = coord
+
         self.axonnodes = Nnodes
-        self.coord = coord
-        self.fiberD = fiberD #choose from 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 
         print 'Myelinated fiber diameter: ' + str(self.fiberD)
-        # topological parameters
-        """self.axonnodes=21"""
 
+        # topological parameters
         self.paranodes1= 2*(self.axonnodes-1)
         self.paranodes2= 2*(self.axonnodes-1)
         self.axoninter= 6*(self.axonnodes-1)
@@ -640,7 +632,6 @@ class Myelinated(Axon):
 
         self.interlength=(self.deltax-self.nodelength-(2*self.paralength1)-(2*self.paralength2))/6
 
-        super(Myelinated,self).__init__(layout3D, rec_v)
 
     def createSingleNode(self, nodeType):
 
