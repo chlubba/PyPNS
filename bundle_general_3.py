@@ -13,7 +13,7 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # decide what's to be done in this run
-calculationFlag = False # execute the calculation or load the last run made with this set of parameters
+calculationFlag = True # execute the calculation or load the last run made with this set of parameters
 
 plottingFlag = True # plot something
 
@@ -174,7 +174,6 @@ for j in range(len(duty_cycles)):
             # bundle = None
 
         # pprint (vars(bundle))
-        # print bundle.nbytes
         # for axon in bundle.axons:
         #     # print axon.nbytes
         #     pprint (vars(axon))

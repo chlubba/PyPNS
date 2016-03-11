@@ -164,6 +164,7 @@ class Bundle(object):
             # also delete unnecessary data that will no longer be used to keep the pickled file small
             axon.imem = None
         self.voltages = None
+        self.sum_CAP = None
 
 
 
