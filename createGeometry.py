@@ -144,7 +144,7 @@ def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes
     numberOfPoles = len(recElectrodePositions)
 
     if numberOfPoles == 2:
-        poleDistance = numberOfPoles[1] - numberOfPoles[0]
+        poleDistance = recElectrodePositions[1] - recElectrodePositions[0]
         bipolar = True
     elif numberOfPoles == 1:
         poleDistance = 0
@@ -181,14 +181,14 @@ def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes
                 if bipolar:
                     electrodePositionsPole2 = np.row_stack((electrodePositionsPole2, electrodePositionPole2))
         if bipolar:
-            electrodPositionsAllPoles = np.row_stack((electrodePositionsPole1,electrodePositionsPole2))
+            electrodePositionsAllPoles = np.row_stack((electrodePositionsPole1,electrodePositionsPole2))
         else:
-            electrodPositionsAllPoles = electrodePositionsPole1
+            electrodePositionsAllPoles = electrodePositionsPole1
 
         if i == 0:
-            allElectrodePositions = electrodPositionsAllPoles
+            allElectrodePositions = electrodePositionsAllPoles
         else:
-            allElectrodePositions = np.row_stack((allElectrodePositions,electrodPositionsAllPoles))
+            allElectrodePositions = np.row_stack((allElectrodePositions,electrodePositionsAllPoles))
 
 
     return allElectrodePositions

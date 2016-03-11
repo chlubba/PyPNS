@@ -239,7 +239,7 @@ class Bundle(object):
     def plot_geometry(self):
 
         if len(self.axons[0].xmid) == 0:
-            print 'Bundle has not been run yet. No geometry information was generated in Neuron.'
+            print 'Bundle has not been run yet. No geometry information was generated in NEURON.'
             return
 
         fig = plt.figure()
@@ -264,7 +264,7 @@ class Bundle(object):
         for i in range(self.number_elecs):
             for j in range(elecPoles):
                 # selectionIndices = range(i+j*self.number_contact_points, self.number_contact_points*self.number_elecs + j*self.number_contact_points, self.number_elecs)
-                selectionIndices = range((i+j)*self.number_contact_points, self.number_contact_points*(i+j+1))
+                selectionIndices = range((i*elecPoles+j)*self.number_contact_points, self.number_contact_points*(i*elecPoles+j+1))
 
                 ringCoords = elecCoords[selectionIndices,:]
                 ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
@@ -642,6 +642,8 @@ class Bundle(object):
     def compute_CAP_fromfiles(self):
         temp = time.time()
 
+        monopolar = len(self.recording_elec_pos) == 1
+
         # variable to save the sum over all axons
         self.sum_CAP = np.zeros((self.number_elecs,len(self.trec)))
 
@@ -655,9 +657,14 @@ class Bundle(object):
         # The contactpoints that constitute one cuff electrode ring have to be recovered, summed up together per
         # recording location along the axon
             for i in range(self.number_elecs):
-                # contactPointIndices = range(i, self.number_elecs*self.number_contact_points, self.number_elecs)
-                contactPointIndices = range(self.number_contact_points*i, self.number_contact_points*(1+i))
-                sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
+                if monopolar:
+                    contactPointIndices = range(self.number_contact_points*i, self.number_contact_points*(1+i))
+                    sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
+                else:
+                    contactPointIndicesPole1 = range(self.number_contact_points*2*i, self.number_contact_points*(1+2*i))
+                    contactPointIndicesPole2 = range(self.number_contact_points*(2*i+1), self.number_contact_points*(2*(i+1)))
+                    sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
+
                 self.sum_CAP[i,:] = self.sum_CAP[i,:] +  sumOverContactPoints
 
                 if i == self.number_elecs-1:

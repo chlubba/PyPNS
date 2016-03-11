@@ -13,7 +13,7 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # decide what's to be done in this run
-calculationFlag = True # execute the calculation or load the last run made with this set of parameters
+calculationFlag = False # execute the calculation or load the last run made with this set of parameters
 
 plottingFlag = True # plot something
 
@@ -31,9 +31,9 @@ plotVoltage = True
 # bundle characteristics
 p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 'draw' # um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
-fiberD_C = 'draw' # um diameter unmyelinated axons 'draw' OR some value below 10. (don't forget the dot to make it a float)
+fiberD_C = 'draw' # um diameter unmyelinated axons 'draw' OR some value below 3. (don't forget the dot to make it a float)
 radius_bundle = 150.0 # um Radius of the bundle (typically 0.5-1.5mm)
-number_of_axons = 30 # 25
+number_of_axons = 3 # 25
 lengthOfBundle = 1000 # 8000
 randomDirectionComponent = 0.3 # curviness of the axon
 
@@ -57,9 +57,9 @@ startTimeSpiking = 0
 stopTimeSpiking = h.tstop
 
 # recoding params
-number_contact_points=  8 #Number of points on the circle constituing the cuff electrode
-recording_elec_pos = [math.floor(lengthOfBundle*0.7)]#, math.floor(lengthOfBundle*0.7) + 100] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-number_elecs =  3#150#150, #number of electrodes along the bundle
+number_contact_points=  8 # Number of points on the circle constituing the cuff electrode
+recording_elec_pos = [math.floor(lengthOfBundle*0.7), math.floor(lengthOfBundle*0.7) + 30] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+number_elecs =  3 #150#150, #number of electrodes along the bundle
 
 myelinatedDistribution = {
     'densities':[100,300,1150,2750,3650,2850,1750,900,500,250,200,150,110,100,110,100,105], #fibers densities can be given either in No/mm2 or percentage
@@ -80,8 +80,7 @@ if fiberD_C == 'draw':
     del fiberD_C
     fiberD_C = unmyelinatedDistribution
 
-upstreamSpikingDict = { #'upstreamSpikingOn' : upstreamSpikingOn,
-                        'lambd' : spikingRate, # mean number of pulses per second
+upstreamSpikingDict = { 'lambd' : spikingRate, # mean number of pulses per second
                         'correlation' : spikingCorrelation, # pairwise corrleation between neurons
                         'tStart' : startTimeSpiking,
                         'tStop' : stopTimeSpiking}
