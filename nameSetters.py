@@ -70,7 +70,7 @@ def getDirectoryName(keyword, basePath):
 
     return finalCombinedPath
 
-def getFileName(recordingType, basePath):
+def getFileName(recordingType, basePath, newFile=True):
 
         directory = getDirectoryName(recordingType, basePath)
 
@@ -79,10 +79,11 @@ def getFileName(recordingType, basePath):
 
         number = 0
         filenameTemp = filename
-        while os.path.isfile(directory+filenameTemp):
-            number += 1
-            # print "Be careful this file name already exist! We concatenate a number to the name to avoid erasing your previous file."
-            filenameTemp = str(number).zfill(5) + filename
+        if newFile:
+            while os.path.isfile(directory+filenameTemp):
+                number += 1
+                # print "Be careful this file name already exist! We concatenate a number to the name to avoid erasing your previous file."
+                filenameTemp = str(number).zfill(5) + filename
 
         filename = directory+filenameTemp
 

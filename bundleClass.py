@@ -128,13 +128,13 @@ class Bundle(object):
             self.save_CAP_to_file()
             self.clear_CAP_vars()
 
-        axonLimit = 15
-        if self.virtual_number_axons <= axonLimit:
-            self.save_voltage_to_file()
-        else:
-           print 'Voltage not saved, too many axons (' +str(self.virtual_number_axons) + ', but maximum ' + str(axonLimit) + ').'
+        # axonLimit = 15
+        # if self.virtual_number_axons <= axonLimit:
+        #     self.save_voltage_to_file()
+        # else:
+        #    print 'Voltage not saved, too many axons (' +str(self.virtual_number_axons) + ', but maximum ' + str(axonLimit) + ').'
 
-        # get rid of the all Neuron objects to be able to pickle the bundle-class. pickle. lick it.
+        # get rid of the all Neuron objects to be able to pickle the bundle-class.
         h('forall delete_section()')
         self.trec = None
         if not self.stim_type == 'NONE':
@@ -152,16 +152,16 @@ class Bundle(object):
                 for memirec in axon.memireclist:
                     memirec = None
                 axon.memireclist = None
-            except AttributeError:
+            except:
                 pass
             try:
                 for vrec in axon.vreclist:
                     vrec = None
                 axon.vreclist = None
-            except AttributeError:
+            except:
                 pass
             axon.allseclist = None
-            # also delete unnecessary data that will no longer been used to keep the pickled file small
+            # also delete unnecessary data that will no longer be used to keep the pickled file small
             axon.imem = None
         self.voltages = None
 
@@ -195,50 +195,30 @@ class Bundle(object):
         self.AP_axonwise = None
         self.CAP = None
 
-    def save_voltage_to_file(self):
-        # filename = self.get_filename("V")
-        filename = getFileName("V", self.basePath)
-        print "Save location for voltage file: " + filename
-        #header= repr(parameters)
+    def save_voltage_to_file_axonwise(self, vreclist):
 
-        voltages = np.array(self.voltages)
+        filename = getFileName("V", self.basePath, newFile=False)
 
-        if np.size(voltages) == 0:
-            return
+        # append voltages to file to save memory usage. Open file first with mode ab (append, binary)
+        f=open(filename,'ab')
 
-        # # append voltages to file to save memory usage. Open file first with mode ab (append, binary)
-        # f=open(filename,'ab')
-        #
-        # firstLine = np.concatenate(([0],np.array(self.trec)))
-        # np.savetxt(f,firstLine)
+        voltageSingleAxon = np.transpose(np.array(vreclist))
 
+        # append the sectionlength in the first column in order to differentiate different axons later
+        numberOfSegments = np.shape(voltageSingleAxon)[1]
+        numberOfSegmentsArray = np.multiply(np.ones(numberOfSegments), np.array(numberOfSegments))
+        voltageSingleAxonFormatted = np.row_stack((numberOfSegmentsArray, voltageSingleAxon))
+        voltageSingleAxonFormatted = np.transpose(voltageSingleAxonFormatted)
 
-        DataOut = np.concatenate(([0],np.array(self.trec)))
+        if os.stat(filename).st_size == 0:
+            firstLine = np.transpose(np.concatenate(([0],np.array(self.trec))))
+            dataOut = np.row_stack( (firstLine, voltageSingleAxonFormatted))
+            np.savetxt(f, dataOut)
+        else:
+            np.savetxt(f, voltageSingleAxonFormatted)
 
-        # as np.array(...) only converts outer Vector to python-readable format, we need to iterate through elements to convert
-        # inner vectors where the actual voltage signals are stored.
+        f.close()
 
-        # for i in range(len(voltages)):
-        #     voltageSingleAxon = np.transpose(np.array(voltages[i]))
-        #
-        #     # append the sectionlength in the first column in order to differentiate different axons later
-        #     numberOfSegments = np.shape(voltageSingleAxon)[1]
-        #     numberOfSegmentsArray = np.multiply(np.ones(numberOfSegments),np.array(numberOfSegments))
-        #     voltageSingleAxonFormatted = np.row_stack((numberOfSegmentsArray, voltageSingleAxon))
-        #
-        #     np.savetxt(f, voltageSingleAxonFormatted)
-        # f.close()
-
-        for i in range(len(voltages)):
-            voltageSingleAxon = np.transpose(np.array(voltages[i]))
-
-            # append the sectionlength in the first column in order to differentiate different axons later
-            numberOfSegments = np.shape(voltageSingleAxon)[1]
-            numberOfSegmentsArray = np.multiply(np.ones(numberOfSegments),np.array(numberOfSegments))
-            voltageSingleAxonFormatted = np.row_stack((numberOfSegmentsArray, voltageSingleAxon))
-
-            DataOut = np.column_stack( (DataOut, voltageSingleAxonFormatted))
-        np.savetxt(filename, DataOut)#, header=header)
 
     def get_CAP_from_file(self):
 
@@ -428,7 +408,8 @@ class Bundle(object):
 
         # load the raw voltage file
         timeStart = time.time()
-        Vraw = np.transpose(np.loadtxt(newestFile))
+        # Vraw = np.transpose(np.loadtxt(newestFile))
+        Vraw = np.loadtxt(newestFile)
         print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
 
         timeRec = Vraw[0,1:] # extract time vector
@@ -598,35 +579,32 @@ class Bundle(object):
                 self.trec.record(h._ref_t)
 
 
-            if self.rec_CAP:
-                axon.simulate()
-                self.electrodes.append(refextelectrode.RecExtElectrode(axon, **electrodeParameters))
-                elapsed1 = time.time()-temp
-                print "Elapsed time to simulate CAP: " + str(elapsed1)
-                temp = time.time()
-                self.electrodes[axonIndex].calc_lfp()
-                elapsed2 = time.time()-temp
-                print "Elapsed time to calc lfp:" + str(elapsed2)
-                self.save_electrode(axonIndex)
-                self.electrodes[axonIndex]= None
-                self.CAP_to_file = True
 
-                # test if voltages can be recorded on the side
-                self.voltages.append(axon.vreclist)
+            axon.simulate()
+            self.electrodes.append(refextelectrode.RecExtElectrode(axon, **electrodeParameters))
+            elapsed1 = time.time()-temp
+            print "Elapsed time to simulate CAP: " + str(elapsed1)
 
-            elif axon.rec_v:
-                # just run a normal NEURON simulation to record the voltage
-                axon.set_voltage_recorders()
-                h.run() #runFlag = True #
-                self.voltages.append(axon.vreclist)
-                elapsed = time.time()-temp
-                print "Elapsed time to simulate V: " + str(elapsed)
-            else:
-                print "You are probably recording nothing for this axon"
-                h.run() #runFlag = True #
+            temp = time.time()
+            self.electrodes[axonIndex].calc_lfp()
+            elapsed2 = time.time()-temp
+            print "Elapsed time to calc lfp:" + str(elapsed2)
+
+            self.save_electrode(axonIndex)
+            self.electrodes[axonIndex]= None
+            self.CAP_to_file = True
+
+            # test if voltages can be recorded on the side
+            # self.voltages.append(axon.vreclist)
+            self.save_voltage_to_file_axonwise(axon.vreclist)
 
             # delete the object
             axon.delete_neuron_object()
+
+            # keep axon objects clean
+            for vrec in axon.vreclist:
+                vrec = None
+            axon.vreclist = None
 
 
 
