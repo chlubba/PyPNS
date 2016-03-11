@@ -18,7 +18,7 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # Set parameters
-calculationFlag = True
+calculationFlag = False
 
 plottingFlag = True
 
@@ -35,12 +35,12 @@ plotVoltage = False
 p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 'draw' #5.7# 16.0 #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 'draw' #1.5 #'draw'
-myelinatedCurviness = 0.314
+randomDirectionComponent = 0.3
 
 
 radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
 draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons = 20#25
+number_of_axons = 30#25
 lengthOfBundle = 1000#8000
 
 
@@ -142,6 +142,7 @@ for j in range(len(duty_cycles)):
             'p_C': 1-p_A[k], #Percentage of unmyelinated fiber type C
             'myelinated_A': myelinatedParametersA, #parameters for fiber type A
             'unmyelinated': unmyelinatedParameters, #parameters for fiber type C
+            'randomDirectionComponent' : randomDirectionComponent
         }
 
 

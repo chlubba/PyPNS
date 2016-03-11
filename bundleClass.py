@@ -49,7 +49,7 @@ class Bundle(object):
 
 
     """
-    def __init__(self, radius_bundle, draw_distribution, number_of_axons, p_A, p_C, number_contact_points, recording_elec_pos, jitter_para, stim_type, stim_coord, duty_cycle, freq, amplitude, stim_dur, dur, number_elecs, myelinated_A, unmyelinated,rec_CAP, waveform):
+    def __init__(self, radius_bundle, draw_distribution, number_of_axons, p_A, p_C, number_contact_points, recording_elec_pos, jitter_para, stim_type, stim_coord, duty_cycle, freq, amplitude, stim_dur, dur, number_elecs, myelinated_A, unmyelinated,rec_CAP, waveform, randomDirectionComponent = 0.3):
 
         self.draw_distribution = draw_distribution
         self.myelinated_A =  myelinated_A
@@ -92,6 +92,7 @@ class Bundle(object):
         # bundle properties
         self.bundleLength = unmyelinated['L']
         self.maximumAngle = math.pi/8
+        self.randomDirectionComponent = randomDirectionComponent#0.3#3
         self.segmentLengthAxon = 10
         self.bundleSegmentLength = self.segmentLengthAxon*3
 
@@ -162,8 +163,8 @@ class Bundle(object):
             self.save_CAP_to_file()
             self.clear_CAP_vars()
 
-        axonLimit = 26
-        if self.virtual_number_axons < axonLimit:
+        axonLimit = 15
+        if self.virtual_number_axons <= axonLimit:
             self.save_voltage_to_file()
         else:
            print 'Voltage not saved, too many axons (' +str(self.virtual_number_axons) + ', but maximum ' + str(axonLimit) + ').'
@@ -559,7 +560,8 @@ class Bundle(object):
 
         if True:
             # calculate the random axon coordinates
-            axonCoords = createGeometry.create_random_axon(self.bundleCoords, self.radius_bundle, axonPosition, self.segmentLengthAxon)
+            axonCoords = createGeometry.create_random_axon(self.bundleCoords, self.radius_bundle, axonPosition,
+                                                           self.segmentLengthAxon, randomDirectionComponent=self.randomDirectionComponent)
         else:
             axonCoords = np.column_stack(axonPosition, np.concatenate(([axonPosition[0] + self.bundleLength], axonPosition[1:2])))
 

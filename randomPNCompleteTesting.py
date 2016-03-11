@@ -44,7 +44,7 @@ def create_random_axon(bundleCoords, bundleRadius, segmentLengthAxon, diameter =
 
     coords = bundleCoords[0:2,:]
 
-    rhoMax = tan(maximumAngle)*segmentLengthAxon
+    rhoMax = tan(maximumAngle)*segmentLengthAxon #0#
     rhoArray = np.zeros(5)
 
     bundleLength = np.shape(bundleCoords)[0]
@@ -54,7 +54,8 @@ def create_random_axon(bundleCoords, bundleRadius, segmentLengthAxon, diameter =
         # get last point
         lastPointAxon = coords[-1,:]
         # and vector between two last points
-        lastAxonDirection = (coords[-1,:] - coords[-2,:])/segmentLengthAxon
+        lastAxonDirection = (coords[-1,:] - coords[-2,:])
+        lastAxonDirectionNorm = lastAxonDirection/np.linalg.norm(lastAxonDirection)
 
         # current bundle direction
         bundleDirection = bundleCoords[currentBundleSegment,:] - bundleCoords[currentBundleSegment-1,:]
@@ -71,8 +72,10 @@ def create_random_axon(bundleCoords, bundleRadius, segmentLengthAxon, diameter =
         else:
             radiusVector = -(lastPointAxon - (cp*bundleDirectionNorm + lastPointBundle))
             distance = np.linalg.norm(radiusVector)
-            radiusVectorNorm = radiusVector/distance
-
+            if not distance == 0:
+                radiusVectorNorm = radiusVector/distance
+            else:
+                radiusVectorNorm = radiusVector
         # if distance > bundleRadius:
         #     print 'hm'
 
@@ -85,7 +88,8 @@ def create_random_axon(bundleCoords, bundleRadius, segmentLengthAxon, diameter =
 
         correctionVector = radiusVectorNorm + 4*bundleDirectionNorm
         correctionVector = correctionVector/np.linalg.norm(correctionVector)
-        combinedDirection = lastAxonDirection + correctionVector*factorBundleDirection + 0.1*bundleDirection
+        combinedDirection = lastAxonDirectionNorm + correctionVector*factorBundleDirection + 0.1*bundleDirection
+        combinedDirection = combinedDirection/np.linalg.norm(combinedDirection)
 
         # get one random orthogonal vector to desired mean direction of next segment
         randomOrthogonalVectorNorm = random_perpendicular_vectors(combinedDirection)[0,:]
@@ -96,7 +100,7 @@ def create_random_axon(bundleCoords, bundleRadius, segmentLengthAxon, diameter =
         # rhoArray = np.concatenate((rhoArray, [rhoDrawn]))
         # rho = np.mean(rhoArray)
         # rho = np.random.uniform(1)*rhoMax
-        randomDirection = combinedDirection + randomOrthogonalVectorNorm*rho
+        randomDirection = combinedDirection + 0.05*randomOrthogonalVectorNorm*rho
         randomDirectionNorm = randomDirection/np.linalg.norm(randomDirection)
         nextDirectionScaled = randomDirectionNorm*segmentLengthAxon
 
