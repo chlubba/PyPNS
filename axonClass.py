@@ -340,13 +340,12 @@ class Unmyelinated(Axon):
     layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
     rec_v: set voltage recorders True or False
     """
-    def __init__(self, name, L, diam, cm, Ra, coord, layout3D, rec_v, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
+    def __init__(self, name, diam, cm, Ra, coord, layout3D, rec_v, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
         super(Unmyelinated,self).__init__(layout3D, rec_v)
 
         # set all properties
         self.coord = coord
         self.L = createGeometry.lengthFromCoords(coord)
-        #self.L = L
         self.diam = diam
         self.fiberD = diam
         print "Unmyelinated axon diameter: " +str(self.diam)

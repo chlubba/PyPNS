@@ -36,7 +36,7 @@ def rotation_matrix(axis, theta):
                      [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
-def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon, maximumAngle = 0.314, randomDirectionComponent=0.1):
+def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon, maximumAngle = pi/10, randomDirectionComponent=0.1):
 
     pos1 = np.concatenate(([bundleCoords[0,0]], axonCoords+bundleCoords[0,1:3]))
     pos2 = np.concatenate(([bundleCoords[1,0]], axonCoords+bundleCoords[1,1:3]))
@@ -192,3 +192,20 @@ def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes
 
 
     return allElectrodePositions
+
+def getBundleGuideCorner(bundleLength, segmentLengthAxon):
+
+    segmentLengthBundle = segmentLengthAxon*3
+
+    numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
+
+    halfIndex = float(numBundleGuideSteps)/2
+    turningPointIndex1 = int(np.floor(halfIndex))
+    turningPointIndex2 = turningPointIndex1 + int(np.ceil(halfIndex - turningPointIndex1))
+
+    bundleCoords = np.zeros([numBundleGuideSteps, 3])
+    bundleCoords[:,0] = range(0, numBundleGuideSteps*segmentLengthBundle, segmentLengthBundle)
+    bundleCoords[:,1] = np.concatenate((np.zeros(turningPointIndex1),np.multiply(range(turningPointIndex2), segmentLengthBundle)))
+    bundleCoords[:,2] = np.concatenate((np.zeros(turningPointIndex1),np.multiply(range(turningPointIndex2), segmentLengthBundle)))
+
+    return bundleCoords

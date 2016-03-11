@@ -24,41 +24,43 @@ import mpl_toolkits.mplot3d
 from nameSetters import getDirectoryName, getFileName, getBundleDirectory
 
 class Bundle(object):
-    """
-    radius_bundle: Radius of the bundle (typically 0.5-1.5mm)
-    number_of_axons: Number of axons in the bundle
-    p_A: Percentage of myelinated fiber type A
-    p_B: Percentage of myelinated fiber type B
-    p_C: Percentage of unmyelinated fiber type C
-    number_contact_points: Number of points on the circle constituing the cuff electrode
-    recording_elec: Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-    jitter_para: Mean and standard deviation of the jitter
-    stim_type: Stimulation type either "INTRA" or "EXTRA" for INTRA/EXTRA_cellular stimulation
-    stim_coord: spatial coordinates  of the stimulating electrode, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode)
-    amplitude: pulse amplitude (nA)
-    freq: frequency of the sin pulse (kHz)
-    duty_cycle: Percentage stimulus is ON for one cycl
-    stim_dur : stimulus duration (ms)
-    dur: simulation duration (ms)
-    waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-    number_of_elecs: number of electrodes along the bundle
-    recording_type: "BIPOLAR" or "MONOPOLAR"
-    myelinated_A: parameters for fiber type A
-    umyelinated:  parameters for fiber type C
-    draw_distribution: Boolean stating the distribution of fibre should be drawn
+    # radius_bundle: Radius of the bundle (typically 0.5-1.5mm)
+    # number_of_axons: Number of axons in the bundle
+    # p_A: Percentage of myelinated fiber type A
+    # p_C: Percentage of unmyelinated fiber type C
+    #
+    # number_contact_points: Number of points on the circle constituing the cuff electrode
+    # recording_elec: Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+    #
+    # stim_type: Stimulation type either "INTRA" or "EXTRA" for INTRA/EXTRA_cellular stimulation
+    # amplitude: pulse amplitude (nA)
+    # freq: frequency of the sin pulse (kHz)
+    # duty_cycle: Percentage stimulus is ON for one cycl
+    # stim_dur : stimulus duration (ms)
+    # dur: simulation duration (ms)
+    # waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+    # number_of_elecs: number of electrodes along the bundle
+    # recording_type: "BIPOLAR" or "MONOPOLAR"
+    #
+    # myelinated_A: parameters for fiber type A
+    # umyelinated:  parameters for fiber type C
 
+    def __init__(self, radius_bundle, lengthOfBundle, segmentLengthAxon, bundleGuide, number_of_axons, p_A, p_C, number_contact_points,
+                 recording_elec_pos, jitter_para, stim_type, duty_cycle, freq, amplitude, stim_dur, dur, number_elecs,
+                 myelinated_A, unmyelinated,rec_CAP, waveform, randomDirectionComponent = 0.3):
 
-    """
-    def __init__(self, radius_bundle, draw_distribution, number_of_axons, p_A, p_C, number_contact_points, recording_elec_pos, jitter_para, stim_type, stim_coord, duty_cycle, freq, amplitude, stim_dur, dur, number_elecs, myelinated_A, unmyelinated,rec_CAP, waveform, randomDirectionComponent = 0.3):
-
-        self.draw_distribution = draw_distribution
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
 
+        self.bundleLength = lengthOfBundle
+        self.randomDirectionComponent = randomDirectionComponent
+        self.segmentLengthAxon = segmentLengthAxon
+        self.bundleCoords = bundleGuide
+
         self.waveform = waveform
         self.stim_type = stim_type
-        #self.stim_coord = stim_coord#[0,500,0] # [xe,ye,ze] #um
-        self.stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points), radius_bundle*math.sin(math.pi/number_contact_points)]]
+        self.stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points),
+                            radius_bundle*math.sin(math.pi/number_contact_points)]]
         self.duty_cycle = duty_cycle
         self.freq = freq
         self.amp = amplitude
@@ -83,47 +85,11 @@ class Bundle(object):
 
         self.saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
                     'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
-                    'L': self.unmyelinated['L'], 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
+                    'L': self.bundleLength, 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
                     'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
 
         self.basePath = getBundleDirectory(new = True, **self.saveParams)
 
-        # for random axons set the guide
-        # bundle properties
-        self.bundleLength = unmyelinated['L']
-        self.maximumAngle = math.pi/8
-        self.randomDirectionComponent = randomDirectionComponent#0.3#3
-        self.segmentLengthAxon = 10
-        self.bundleSegmentLength = self.segmentLengthAxon*3
-
-        numBundleGuideSteps = int(np.floor(self.bundleLength/self.bundleSegmentLength))
-        bundleGuideStepSize = self.bundleSegmentLength
-
-        halfIndex = float(numBundleGuideSteps)/2
-        turningPointIndex1 = int(np.floor(halfIndex))
-        turningPointIndex2 = turningPointIndex1 + int(np.ceil(halfIndex - turningPointIndex1))
-
-        self.bundleCoords = np.zeros([numBundleGuideSteps, 3])
-        self.bundleCoords[:,0] = range(0, numBundleGuideSteps*bundleGuideStepSize, bundleGuideStepSize)
-        self.bundleCoords[:,1] = np.concatenate((np.zeros(turningPointIndex1),np.multiply(range(turningPointIndex2), bundleGuideStepSize)))
-        self.bundleCoords[:,2] = np.concatenate((np.zeros(turningPointIndex1),np.multiply(range(turningPointIndex2), bundleGuideStepSize)))
-
-        # self.bundleCoords = np.empty([numBundleGuideSteps, 3])
-        # self.bundleCoords[:,0] = range(0, numBundleGuideSteps*bundleGuideStepSize, bundleGuideStepSize)
-        # self.bundleCoords[:,1] = np.concatenate((np.zeros(numBundleGuideSteps/2),np.multiply(range(numBundleGuideSteps/2), bundleGuideStepSize)))
-        # self.bundleCoords[:,2] = np.concatenate((np.zeros(numBundleGuideSteps/2),np.multiply(range(numBundleGuideSteps/2), bundleGuideStepSize)))
-
-        # self.bundleCoords = np.empty([self.bundleLength, 3])
-        # self.bundleCoords[:,0] = range(self.bundleLength)
-        # self.bundleCoords[:,1] = np.concatenate((np.zeros(self.bundleLength/2),range(self.bundleLength/2)))
-        # self.bundleCoords[:,2] = np.concatenate((np.zeros(self.bundleLength/2),range(self.bundleLength/2)))
-
-        # ### JITTER (random gaussian delay for individual fiber stimulation) ###
-        # self.delay_mu, self.delay_sigma = jitter_para[0], jitter_para[1] # mean and standard deviation
-        # if (jitter_para[0] == 0) & (jitter_para[1] == 0):
-        #     delay = np.zeros(self.number_of_axons)
-        # else:
-        #     delay = np.random.normal(self.delay_mu, self.delay_sigma, self.number_of_axons)
 
         # maybe place this somewhere else, but for now:
         # create axon-specific color

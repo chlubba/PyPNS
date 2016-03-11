@@ -7,41 +7,38 @@ import sys
 import time
 time.sleep(0) # delays for x seconds
 
-""" McIntyre Model parameters
-celsius=37			
-v_init=-80 //mV//  		
-dt=0.005 //ms//         	
-tstop=10"""
 h.celsius = 33 # set temperature in celsius
 h.tstop = 30 # set simulation duration (ms)
 h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
-# Set parameters
-calculationFlag = False
+# decide what's to be done in this run
+calculationFlag = True # execute the calculation or load the last run made with this set of parameters?
 
-plottingFlag = True
+plottingFlag = True # plot something?
 
-plotGeometry = True
+plotGeometry = True # plot the bundle in space
 
-plotCAP = True
-plotCAP1D = True
-plotCAP2D = False
-plotCAP1D_1Axon = True
+plotCAP = True # plot the compound action potential
+plotCAP1D = True # plot the time course for each electrode location in one separate plot
+plotCAP2D = False # if many (>100 electrodes have been used, this plots the CAP in time and space in one image
+plotCAP1D_1Axon = True # plot
 
 plotVoltage = False
 
+# Set parameters
+
 # bundle characteristics
 p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
-fiberD_A = 'draw' #5.7# 16.0 #um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
-fiberD_C = 'draw' #1.5 #'draw'
-randomDirectionComponent = 0.3
+fiberD_A = 'draw' # um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
+fiberD_C = 'draw' # um diameter unmyelinated axons 'draw' OR some value below 10. (don't forget the dot to make it a float)
+radius_bundle = 150.0 # um Radius of the bundle (typically 0.5-1.5mm)
+number_of_axons = 25 # 25
+lengthOfBundle = 1000 # 8000
+randomDirectionComponent = 0.3 # curviness of the axon
 
-
-radius_bundle = 150.0 #um Radius of the bundle (typically 0.5-1.5mm)
-draw_distribution = True #Boolean stating the distribution of fibre should be drawn
-number_of_axons = 30#25
-lengthOfBundle = 1000#8000
+segmentLengthAxon = 10
+bundleGuide = createGeometry.getBundleGuideCorner(lengthOfBundle, segmentLengthAxon)
 
 
 # stimulus characteristics
@@ -96,8 +93,6 @@ for j in range(len(duty_cycles)):
         stimulusParameters = {
             'jitter_para': [0,0], #Mean and standard deviation of the delay
             'stim_type': stim_types[j], #Stimulation type either "INTRA" or "EXTRA"
-            # stim_coord is NOT USED default value is used directly
-            'stim_coord': [[0,50,0]], # spatial coordinates  of the stimulating electrodes, example for tripolar case=[[xe0,ye0,ze0], [xe1,ye1,ze1], [xe2,ye2,ze2]] (order is important with the middle being the cathode), INTRA case only use the position along x for IClamp
             'amplitude': amplitudes[j], # Pulse amplitude (nA)
             'freq': frequencies[j], # Frequency of the sin pulse (kHz)
             'duty_cycle': duty_cycles[j], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
@@ -118,16 +113,11 @@ for j in range(len(duty_cycles)):
             'fiberD': fiberD_A, #fiberD_A, #Diameter of the fiber
             'layout3D': "DEFINE_SHAPE",#"PT3D",# # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
             'rec_v': True, # set voltage recorders True or False
-            # 'nodelength' : nodelength, #set node length (um)
-            # 'paralength1': paralength1, #set the length of the nearest paranode segment to the node
-            # 'paralength2': paralength2_A,  #set the length of the second paranode segment followed by the internodes segments
-            # 'interlength': interlength_A, #set the length of the internode part comprising the 6 segments between two paranodes2
         }
 
 
         unmyelinatedParameters = {
             'name': "unmyelinated_axon", # axon name (for neuron)
-            'L': lengthOfBundle,#Axon length (micrometer)
             'diam': fiberD_C, #Axon diameter (micrometer)
             'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
             'Ra': 200.0, #Specific axial resistance (Ohm cm)
@@ -136,13 +126,16 @@ for j in range(len(duty_cycles)):
         }
         bundleParameters = {         #parameters for Bundle classe
             'radius_bundle': radius_bundle, #um Radius of the bundle (typically 0.5-1.5mm)
-            'draw_distribution': draw_distribution, #Boolean stating the distribution of fibre should be drawn
+            'lengthOfBundle': lengthOfBundle, #Axon length (micrometer)
             'number_of_axons': number_of_axons,#640, # Number of axons in the bundle
             'p_A': p_A[k], # Percentage of myelinated fiber type A
             'p_C': 1-p_A[k], #Percentage of unmyelinated fiber type C
             'myelinated_A': myelinatedParametersA, #parameters for fiber type A
             'unmyelinated': unmyelinatedParameters, #parameters for fiber type C
-            'randomDirectionComponent' : randomDirectionComponent
+            'randomDirectionComponent' : randomDirectionComponent,
+            'segmentLengthAxon' : segmentLengthAxon,
+            # 'segmentLengthBundle' : segmentLengthBundle,
+            'bundleGuide' : bundleGuide
         }
 
 
@@ -151,7 +144,7 @@ for j in range(len(duty_cycles)):
 
         saveParams={'elecCount': len(recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
                 'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
-                'L': unmyelinatedParameters['L'], 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
+                'L': bundleParameters['lengthOfBundle'], 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
                 'stimDutyCycle': stimulusParameters['duty_cycle'], 'stimAmplitude' : stimulusParameters['amplitude']}
 
 
@@ -170,11 +163,9 @@ for j in range(len(duty_cycles)):
             bundle.simulateBundle()
 
             # save the whole bundle
-            # bundleSaveLocation = getFileName("bundle", saveParams)
             bundleSaveLocation = bundle.basePath
             pickle.dump(bundle,open( bundleSaveLocation+'bundle.cl', "wb" ))
         else:
-            #directory = getDirectoryName("bundle", **saveParams)
             bundleSaveLocation = getBundleDirectory(new = False, **saveParams)
             try:
                 bundle = pickle.load(open(bundleSaveLocation+'bundle.cl', "rb" ))
