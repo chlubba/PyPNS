@@ -467,7 +467,7 @@ class Bundle(object):
                 axarr[i].set_xlabel('time [ms]')
                 axarr[i].set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
             else:
-                Nnodes = self.myelinated_A['Nnodes']
+                Nnodes = self.axons[axonIndex].axonnodes
 
                 numberOfRecordingSites = np.shape(voltageMatrix)[1]
 
@@ -523,7 +523,8 @@ class Bundle(object):
         elif axonTypeIndex == 0:
             myel = copy.copy(self.myelinated_A)
             myel['fiberD'] = axonDiameter
-            axonParameters = dict( {'coord':axonPosition},**myel)
+            axonParameters = dict( {'coord':axonCoords},**myel)
+            # axonParameters = dict( {'coord':axonPosition},**myel)
             self.axons.append(Myelinated(**axonParameters))
         else:
             "Error in the draw of the axon type!"
