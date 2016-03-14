@@ -474,8 +474,6 @@ class Bundle(object):
             currentAxonLength = self.axons[axonIndex].L
 
             if not isMyelinated:
-                # cNorm = colors.Normalize(vmin=0, vmax=currentNumberOfSegments-1)#len(diameters_m)-1)#
-                # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
                 for j in range(currentNumberOfSegments):
                     colorVal = scalarMap.to_rgba(int(j * currentAxonLength / currentNumberOfSegments))
                     axarr[i].plot(timeRec, voltageMatrix[:,j], color=colorVal)
@@ -488,33 +486,20 @@ class Bundle(object):
 
                 numberOfRecordingSites = np.shape(voltageMatrix)[1]
 
-                # cNorm = colors.Normalize(vmin=0, vmax=numberOfRecordingSites-1)#len(diameters_m)-1)#
-                # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
-
                 nodePositions = range(0,(Nnodes-1)*11,11)
-
-                # numberOfRecordingSites = np.shape(voltageMatrix)[1]
-                #
-                # cNorm = colors.Normalize(vmin=0, vmax=numberOfRecordingSites)#len(diameters_m)-1)#
-                # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
-                #
-                # nodePositions = range(numberOfRecordingSites)
 
                 nodeDistance = self.axons[axonIndex].lengthOneCycle
 
                 nodeCounter = 0
                 for j in nodePositions:
                     colorVal = scalarMap.to_rgba(int(nodeCounter * nodeDistance))
-                    # axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
-                    nodePosition = nodeCounter*self.axons[axonIndex].lengthOneCycle
-                    axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal, label=str(nodePosition)+' um')
+                    axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
                     nodeCounter += 1
 
                 axarr[i].set_ylabel('Voltage [mV]')
                 # axarr[i].set_ylim([-100,100])
                 axarr[i].set_xlabel('time [ms]')
                 axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
-                axarr[i].legend()
 
             # make room for colorbar
             f.subplots_adjust(right=0.8)
