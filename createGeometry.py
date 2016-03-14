@@ -200,9 +200,9 @@ def getBundleGuideCorner(bundleLength, segmentLengthAxon):
 
     numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
 
-    halfIndex = float(numBundleGuideSteps)/2
-    turningPointIndex1 = int(np.floor(halfIndex))
-    turningPointIndex2 = turningPointIndex1 + int(np.ceil(halfIndex - turningPointIndex1))
+    cornerIndex = float(numBundleGuideSteps)/5
+    turningPointIndex1 = int(np.floor(cornerIndex))
+    turningPointIndex2 = (numBundleGuideSteps - turningPointIndex1)# + int(np.ceil(cornerIndex - turningPointIndex1))
 
     bundleCoords = np.zeros([numBundleGuideSteps, 3])
     bundleCoords[:,0] = range(0, numBundleGuideSteps*segmentLengthBundle, segmentLengthBundle)

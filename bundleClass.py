@@ -16,6 +16,7 @@ import copy
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
+import matplotlib as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import mpl_toolkits.mplot3d
 
@@ -451,6 +452,15 @@ class Bundle(object):
         # colors
         jet = plt.get_cmap('jet')
 
+        # for colorbar first check what is the longest axon
+        maxAxonLength = 0
+        for i in range(len(axonSelection)):
+            axonIndex = int(axonSelection[i])
+            maxAxonLength = max(maxAxonLength, self.axons[axonIndex].L)
+
+        cNorm = colors.Normalize(vmin=0, vmax=int(maxAxonLength)-1)#len(diameters_m)-1)#
+        scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+
         for i in range(len(axonSelection)):
             axonIndex = int(axonSelection[i])
 
@@ -461,12 +471,13 @@ class Bundle(object):
 
             axonDiameter = self.axons[axonIndex].fiberD
             currentNumberOfSegments = np.shape(voltageMatrix)[1]
+            currentAxonLength = self.axons[axonIndex].L
 
             if not isMyelinated:
-                cNorm = colors.Normalize(vmin=0, vmax=currentNumberOfSegments-1)#len(diameters_m)-1)#
-                scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+                # cNorm = colors.Normalize(vmin=0, vmax=currentNumberOfSegments-1)#len(diameters_m)-1)#
+                # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
                 for j in range(currentNumberOfSegments):
-                    colorVal = scalarMap.to_rgba(j)
+                    colorVal = scalarMap.to_rgba(int(j * currentAxonLength / currentNumberOfSegments))
                     axarr[i].plot(timeRec, voltageMatrix[:,j], color=colorVal)
 
                 axarr[i].set_ylabel('Voltage [mV]')
@@ -477,8 +488,8 @@ class Bundle(object):
 
                 numberOfRecordingSites = np.shape(voltageMatrix)[1]
 
-                cNorm = colors.Normalize(vmin=0, vmax=numberOfRecordingSites-1)#len(diameters_m)-1)#
-                scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+                # cNorm = colors.Normalize(vmin=0, vmax=numberOfRecordingSites-1)#len(diameters_m)-1)#
+                # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
 
                 nodePositions = range(0,(Nnodes-1)*11,11)
 
@@ -489,9 +500,11 @@ class Bundle(object):
                 #
                 # nodePositions = range(numberOfRecordingSites)
 
+                nodeDistance = self.axons[axonIndex].lengthOneCycle
+
                 nodeCounter = 0
                 for j in nodePositions:
-                    colorVal = scalarMap.to_rgba(j)
+                    colorVal = scalarMap.to_rgba(int(nodeCounter * nodeDistance))
                     # axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
                     nodePosition = nodeCounter*self.axons[axonIndex].lengthOneCycle
                     axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal, label=str(nodePosition)+' um')
@@ -503,9 +516,16 @@ class Bundle(object):
                 axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
                 axarr[i].legend()
 
-                # Add colorbar, make sure to specify tick locations to match desired ticklabels
-                # cbar = f.colorbar(axarr, ticks=range(Nnodes))
-                # cbar.ax.set_yticklabels(['< -1', '0', '> 1'])# vertically oriented colorbar
+            # make room for colorbar
+            f.subplots_adjust(right=0.8)
+
+            # add colorbar axis
+            axColorbar = f.add_axes([0.85, 0.15, 0.05, 0.7])
+
+            cb1 = mpl.colorbar.ColorbarBase(axColorbar, cmap=jet,
+                                            norm=cNorm,
+                                            orientation='vertical')
+            cb1.set_label('length [um]')
 
         plt.savefig(self.basePath+'voltage.png')
 
@@ -557,7 +577,7 @@ class Bundle(object):
 
         for axonIndex in range(self.virtual_number_axons):
 
-            print "Starting simulation of axon " + str(axonIndex)
+            print "\nStarting simulation of axon " + str(axonIndex)
 
             axon = self.axons[axonIndex]
 
@@ -632,7 +652,7 @@ class Bundle(object):
     def save_electrode(self,i):
         directory = getDirectoryName("elec", self.basePath)
 
-        print "Saving extracellular potential of axon "+str(i)+" to disk.\n"
+        print "Saving extracellular potential of axon "+str(i)+" to disk."
 
         if i==0:
             if not os.path.exists(directory):

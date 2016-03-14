@@ -26,13 +26,13 @@ plotVoltage = True
 # Set parameters
 
 # bundle characteristics
-p_A = [1.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
+p_A = [0.]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 16.#'draw' # um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 'draw' # um diameter unmyelinated axons 'draw' OR some value below 3. (don't forget the dot to make it a float)
 radius_bundle = 150.0 # um Radius of the bundle (typically 0.5-1.5mm)
-number_of_axons = 2 # 25
-lengthOfBundle = 10000 # 8000
-randomDirectionComponent = .3 # curviness of the axon
+number_of_axons = 10 # 25
+lengthOfBundle = 1000 # 8000
+randomDirectionComponent = .1 # curviness of the axon
 
 segmentLengthAxon = 10
 bundleGuide = createGeometry.getBundleGuideCorner(lengthOfBundle, segmentLengthAxon)
@@ -40,10 +40,10 @@ bundleGuide = createGeometry.getBundleGuideCorner(lengthOfBundle, segmentLengthA
 
 # stimulus characteristics
 stim_types = ["INTRA"]#, "INTRA", "EXTRA", "NONE"
-waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"
+waveforms = ["MONOPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
 duty_cycles = [0.01]#[0.001]#,0.01,0.005]
-amplitudes = [2.0]#,2.0,0.5]
+amplitudes = [1.0]#,2.0,0.5]
 stimDur = [10]
 
 # upstream nerve stream activity characteristics
@@ -55,7 +55,7 @@ stopTimeSpiking = h.tstop
 
 # recoding params
 number_contact_points=  8 # Number of points on the circle constituing the cuff electrode
-recording_elec_pos = [math.floor(lengthOfBundle), math.floor(lengthOfBundle) + 100] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+recording_elec_pos = [math.floor(lengthOfBundle)]#, math.floor(lengthOfBundle) + 100] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
 number_elecs =  3 #150#150, #number of electrodes along the bundle
 
 myelinatedDistribution = {
