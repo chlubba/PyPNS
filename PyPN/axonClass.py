@@ -1,9 +1,10 @@
 import neuron
 from neuron import h
-import run_simulation
+import LFPy
 import numpy as np # for arrays managing
 import math
 
+import silencer
 import createGeometry
 
 
@@ -27,6 +28,8 @@ class Axon(object):
         self.dotprodresults = None # Not in class cell of LFPY but present in run_simulation as cell.dotprodresults
         self.exMechVars = []
 
+        self.create_cell_props_for_LFPy()
+
     def calc_totnsegs(self):
         # Calculate the number of segments in the allseclist
         i = 0
@@ -34,6 +37,16 @@ class Axon(object):
             i += sec.nseg
 
         return i
+
+    # this function and the following one are only there for compliance with the LFPy package
+    def create_cell_props_for_LFPy(self):
+        self.tstartms = 0
+        self.tstopms = h.tstop
+        self.timeres_NEURON = h.dt
+        self.timeres_python = h.dt
+        self.v_init = h.celsius
+    def _loadspikes(self):
+        pass
 
     def append_ex_mech_vars(self, exMechVars):
         self.exMechVars.append(exMechVars)
@@ -216,9 +229,10 @@ class Axon(object):
         if self.rec_v:
             self.set_voltage_recorders()
 
-        run_simulation._run_simulation_with_electrode(self, electrode, variable_dt, atol,
-                                               to_memory, to_file, file_name,
-                                               dotprodcoeffs)
+
+        LFPy.run_simulation._run_simulation_with_electrode(self, electrode, variable_dt, atol,
+                                                   to_memory, to_file, file_name,
+                                                   dotprodcoeffs)
         if rec_imem:
             self.calc_imem()
 

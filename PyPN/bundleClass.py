@@ -4,7 +4,7 @@ from axonClass import *
 import createGeometry
 
 # from neuron import h
-import refextelectrode
+import LFPy
 import numpy as np # for arrays managing
 import time
 import shutil
@@ -39,7 +39,7 @@ class Bundle(object):
     # umyelinated:  parameters for fiber type C
 
     def __init__(self, radiusBundle, lengthOfBundle, bundleGuide, numberOfAxons, p_A, p_C, numberContactPoints,
-                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, segmentLengthAxon = 10, randomDirectionComponent = 0.3):
+                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, segmentLengthAxon = 10, randomDirectionComponent = 0.3, temperature=33, tStop=30, timeRes=0.0025, vInit=-65):
 
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
@@ -83,6 +83,12 @@ class Bundle(object):
 
             self.create_axon(self.axons_pos[i,:])
             self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
+
+        # # set up NEURON simulation
+        # h.celsius = temperature # set temperature in celsius
+        # h.tstop = tStop # set simulation duration (ms)
+        # h.dt = timeRes # set time step (ms)
+        # h.finitialize(vInit) # initialize voltage state
 
 
     def build_disk(self,numberOfAxons,radiusBundle):
@@ -260,12 +266,17 @@ class Bundle(object):
 
 
             axon.simulate()
-            self.electrodes.append(refextelectrode.RecExtElectrode(axon, **electrodeParameters))
+
+            # shut down the output, always errors at the end because membrane current too high
+            with silencer.nostdout():
+                self.electrodes.append(LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters))
             elapsed1 = time.time()-temp
             print "Elapsed time calculate voltage and membrane current: " + str(elapsed1)
 
             temp = time.time()
+
             self.electrodes[axonIndex].calc_lfp()
+
             elapsed2 = time.time()-temp
             print "Elapsed time to calculate LFP from membrane current:" + str(elapsed2)
 

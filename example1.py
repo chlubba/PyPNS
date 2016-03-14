@@ -3,6 +3,7 @@ h('load_file("noload.hoc")')
 import PyPN
 import matplotlib.pyplot as plt
 
+# set up NEURON simulation
 h.celsius = 33 # set temperature in celsius
 h.tstop = 30 # set simulation duration (ms)
 h.dt = 0.0025 # set time step (ms)
@@ -46,7 +47,7 @@ stimulusParameters = {  'stimType': "INTRA", #Stimulation type either "INTRA" or
 # recording parameters of the cuff electrodes
 recordingParameters = { 'numberContactPoints': 8, # Number of points on the circle constituing the cuff electrode
                         'recordingElecPos': [lengthOfBundle, lengthOfBundle + 50], #um Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-                        'numberElecs': 3, # number of electrodes along the bundle
+                        'numberElecs': 1, # number of electrodes along the bundle
 }
 
 # axon parameters

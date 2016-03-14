@@ -140,7 +140,11 @@ def electrode_positions_bundle_guided(bundleGuide, bundleRadius, numberOfElectro
 
     positionLastElectrode = recElectrodePositions[0]
     bundleGuideSegmentLength = np.linalg.norm(bundleGuide[1,:] - bundleGuide[0,:]) # assume segments are of equal length
-    segmentIndices = np.linspace(1, positionLastElectrode/bundleGuideSegmentLength, numberOfElectrodes)
+
+    if numberOfElectrodes > 1:
+        segmentIndices = np.linspace(1, positionLastElectrode/bundleGuideSegmentLength, numberOfElectrodes)
+    else:
+        segmentIndices = [positionLastElectrode/bundleGuideSegmentLength]
 
 
     for i in range(numberOfElectrodes):
