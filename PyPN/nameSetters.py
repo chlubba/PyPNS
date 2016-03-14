@@ -1,7 +1,7 @@
 import os
 import glob
 
-def getBundleDirectory(elecCount, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
+def get_bundle_directory(elecCount, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
 
     homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#
 
@@ -54,7 +54,7 @@ def getBundleDirectory(elecCount, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, un
 
 
 
-def getDirectoryName(keyword, basePath):
+def get_directory_name(keyword, basePath):
     # retrieve directory name based on the purpose defined by keyword and the bundleParameters
     # 4 possible keywords:
     # elec -> temporary electrode folder
@@ -78,9 +78,9 @@ def getDirectoryName(keyword, basePath):
 
     return finalCombinedPath
 
-def getFileName(recordingType, basePath, newFile=True):
+def get_file_name(recordingType, basePath, newFile=True):
 
-        directory = getDirectoryName(recordingType, basePath)
+        directory = get_directory_name(recordingType, basePath)
 
         # filename = 'recording.dat'
         filename = recordingType+'.dat'

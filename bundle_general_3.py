@@ -1,9 +1,12 @@
+import neuron
 from neuron import h
 h('load_file("noload.hoc")')
-from bundleClass import *
+import PyPN
+import math
 import cPickle as pickle
-from pprint import pprint
-import sys
+import matplotlib.pyplot as plt
+# from pprint import pprint
+# import sys
 import time
 time.sleep(0) # delays for x seconds
 
@@ -13,7 +16,7 @@ h.dt = 0.0025 # set time step (ms)
 h.finitialize(-65) # initialize voltage state
 
 # decide what's to be done in this run
-calculationFlag = False # execute the calculation or load the last run made with this set of parameters
+calculationFlag = True # execute the calculation or load the last run made with this set of parameters
 
 plottingFlag = True # plot something
 plotGeometry = True # plot the bundle in space
@@ -35,7 +38,7 @@ lengthOfBundle = 2000 # 8000
 
 randomDirectionComponent = .1 # curviness of the axon
 segmentLengthAxon = 10
-bundleGuide = createGeometry.getBundleGuideCorner(lengthOfBundle, segmentLengthAxon)
+bundleGuide = PyPN.createGeometry.get_bundle_guide_cordner(lengthOfBundle, segmentLengthAxon)
 
 # recoding params
 numberContactPoints=  8 # Number of points on the circle constituing the cuff electrode
@@ -88,7 +91,7 @@ upstreamSpikingDict = { 'lambd' : spikingRate, # mean number of pulses per secon
 
 
 for j in range(len(dutyCycles)):
-    for k in range(len(p_A)):#[0]:#range(1,len(p_A)):#
+    for k in range(len(p_A)):
         stimulusParameters = {
             'stimType': stimTypes[j], #Stimulation type either "INTRA" or "EXTRA"
             'amplitude': amplitudes[j], # Pulse amplitude (nA)
@@ -107,14 +110,14 @@ for j in range(len(dutyCycles)):
 
         myelinatedParametersA = {
             'name': "myelinated_axonA", # axon name (for neuron)
-            'Nnodes': 11, #Number of nodes
+            #'Nnodes': 11, #Number of nodes
             'fiberD': fiberD_A, #fiberD_A, #Diameter of the fiber
             'layout3D': "PT3D",#"DEFINE_SHAPE",# # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
             'rec_v': True, # set voltage recorders True or False
         }
         unmyelinatedParameters = {
             'name': "unmyelinated_axon", # axon name (for neuron)
-            'diam': fiberD_C, #Axon diameter (micrometer)
+            'fiberD': fiberD_C, #Axon diameter (micrometer)
             'cm' : 1.0, #Specific membrane capacitance (microfarad/cm2)
             'Ra': 200.0, #Specific axial resistance (Ohm cm)
             'layout3D': "PT3D",#"DEFINE_SHAPE", # either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
@@ -138,30 +141,30 @@ for j in range(len(dutyCycles)):
         Parameters = dict(bundleParameters, **recordingParameters)
 
         saveParams={'elecCount': len(recordingElecPos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
-                'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
+                'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['fiberD'],
                 'L': bundleParameters['lengthOfBundle']}
         if calculationFlag:
 
             # create the bundle with all properties of axons and recording setup
-            bundle = Bundle(**Parameters)
+            bundle = PyPN.Bundle(**Parameters)
 
             # create the wanted mechanisms of how to cause spikes on the axons
             # continuous spiking
             if upstreamSpikingOn:
-                bundle.addExcitationMechanism(UpstreamSpiking(**upstreamSpikingDict))
+                bundle.add_excitation_mechanism(PyPN.UpstreamSpiking(**upstreamSpikingDict))
 
             # spiking through a single electrical stimulation
             if electricalStimulusOn:
-                bundle.addExcitationMechanism(Stimulus(**stimulusParameters))
+                bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
 
             # run the simulation
-            bundle.simulateBundle()
+            bundle.simulate_bundle()
 
             # save the bundle definition file
             bundleSaveLocation = bundle.basePath
             pickle.dump(bundle,open( bundleSaveLocation+'bundle.cl', "wb" ))
         else:
-            bundleSaveLocation = getBundleDirectory(new = False, **saveParams)
+            bundleSaveLocation = PyPN.get_bundle_directory(new = False, **saveParams)
             try:
                 bundle = pickle.load(open(bundleSaveLocation+'bundle.cl', "rb" ))
             except:
@@ -179,25 +182,25 @@ for j in range(len(dutyCycles)):
 
             if plotGeometry:
 
-                bundle.plot_geometry()
+                PyPN.plotBundleClass.plot_geometry(bundle)
 
             if plotCAP:
 
                 if plotCAP1D_1Axon:
 
-                    bundle.plot_CAP1D_singleAxon(10)
+                    PyPN.plotBundleClass.plot_CAP1D_singleAxon(bundle, 10)
 
                 if plotCAP1D:
 
-                    bundle.plot_CAP1D()
+                    PyPN.plotBundleClass.plot_CAP1D(bundle)
 
                 if plotCAP2D:
 
-                    bundle.plot_CAP2D()
+                    PyPN.plotBundleClass.plot_CAP2D(bundle)
 
             if plotVoltage:
 
-                bundle.plot_voltage()
+                PyPN.plotBundleClass.plot_voltage(bundle)
 
         if plottingFlag:
             # finally show result

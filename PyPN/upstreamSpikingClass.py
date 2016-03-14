@@ -1,5 +1,5 @@
 from neuron import h
-from ExcitationMechanism import *
+from excitationMechanismClass import *
 
 import spikeTrainGeneration
 
@@ -31,6 +31,7 @@ class UpstreamSpiking(ExcitationMechanism):
         netCon = h.NetCon(vecStim, synapse)
         netCon.weight[0] = 1
 
+        # add the variables to the axon instance in order to keep them alive
+        # delete after simulation
         excitationMechanismVars = [synapse, vecStim, spikeVec, spikeTrain, netCon]
-
-        axon.appendExMechVars(excitationMechanismVars)
+        axon.append_ex_mech_vars(excitationMechanismVars)

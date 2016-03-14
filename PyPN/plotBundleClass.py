@@ -49,7 +49,7 @@ def plot_geometry(bundle):
 def plot_CAP1D_singleAxon(bundle, maxNumberOfAxons):
 
     # get the whole CAP, can be single electrode or multiple
-    directory = getDirectoryName("CAP1A", bundle.basePath)
+    directory = get_directory_name("CAP1A", bundle.basePath)
     try:
         newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
     except ValueError:

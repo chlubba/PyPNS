@@ -78,16 +78,10 @@ def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon
             else:
                 radiusVectorNorm = radiusVector
 
-        # if distance/bundleRadius > 1:
-        #     print 'hm'
-
         # assure axon stays within bundle. If too far away -> next direction
         # equals bundle direction
-        # factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.5)))
         factorBundleDirection = min((max(0,distance/bundleRadius-0.7))*6,2.5)
-        #factorAxonDirection = min(0, 1 - factorBundleDirection)
-
-
+        
         correctionVector = radiusVectorNorm + 0.1*bundleDirectionNorm
         correctionVector = correctionVector/np.linalg.norm(correctionVector)
         combinedDirection = lastAxonDirectionNorm + correctionVector*factorBundleDirection + 0.1*bundleDirection
@@ -100,7 +94,6 @@ def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon
         rho = np.random.uniform(1)*rhoMax
 
         randomDirection = (1-randomDirectionComponent)*combinedDirectionNorm + randomDirectionComponent*randomOrthogonalVectorNorm*rho
-        # randomDirection = (1-randomDirectionComponent)*combinedDirectionNorm + factorAxonDirection*randomDirectionComponent*randomOrthogonalVectorNorm*rho
         randomDirectionNorm = randomDirection/np.linalg.norm(randomDirection)
         nextDirectionScaled = randomDirectionNorm*segmentLengthAxon
 
@@ -115,7 +108,7 @@ def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon
 
     return coords
 
-def lengthFromCoords(coords):
+def length_from_coords(coords):
     # get the length of the wanted axon geometry
 
     # do calculate that by summing over lenghts of segments, calculate the difference in coords between each consecutive
@@ -129,7 +122,7 @@ def lengthFromCoords(coords):
     # sum over all segments
     return sum(dL)
 
-def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes, numberOfContacts, recElectrodePositions):
+def electrode_positions_bundle_guided(bundleGuide, bundleRadius, numberOfElectrodes, numberOfContacts, recElectrodePositions):
 
     electrodeRadius = bundleRadius*1.2 # allow 20% distance, not to intrude into nerve bundle
 
@@ -191,9 +184,9 @@ def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes
 
     return allElectrodePositions
 
-def getBundleGuideCorner(bundleLength, segmentLengthAxon):
+def get_bundle_guide_cordner(bundleLength, segmentLengthAxon):
 
-    overlapLength = 2000 #length after bundle end. necessary for myelinated axons
+    overlapLength = 1000 #length after bundle end. necessary for myelinated axons
     bundleLength = bundleLength + overlapLength
 
     segmentLengthBundle = segmentLengthAxon*3
@@ -211,7 +204,7 @@ def getBundleGuideCorner(bundleLength, segmentLengthAxon):
 
     return bundleCoords
 
-def getBundleGuideStraight(bundleLength, segmentLengthAxon):
+def get_bundle_guide_straight(bundleLength, segmentLengthAxon):
 
     segmentLengthBundle = segmentLengthAxon*3
     numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))

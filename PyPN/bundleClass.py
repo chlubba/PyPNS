@@ -1,15 +1,12 @@
 from axonClass import *
-from upstreamSpikingClass import *
-from stimulusClass import *
+# from stimulusClass import *
+# from ExcitationMechanism import *
 import createGeometry
 
 # from neuron import h
 import refextelectrode
 import numpy as np # for arrays managing
-import math
 import time
-import glob
-import os
 import shutil
 import copy
 
@@ -17,7 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
-from nameSetters import getDirectoryName, getFileName, getBundleDirectory
+from nameSetters import *
 
 class Bundle(object):
     # radiusBundle: Radius of the bundle (typically 0.5-1.5mm)
@@ -41,8 +38,8 @@ class Bundle(object):
     # myelinated_A: parameters for fiber type A
     # umyelinated:  parameters for fiber type C
 
-    def __init__(self, radiusBundle, lengthOfBundle, segmentLengthAxon, bundleGuide, numberOfAxons, p_A, p_C, numberContactPoints,
-                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, randomDirectionComponent = 0.3):
+    def __init__(self, radiusBundle, lengthOfBundle, bundleGuide, numberOfAxons, p_A, p_C, numberContactPoints,
+                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, segmentLengthAxon = 10, randomDirectionComponent = 0.3):
 
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
@@ -70,10 +67,10 @@ class Bundle(object):
         self.build_disk(self.numberOfAxons,self.radiusBundle)
 
         self.saveParams={'elecCount': len(self.recordingElecPos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
-                    'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
+                    'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['fiberD'],
                     'L': self.bundleLength}
 
-        self.basePath = getBundleDirectory(new = True, **self.saveParams)
+        self.basePath = get_bundle_directory(new = True, **self.saveParams)
 
         # create axon-specific color
         jet = plt.get_cmap('Paired')
@@ -88,29 +85,21 @@ class Bundle(object):
             self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
 
 
-    def addExcitationMechanism(self, mechanism):
-        self.excitationMechanisms.append(mechanism)
+    def build_disk(self,numberOfAxons,radiusBundle):
+        """
+        Partly from http://blog.marmakoide.org/?p=1
+        """
+        n = numberOfAxons
 
+        radius = radiusBundle* np.sqrt(np.arange(n) / float(n))
 
-    def simulateBundle(self):
+        golden_angle = np.pi * (3 - np.sqrt(5))
+        theta = golden_angle * np.arange(n)
 
-        self.simulateAxons()
-
-        # compute the compound action potential by summing all axon contributions up
-        self.compute_CAP_fromfiles()
-        self.save_CAP_to_file()
-        self.clear_CAP_vars()
-
-        # get rid of the all Neuron objects to be able to pickle the bundle-class.
-        h('forall delete_section()')
-        self.trec = None
-        self.voltages = None
-        self.sum_CAP = None
-        for excitationMechanism in self.excitationMechanisms:
-            excitationMechanism.delete_neuron_objects()
-
-    
-
+        self.axons_pos = np.zeros((n, 2))
+        self.axons_pos[:,0] = np.cos(theta)
+        self.axons_pos[:,1] = np.sin(theta)
+        self.axons_pos *= radius.reshape((n, 1))
 
     def create_axon(self, axonPosition):
 
@@ -120,7 +109,7 @@ class Bundle(object):
         axonType = axonTypes[axonTypeIndex]
 
         # then get diameter. Either drawn from distribution or constant.
-        axonDiameter = self.getDiam(axonType)
+        axonDiameter = self.get_diam(axonType)
 
         # axonCoords = np.row_stack((np.concatenate(([0], axonPosition)), np.concatenate(([self.bundleLength], axonPosition))))
 
@@ -133,7 +122,7 @@ class Bundle(object):
 
         if axonTypeIndex == 1:
             unmyel = copy.copy(self.unmyelinated)
-            unmyel['diam'] = axonDiameter
+            unmyel['fiberD'] = axonDiameter
             axonParameters = dict( {'coord': axonCoords},**unmyel)
             #axonParameters = dict( {'coord': axonPosition},**unmyel)
             self.axons.append(Unmyelinated(**axonParameters))
@@ -152,7 +141,82 @@ class Bundle(object):
 
         # self.stim = Stimulus(self.stim_type,self.axons[i], delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
 
-    def simulateAxons(self):
+    def get_diam(self, axonType):
+
+        if axonType == 'm':
+            givenDiameter = self.myelinated_A['fiberD']
+
+            if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
+                return givenDiameter
+            elif isinstance(givenDiameter, dict):
+                # get diameter distribution
+                fiberD = self.myelinated_A['fiberD']
+                densities = fiberD['densities']
+
+                # normalize it
+                sum_d = float(sum(densities))
+                normalize_densities = [x / sum_d for x in densities]
+
+                # draw one diameter value from the distribution
+                draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+
+                # why add 2.8?
+                axonD = fiberD['diameters'][draw_diam]+2.8
+
+                # choose the closest from existing axonD
+                axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
+                diff_axonD = [abs(x-axonD) for x in axonD_choices]
+                fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
+                fiberD = fiberD_choices[np.argmin(diff_axonD)]
+                diam = fiberD
+            else:
+                raise('Something is wrong with your given axon diameter for myelinated axons.')
+
+        elif  axonType == 'u':
+            givenDiameter = self.unmyelinated['fiberD']
+
+            if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
+                return givenDiameter
+            elif isinstance(givenDiameter, dict):
+                fiberD = self.unmyelinated['fiberD']
+                densities = fiberD['densities']
+
+                sum_d = float(sum(densities))
+                normalize_densities = [x / sum_d for x in densities]
+
+                draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+                D = fiberD['diameters'][draw_diam]
+                diam = D
+            else:
+                raise('Something is wrong with your given axon diameter for unmyelinated axons.')
+
+
+        else:
+            raise('Wrong axon type given to function get_diam. Valid ones: u or m')
+
+        return diam
+    
+    def add_excitation_mechanism(self, mechanism):
+        self.excitationMechanisms.append(mechanism)
+    
+    def simulate_bundle(self):
+
+        self.simulate_axons()
+
+        # compute the compound action potential by summing all axon contributions up
+        self.compute_CAP_fromfiles()
+        self.save_CAP_to_file()
+        self.clear_CAP_vars()
+
+        # get rid of the all Neuron objects to be able to pickle the bundle-class.
+        h('forall delete_section()')
+        self.trec = None
+        self.voltages = None
+        self.sum_CAP = None
+        for excitationMechanism in self.excitationMechanisms:
+            excitationMechanism.delete_neuron_objects()
+
+    def simulate_axons(self):
 
         # where are the electrodes
         # [X,Y,Z,N] = self.setup_recording_elec()
@@ -217,12 +281,11 @@ class Bundle(object):
             axon.delete_neuron_object()
 
 
-
     def store_geometry(self):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
 
     def save_electrode(self,i):
-        directory = getDirectoryName("elec", self.basePath)
+        directory = get_directory_name("elec", self.basePath)
 
         print "Saving extracellular potential of axon "+str(i)+" to disk."
 
@@ -240,7 +303,7 @@ class Bundle(object):
 
     def load_one_electrode(self, elecIndex):
 
-        directory = getDirectoryName("elec", self.basePath)
+        directory = get_directory_name("elec", self.basePath)
         filename = "electrode_"+str(elecIndex)+".dat"
 
         t0 = time.time()
@@ -259,7 +322,7 @@ class Bundle(object):
         # header would be useful.
         # header = repr(parameters)
 
-        filename = getFileName("CAP", self.basePath)
+        filename = get_file_name("CAP", self.basePath)
         print "Save location for CAP file: " + filename
 
         np.savetxt(filename, DataOut)
@@ -268,7 +331,7 @@ class Bundle(object):
         DataOut = np.array(self.trec)
         DataOut = np.column_stack((DataOut, np.transpose(self.AP_axonwise)))
 
-        filename = getFileName("CAP1A", self.basePath)
+        filename = get_file_name("CAP1A", self.basePath)
         print "Save location for single axon differentiated CAP file: " + filename
 
         np.savetxt(filename, DataOut)
@@ -279,7 +342,7 @@ class Bundle(object):
 
     def save_voltage_to_file_axonwise(self, vreclist):
 
-        filename = getFileName("V", self.basePath, newFile=False)
+        filename = get_file_name("V", self.basePath, newFile=False)
 
         # append voltages to file to save memory usage. Open file first with mode ab (append, binary)
         f=open(filename,'ab')
@@ -305,7 +368,7 @@ class Bundle(object):
     def get_CAP_from_file(self):
 
         # get the whole CAP, can be single electrode or multiple
-        directory = getDirectoryName("CAP", self.basePath)
+        directory = get_directory_name("CAP", self.basePath)
         try:
             newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
@@ -319,10 +382,9 @@ class Bundle(object):
         return time, CAP
 
 
-
     def get_voltage_from_file(self):
         # get the whole CAP, can be signle electrode or multiple
-        directory = getDirectoryName("V", self.basePath)
+        directory = get_directory_name("V", self.basePath)
         try:
             newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
@@ -360,6 +422,8 @@ class Bundle(object):
     def compute_CAP_fromfiles(self):
         temp = time.time()
 
+        print '\nCalculating CAP by summing up single axon contributions.'
+
         monopolar = len(self.recordingElecPos) == 1
 
         # variable to save the sum over all axons
@@ -396,7 +460,7 @@ class Bundle(object):
 
         if True:
             # calculte recording electrode positions for a 3D shaped bundle
-            electrodePositions = createGeometry.electrodePositionsBundleGuided(self.bundleCoords, self.radiusBundle,
+            electrodePositions = createGeometry.electrode_positions_bundle_guided(self.bundleCoords, self.radiusBundle,
                                                                                self.numberElecs, self.numberContactPoints,
                                                                                self.recordingElecPos)
             X, Y, Z = electrodePositions[:,0], electrodePositions[:,1], electrodePositions[:,2]
@@ -432,26 +496,11 @@ class Bundle(object):
 
         return [X,Y,Z]#,N]
 
-    def build_disk(self,numberOfAxons,radiusBundle):
-        ### AXONS POSITIONS ON THE DISK ###
-        """
-        Partly from http://blog.marmakoide.org/?p=1
-        """
-        n = numberOfAxons
-
-        radius = radiusBundle* np.sqrt(np.arange(n) / float(n))
-
-        golden_angle = np.pi * (3 - np.sqrt(5))
-        theta = golden_angle * np.arange(n)
-
-        self.axons_pos = np.zeros((n, 2))
-        self.axons_pos[:,0] = np.cos(theta)
-        self.axons_pos[:,1] = np.sin(theta)
-        self.axons_pos *= radius.reshape((n, 1))
+    
 
     def get_filename(self, recordingType):
 
-        directory = getDirectoryName(recordingType, self.basePath)
+        directory = get_directory_name(recordingType, self.basePath)
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -469,57 +518,4 @@ class Bundle(object):
 
         return self.filename
 
-    def getDiam(self, axonType):
-
-        if axonType == 'm':
-            givenDiameter = self.myelinated_A['fiberD']
-
-            if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
-                return givenDiameter
-            elif isinstance(givenDiameter, dict):
-                # get diameter distribution
-                fiberD = self.myelinated_A['fiberD']
-                densities = fiberD['densities']
-
-                # normalize it
-                sum_d = float(sum(densities))
-                normalize_densities = [x / sum_d for x in densities]
-
-                # draw one diameter value from the distribution
-                draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-
-                # why add 2.8?
-                axonD = fiberD['diameters'][draw_diam]+2.8
-
-                # choose the closest from existing axonD
-                axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
-                diff_axonD = [abs(x-axonD) for x in axonD_choices]
-                fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
-                fiberD = fiberD_choices[np.argmin(diff_axonD)]
-                diam = fiberD
-            else:
-                raise('Something is wrong with your given axon diameter for myelinated axons.')
-
-        elif  axonType == 'u':
-            givenDiameter = self.unmyelinated['diam']
-
-            if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
-                return givenDiameter
-            elif isinstance(givenDiameter, dict):
-                fiberD = self.unmyelinated['diam']
-                densities = fiberD['densities']
-
-                sum_d = float(sum(densities))
-                normalize_densities = [x / sum_d for x in densities]
-
-                draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-                D = fiberD['diameters'][draw_diam]
-                diam = D
-            else:
-                raise('Something is wrong with your given axon diameter for unmyelinated axons.')
-
-
-        else:
-            raise('Wrong axon type given to function getDiam. Valid ones: u or m')
-
-        return diam
+    

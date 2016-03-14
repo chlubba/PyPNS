@@ -1,7 +1,7 @@
 from neuron import h
 import numpy as np
 import math
-from ExcitationMechanism import *
+from excitationMechanismClass import *
 
 class Stimulus(ExcitationMechanism):
     """
@@ -59,7 +59,7 @@ class Stimulus(ExcitationMechanism):
         self.svec.play(stim._ref_amp,h.dt)
 
         excitationMechanismVars = [stim]
-        axon.appendExMechVars(excitationMechanismVars)
+        axon.append_ex_mech_vars(excitationMechanismVars)
 
     def init_xtra(self):
         self.svec.play(h._ref_is_xtra,h.dt)

@@ -35,7 +35,7 @@ class Axon(object):
 
         return i
 
-    def appendExMechVars(self, exMechVars):
+    def append_ex_mech_vars(self, exMechVars):
         self.exMechVars.append(exMechVars)
 
     def collect_geometry(self):
@@ -330,15 +330,10 @@ class Unmyelinated(Axon):
     # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
     # rec_v: set voltage recorders True or False
 
-    def __init__(self, name, diam, cm, Ra, coord, layout3D, rec_v, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
-        super(Unmyelinated,self).__init__(layout3D, rec_v, name, diam, coord)
+    def __init__(self, fiberD, coord, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
+        super(Unmyelinated,self).__init__(layout3D, rec_v, name, fiberD, coord)
 
-        # set all properties
-        # self.coord = coord
-        # self.fiberD = diam
-        # self.name = name
-
-        self.L = createGeometry.lengthFromCoords(coord)
+        self.L = createGeometry.length_from_coords(coord)
         self.cm = cm
         self.Ra = Ra
         self.hhDraw = hhDraw
@@ -347,7 +342,7 @@ class Unmyelinated(Axon):
         self.d_lambda = d_lambda
         self.max_nsegs_length = max_nsegs_length
 
-        print "Unmyelinated axon diameter: " +str(self.fiberD)
+        print "Unmyelinated axon diameter: " + str(self.fiberD)
 
     def create_neuron_object(self):
         self.axon = h.Section(name = str(self.name))
@@ -529,7 +524,7 @@ class Myelinated(Axon):
     paralength2: set the length of the second paranode segment followed by the internodes segments
     interlength: set the length of the internode part comprising the 6 segments between two paranodes2
     """
-    def __init__(self, name, Nnodes, fiberD, coord, layout3D, rec_v):
+    def __init__(self, fiberD, coord, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
         super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord)
 
         print 'Myelinated fiber diameter: ' + str(self.fiberD)
@@ -547,8 +542,6 @@ class Myelinated(Axon):
         self.mygm=0.001 #S/cm2/lamella membrane
 
 
-
-        ###### from proc dependent_var() #############
         if (self.fiberD==5.7):
             g=0.605
             axonD=3.4
@@ -651,7 +644,7 @@ class Myelinated(Axon):
         self.lengthOneCycle = self.nodelength + self.interlength*6 + 2*self.paralength1 + 2*self.paralength2
 
         # length of the whole axon
-        self.L = createGeometry.lengthFromCoords(coord)
+        self.L = createGeometry.length_from_coords(coord)
 
         # number of nodes
         self.axonnodes = int(math.ceil(self.L/self.lengthOneCycle))
