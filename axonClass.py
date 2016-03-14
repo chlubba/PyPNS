@@ -529,12 +529,8 @@ class Myelinated(Axon):
     paralength2: set the length of the second paranode segment followed by the internodes segments
     interlength: set the length of the internode part comprising the 6 segments between two paranodes2
     """
-    def __init__(self, name, Nnodes, fiberD, coord, layout3D, rec_v):#, nodelength, paralength1, paralength2, interlength):
+    def __init__(self, name, Nnodes, fiberD, coord, layout3D, rec_v):
         super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord)
-
-
-
-        # self.axonnodes = Nnodes
 
         print 'Myelinated fiber diameter: ' + str(self.fiberD)
 
@@ -762,7 +758,6 @@ class Myelinated(Axon):
 
         self.allseclist = h.SectionList()
 
-        #### from initialize() ####
         self.nodes = []
         self.MYSAs = []
         self.FLUTs = []
@@ -793,8 +788,6 @@ class Myelinated(Axon):
         elif (self.layout3D == "PT3D"):
 
             lengthArray = np.concatenate(([self.nodelength, self.paralength1, self.paralength2], np.multiply(np.ones(6), self.interlength), [self.paralength2, self.paralength1]))
-
-            # h.pt3dclear()
 
             # get sections in order (allseclist not subscriptable since NEURON object. But then, iterable.)
             sectionArray = []
@@ -841,12 +834,9 @@ class Myelinated(Axon):
                     lengthReached += (sectionLength - cumulatedLengthFromSection)
 
                     # set endpoint of section
-                    # section = sectionArray[sectionIndex]
                     h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
                     # print 'Section ' + str(sectionIndex) + ' ended at coords' + str(coord) + '.'
                     # print 'Direction normed : ' + str(directionNorm) + '\n'
-
-                    # print 'Going to next section.'
 
                     # update how far we got on the segment of the guide
                     cumulatedLengthOnGuideSeg += (sectionLength - cumulatedLengthFromSection)
@@ -884,14 +874,9 @@ class Myelinated(Axon):
                     # get coords of node between guide segments
                     coord = self.coord[coordCounter + 1,:]
 
-                    # add coord of guidance node to current section
-                    # section = sectionArray[sectionIndex]
-
                     h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
                     # print 'Section ' + str(sectionIndex) + ' has additional corner at coords' + str(coord) + '.'
                     # print 'Length reached : '+str(lengthReached)
-
-                    # print 'Going to next guide segment.'
 
                     # check out next guide segment
                     coordCounter += 1
@@ -903,7 +888,6 @@ class Myelinated(Axon):
 
                     # new guide segment -> no length consumed yet.
                     cumulatedLengthOnGuideSeg = 0
-
 
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
@@ -919,7 +903,6 @@ class Myelinated(Axon):
         self.calc_midpoints()
 
     def delete_neuron_object(self):
-        ### DELETE THE PYTHON REFERENCE TO THE AXON TO DELETE THE AXON ###
         for sec in self.allseclist:
             for seg in sec:
                 seg = None
@@ -963,11 +946,3 @@ class Myelinated(Axon):
         for exMechVars in self.exMechVars:
             for i in range(len(exMechVars)):
                 exMechVars[i] = None
-
-        # # from Stimulus
-        # self.stim = None
-        # # # from upstreamSpiking
-        # # self.synapse = None
-        # # self.netCon = None
-        # # self.spikeVec = None
-        # # self.vecStim = None

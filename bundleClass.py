@@ -25,12 +25,12 @@ import mpl_toolkits.mplot3d
 from nameSetters import getDirectoryName, getFileName, getBundleDirectory
 
 class Bundle(object):
-    # radius_bundle: Radius of the bundle (typically 0.5-1.5mm)
-    # number_of_axons: Number of axons in the bundle
+    # radiusBundle: Radius of the bundle (typically 0.5-1.5mm)
+    # numberOfAxons: Number of axons in the bundle
     # p_A: Percentage of myelinated fiber type A
     # p_C: Percentage of unmyelinated fiber type C
     #
-    # number_contact_points: Number of points on the circle constituing the cuff electrode
+    # numberContactPoints: Number of points on the circle constituing the cuff electrode
     # recording_elec: Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
     #
     # stim_type: Stimulation type either "INTRA" or "EXTRA" for INTRA/EXTRA_cellular stimulation
@@ -46,11 +46,11 @@ class Bundle(object):
     # myelinated_A: parameters for fiber type A
     # umyelinated:  parameters for fiber type C
 
-    # def __init__(self, radius_bundle, lengthOfBundle, segmentLengthAxon, bundleGuide, number_of_axons, p_A, p_C, number_contact_points,
-    #              recording_elec_pos, jitter_para, stim_type, duty_cycle, freq, amplitude, stim_dur, dur, number_elecs,
+    # def __init__(self, radiusBundle, lengthOfBundle, segmentLengthAxon, bundleGuide, numberOfAxons, p_A, p_C, numberContactPoints,
+    #              recordingElecPos, jitter_para, stim_type, duty_cycle, freq, amplitude, stim_dur, dur, numberElecs,
     #              myelinated_A, unmyelinated,rec_CAP, waveform, randomDirectionComponent = 0.3):
-    def __init__(self, radius_bundle, lengthOfBundle, segmentLengthAxon, bundleGuide, number_of_axons, p_A, p_C, number_contact_points,
-                 recording_elec_pos, dur, number_elecs, myelinated_A, unmyelinated,rec_CAP, randomDirectionComponent = 0.3):
+    def __init__(self, radiusBundle, lengthOfBundle, segmentLengthAxon, bundleGuide, numberOfAxons, p_A, p_C, numberContactPoints,
+                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, randomDirectionComponent = 0.3):
 
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
@@ -62,67 +62,39 @@ class Bundle(object):
 
         self.excitationMechanisms = []
 
-        # self.waveform = waveform
-        # self.stim_type = stim_type
-        # self.stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points),
-        #                     radius_bundle*math.sin(math.pi/number_contact_points)]]
-        # self.duty_cycle = duty_cycle
-        # self.freq = freq
-        # self.amp = amplitude
-        # self.stim_dur = stim_dur
-        self.dur = dur
-        self.rec_CAP = rec_CAP
-
         self.p_A = float(p_A)/(p_A+p_C)
         self.p_C = float(p_C)/(p_A+p_C)
 
-        self.number_of_axons = number_of_axons
+        self.numberOfAxons = numberOfAxons
         self.axons = []
-        self.axonColors = np.zeros([self.number_of_axons,4])
-        self.radius_bundle = radius_bundle # um
+        self.axonColors = np.zeros([self.numberOfAxons,4])
+        self.radiusBundle = radiusBundle # um
         self.electrodes = []
         self.voltages = []
-        self.number_contact_points = number_contact_points
-        self.number_elecs = number_elecs
-        self.recording_elec_pos = recording_elec_pos #um
+        self.numberContactPoints = numberContactPoints
+        self.numberElecs = numberElecs
+        self.recordingElecPos = recordingElecPos #um
 
-        self.build_disk(self.number_of_axons,self.radius_bundle)
+        self.build_disk(self.numberOfAxons,self.radiusBundle)
 
-        self.saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
+        self.saveParams={'elecCount': len(self.recordingElecPos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
                     'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
-                    'L': self.bundleLength} # , 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
-                    # 'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
+                    'L': self.bundleLength}
 
         self.basePath = getBundleDirectory(new = True, **self.saveParams)
 
-
-        # maybe place this somewhere else, but for now:
         # create axon-specific color
         jet = plt.get_cmap('Paired')
-        cNorm = colors.Normalize(vmin=0, vmax=self.number_of_axons)#len(diameters_m)-1)#
+        cNorm = colors.Normalize(vmin=0, vmax=self.numberOfAxons)#len(diameters_m)-1)#
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
 
+        # create axons
+        for i in range(self.numberOfAxons):
+            print "Creating axon " + str(i)
 
-        # create axons within one fourth slice of the whole bundle.
-        self.virtual_number_axons = 0
-        for i in range(self.number_of_axons):
-            # if within the desired subsection of the bundle, create axon
-            if True:#((self.axons_pos[i,1]>=0 and self.axons_pos[i,1]< self.axons_pos[i,0]) or (self.axons_pos[i,0]== 0 and self.axons_pos[i,1]==0)):
-                print "Creating axon " + str(i)
+            self.create_axon(self.axons_pos[i,:])
+            self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
 
-                self.create_axon(self.axons_pos[i,:])
-                self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
-                self.virtual_number_axons +=1
-
-
-        # if not self.stim_type == 'NONE':
-        #     # create Simulus instace used for all axons
-        #     self.stim = Stimulus(self.stim_type, self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
-
-
-    # def addUpstreamSpiking(self, tStart=0., tStop=h.tstop, lambd = 1000., correlation = 0.1):
-    #     # create upstream activity
-    #     self.upstreamSpiking = UpstreamSpiking(self.number_of_axons, tStart=tStart, tStop=tStop, lambd=lambd, correlation=correlation)
 
     def addExcitationMechanism(self, mechanism):
         self.excitationMechanisms.append(mechanism)
@@ -132,23 +104,16 @@ class Bundle(object):
 
         self.simulateAxons()
 
-        if self.rec_CAP:
-            self.compute_CAP_fromfiles()
-            self.save_CAP_to_file()
-            self.clear_CAP_vars()
-
-        # axonLimit = 15
-        # if self.virtual_number_axons <= axonLimit:
-        #     self.save_voltage_to_file()
-        # else:
-        #    print 'Voltage not saved, too many axons (' +str(self.virtual_number_axons) + ', but maximum ' + str(axonLimit) + ').'
+        # compute the compound action potential by summing all axon contributions up
+        self.compute_CAP_fromfiles()
+        self.save_CAP_to_file()
+        self.clear_CAP_vars()
 
         # get rid of the all Neuron objects to be able to pickle the bundle-class.
         h('forall delete_section()')
         self.trec = None
         self.voltages = None
         self.sum_CAP = None
-
         for excitationMechanism in self.excitationMechanisms:
             excitationMechanism.delete_neuron_objects()
 
@@ -240,20 +205,21 @@ class Bundle(object):
                 style = '--'
             else:
                 style = '-'
-            ax.plot(axon.xmid, axon.ymid, axon.zmid, style, label='axon '+str(axonID), color= tuple(self.axonColors[axonID,:]))
+            ax.plot(axon.xmid, axon.ymid, axon.zmid, style, color= tuple(self.axonColors[axonID,:])) # label='axon '+str(axonID),
             ax.text(axon.xmid[-1], axon.ymid[-1], axon.zmid[-1], str(axonID))
             axonID += 1
-        ax.plot(self.bundleCoords[:,0], self.bundleCoords[:,1], self.bundleCoords[:,2], label='bundle guide')
-        plt.legend()
+        ax.plot(self.bundleCoords[:,0], self.bundleCoords[:,1], self.bundleCoords[:,2])#, label='bundle guide')
+        #plt.legend()
+        plt.title('Axons in space')
 
         elecCoords = self.electrodeCoords
         ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
 
-        elecPoles = len(self.recording_elec_pos)
-        for i in range(self.number_elecs):
+        elecPoles = len(self.recordingElecPos)
+        for i in range(self.numberElecs):
             for j in range(elecPoles):
-                # selectionIndices = range(i+j*self.number_contact_points, self.number_contact_points*self.number_elecs + j*self.number_contact_points, self.number_elecs)
-                selectionIndices = range((i*elecPoles+j)*self.number_contact_points, self.number_contact_points*(i*elecPoles+j+1))
+                # selectionIndices = range(i+j*self.numberContactPoints, self.numberContactPoints*self.numberElecs + j*self.numberContactPoints, self.numberElecs)
+                selectionIndices = range((i*elecPoles+j)*self.numberContactPoints, self.numberContactPoints*(i*elecPoles+j+1))
 
                 ringCoords = elecCoords[selectionIndices,:]
                 ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
@@ -276,8 +242,8 @@ class Bundle(object):
         time = CAPraw[0,:]
         CAP = CAPraw[1:,:]
 
-        numberOfPlots = min(maxNumberOfAxons, self.virtual_number_axons)
-        axonSelection = np.floor(np.linspace(0,self.virtual_number_axons-1, numberOfPlots))
+        numberOfPlots = min(maxNumberOfAxons, self.numberOfAxons)
+        axonSelection = np.floor(np.linspace(0,self.numberOfAxons-1, numberOfPlots))
 
         # Subplots
         f, axarr = plt.subplots(numberOfPlots, sharex=True)
@@ -338,7 +304,7 @@ class Bundle(object):
         else:
             fig = plt.figure()
             CAPSingleElectrode =  CAP[numberOfRecordingSites-1,:]
-            distanceFromOrigin = self.recording_elec_pos[0]
+            distanceFromOrigin = self.recordingElecPos[0]
 
             plt.plot(time, CAPSingleElectrode)
             plt.title('distance ' + str(distanceFromOrigin) + ' [um]')
@@ -397,7 +363,6 @@ class Bundle(object):
 
         # load the raw voltage file
         timeStart = time.time()
-        # Vraw = np.transpose(np.loadtxt(newestFile))
         Vraw = np.loadtxt(newestFile)
         print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
 
@@ -448,7 +413,7 @@ class Bundle(object):
             axonIndex = int(axonSelection[i])
             maxAxonLength = max(maxAxonLength, self.axons[axonIndex].L)
 
-        cNorm = colors.Normalize(vmin=0, vmax=int(maxAxonLength)-1)#len(diameters_m)-1)#
+        cNorm = colors.Normalize(vmin=0, vmax=int(maxAxonLength)-1)
         scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
 
         for i in range(len(axonSelection)):
@@ -523,7 +488,7 @@ class Bundle(object):
 
         if True:
             # calculate the random axon coordinates
-            axonCoords = createGeometry.create_random_axon(self.bundleCoords, self.radius_bundle, axonPosition,
+            axonCoords = createGeometry.create_random_axon(self.bundleCoords, self.radiusBundle, axonPosition,
                                                            self.segmentLengthAxon, randomDirectionComponent=self.randomDirectionComponent)
         else:
             axonCoords = np.column_stack(axonPosition, np.concatenate(([axonPosition[0] + self.bundleLength], axonPosition[1:2])))
@@ -555,7 +520,7 @@ class Bundle(object):
         # [X,Y,Z,N] = self.setup_recording_elec()
         [X,Y,Z] = self.setup_recording_elec()
 
-        for axonIndex in range(self.virtual_number_axons):
+        for axonIndex in range(self.numberOfAxons):
 
             print "\nStarting simulation of axon " + str(axonIndex)
 
@@ -649,32 +614,32 @@ class Bundle(object):
     def compute_CAP_fromfiles(self):
         temp = time.time()
 
-        monopolar = len(self.recording_elec_pos) == 1
+        monopolar = len(self.recordingElecPos) == 1
 
         # variable to save the sum over all axons
-        self.sum_CAP = np.zeros((self.number_elecs,len(self.trec)))
+        self.sum_CAP = np.zeros((self.numberElecs,len(self.trec)))
 
         # variable to save the extracellular signal from each cell separately, at the last electrode position.
-        self.AP_axonwise = np.zeros((self.virtual_number_axons, len(self.trec)))
+        self.AP_axonwise = np.zeros((self.numberOfAxons, len(self.trec)))
 
         # load the recordings for every axon one by one and add them.
-        for elecIndex in range(self.virtual_number_axons):
+        for elecIndex in range(self.numberOfAxons):
             electrodeData = self.load_one_electrode(elecIndex)
 
         # The contactpoints that constitute one cuff electrode ring have to be recovered, summed up together per
         # recording location along the axon
-            for i in range(self.number_elecs):
+            for i in range(self.numberElecs):
                 if monopolar:
-                    contactPointIndices = range(self.number_contact_points*i, self.number_contact_points*(1+i))
+                    contactPointIndices = range(self.numberContactPoints*i, self.numberContactPoints*(1+i))
                     sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
                 else:
-                    contactPointIndicesPole1 = range(self.number_contact_points*2*i, self.number_contact_points*(1+2*i))
-                    contactPointIndicesPole2 = range(self.number_contact_points*(2*i+1), self.number_contact_points*(2*(i+1)))
+                    contactPointIndicesPole1 = range(self.numberContactPoints*2*i, self.numberContactPoints*(1+2*i))
+                    contactPointIndicesPole2 = range(self.numberContactPoints*(2*i+1), self.numberContactPoints*(2*(i+1)))
                     sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
 
                 self.sum_CAP[i,:] = self.sum_CAP[i,:] +  sumOverContactPoints
 
-                if i == self.number_elecs-1:
+                if i == self.numberElecs-1:
                     self.AP_axonwise[elecIndex,:] = sumOverContactPoints
 
         elapsed = time.time()-temp
@@ -685,35 +650,35 @@ class Bundle(object):
 
         if True:
             # calculte recording electrode positions for a 3D shaped bundle
-            electrodePositions = createGeometry.electrodePositionsBundleGuided(self.bundleCoords, self.radius_bundle,
-                                                                               self.number_elecs, self.number_contact_points,
-                                                                               self.recording_elec_pos)
+            electrodePositions = createGeometry.electrodePositionsBundleGuided(self.bundleCoords, self.radiusBundle,
+                                                                               self.numberElecs, self.numberContactPoints,
+                                                                               self.recordingElecPos)
             X, Y, Z = electrodePositions[:,0], electrodePositions[:,1], electrodePositions[:,2]
         else:
 
-            if (self.number_elecs == 1):
+            if (self.numberElecs == 1):
                 # if one recording site
-                if len(self.recording_elec_pos) == 1:
+                if len(self.recordingElecPos) == 1:
                     # if monopolar
-                    X = np.zeros(self.number_contact_points)+self.recording_elec_pos
-                elif len(self.recording_elec_pos) == 2:
+                    X = np.zeros(self.numberContactPoints)+self.recordingElecPos
+                elif len(self.recordingElecPos) == 2:
                     # if bipolar
-                    X = np.repeat(self.recording_elec_pos,self.number_contact_points,axis=0)
-                elif len(self.recording_elec_pos) > 2 or len(self.recording_elec_pos) == 0:
+                    X = np.repeat(self.recordingElecPos,self.numberContactPoints,axis=0)
+                elif len(self.recordingElecPos) > 2 or len(self.recordingElecPos) == 0:
                     # if wrong number of poles entered
                     raise TypeError("Only monopolar and bipolar recording are supported")
             else:
-                if len(self.recording_elec_pos) >1:
+                if len(self.recordingElecPos) >1:
                     raise TypeError("Please use only the monopolar configuration of 'recording_elec' to record along the bundle")
-                X1 = [np.linspace(0, self.recording_elec_pos[0], self.number_elecs)]
-                X = np.repeat(X1,self.number_contact_points, axis=0)
+                X1 = [np.linspace(0, self.recordingElecPos[0], self.numberElecs)]
+                X = np.repeat(X1,self.numberContactPoints, axis=0)
                 X = X.flatten()
-            angles = np.linspace(0,360, self.number_contact_points, endpoint = False)
-            Y1 = np.round(self.radius_bundle*np.cos(angles*np.pi/180.0),2)
-            Z1 = np.round(self.radius_bundle*np.sin(angles*np.pi/180.0),2)
-            Y = np.tile(Y1,self.number_elecs*len(self.recording_elec_pos))
-            Z = np.tile(Z1,self.number_elecs*len(self.recording_elec_pos))
-            N = np.empty((self.number_contact_points*self.number_elecs*len(self.recording_elec_pos), 3))
+            angles = np.linspace(0,360, self.numberContactPoints, endpoint = False)
+            Y1 = np.round(self.radiusBundle*np.cos(angles*np.pi/180.0),2)
+            Z1 = np.round(self.radiusBundle*np.sin(angles*np.pi/180.0),2)
+            Y = np.tile(Y1,self.numberElecs*len(self.recordingElecPos))
+            Z = np.tile(Z1,self.numberElecs*len(self.recordingElecPos))
+            N = np.empty((self.numberContactPoints*self.numberElecs*len(self.recordingElecPos), 3))
             for i in xrange(N.shape[0]):
                 N[i,] = [1, 0, 0] #normal vec. of contacts
 
@@ -721,14 +686,14 @@ class Bundle(object):
 
         return [X,Y,Z]#,N]
 
-    def build_disk(self,number_of_axons,radius_bundle):
+    def build_disk(self,numberOfAxons,radiusBundle):
         ### AXONS POSITIONS ON THE DISK ###
         """
         Partly from http://blog.marmakoide.org/?p=1
         """
-        n = number_of_axons
+        n = numberOfAxons
 
-        radius = radius_bundle* np.sqrt(np.arange(n) / float(n))
+        radius = radiusBundle* np.sqrt(np.arange(n) / float(n))
 
         golden_angle = np.pi * (3 - np.sqrt(5))
         theta = golden_angle * np.arange(n)
@@ -755,11 +720,6 @@ class Bundle(object):
             filenameTemp = str(number).zfill(5) + filename
 
         self.filename = directory+filenameTemp
-
-        return self.filename
-
-    def get_filename_for_draw(self):
-        self.filename = "p_A"+str(self.p_A)+"_p_C"+str(self.p_C)+'nb_axons'+str(self.number_of_axons)+'bundle_radius'+str(self.radius_bundle)+'.dat'
 
         return self.filename
 

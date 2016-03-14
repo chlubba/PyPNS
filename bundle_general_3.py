@@ -17,9 +17,9 @@ calculationFlag = False # execute the calculation or load the last run made with
 
 plottingFlag = True # plot something
 plotGeometry = True # plot the bundle in space
-plotCAP = False # plot the compound action potential
+plotCAP = True # plot the compound action potential
 plotCAP1D = True # plot the time course for each electrode location in one separate plot
-plotCAP2D = False # if many (>100 electrodes have been used, this plots the CAP in time and space in one image
+plotCAP2D = True # if many (>100 electrodes have been used, this plots the CAP in time and space in one image
 plotCAP1D_1Axon = True # plot CAP axonwise
 plotVoltage = True
 
@@ -29,26 +29,27 @@ plotVoltage = True
 p_A = [.5]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 'draw' # um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 'draw' # um diameter unmyelinated axons 'draw' OR some value below 3. (don't forget the dot to make it a float)
-radius_bundle = 150.0 # um Radius of the bundle (typically 0.5-1.5mm)
-number_of_axons = 4 # 25
-lengthOfBundle = 1000 # 8000
+radiusBundle = 150.0 # um Radius of the bundle (typically 0.5-1.5mm)
+numberOfAxons = 4 # 25
+lengthOfBundle = 2000 # 8000
 
 randomDirectionComponent = .1 # curviness of the axon
 segmentLengthAxon = 10
 bundleGuide = createGeometry.getBundleGuideCorner(lengthOfBundle, segmentLengthAxon)
 
 # recoding params
-number_contact_points=  8 # Number of points on the circle constituing the cuff electrode
-recording_elec_pos = [math.floor(lengthOfBundle)]#, math.floor(lengthOfBundle) + 100] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-number_elecs =  3 #150#150, #number of electrodes along the bundle
+numberContactPoints=  8 # Number of points on the circle constituing the cuff electrode
+recordingElecPos = [math.floor(lengthOfBundle)]#, math.floor(lengthOfBundle) + 100] #[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+numberElecs =  3 #150#150, #number of electrodes along the bundle
 
 ## how to excite axon
 
 # stimulus characteristics
-stim_types = ["INTRA"]#, "INTRA", "EXTRA", "NONE"
+electricalStimulusOn = True
+stimTypes = ["INTRA"]#, "INTRA", "EXTRA", "NONE"
 waveforms = ["BIPHASIC"]#,"MONOPHASIC", "BIPHASIC"
 frequencies = [0.1]#,0.1,0.1]
-duty_cycles = [0.01]#[0.001]#,0.01,0.005]
+dutyCycles = [0.01]#[0.001]#,0.01,0.005]
 amplitudes = [1.0]#,2.0,0.5]
 stimDur = [10]
 
@@ -83,27 +84,25 @@ upstreamSpikingDict = { 'lambd' : spikingRate, # mean number of pulses per secon
                         'correlation' : spikingCorrelation, # pairwise corrleation between neurons
                         'tStart' : startTimeSpiking,
                         'tStop' : stopTimeSpiking,
-                        'nAxons' : number_of_axons}
+                        'nAxons' : numberOfAxons}
 
 
-for j in range(len(duty_cycles)):
+for j in range(len(dutyCycles)):
     for k in range(len(p_A)):#[0]:#range(1,len(p_A)):#
         stimulusParameters = {
-            'stim_type': stim_types[j], #Stimulation type either "INTRA" or "EXTRA"
-            'amp': amplitudes[j], # Pulse amplitude (nA)
-            'freq': frequencies[j], # Frequency of the sin pulse (kHz)
-            'duty_cycle': duty_cycles[j], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-            'dur' : stimDur[j], # Stimulus duration (ms)
+            'stimType': stimTypes[j], #Stimulation type either "INTRA" or "EXTRA"
+            'amplitude': amplitudes[j], # Pulse amplitude (nA)
+            'frequency': frequencies[j], # Frequency of the sin pulse (kHz)
+            'dutyCycle': dutyCycles[j], # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+            'stimDur' : stimDur[j], # Stimulus duration (ms)
             'waveform': waveforms[j], # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-            'radius_bundle' : radius_bundle,
+            'radiusBundle' : radiusBundle,
         }
 
         recordingParameters = {
-            "number_contact_points": number_contact_points, #Number of points on the circle constituing the cuff electrode
-            'recording_elec_pos': recording_elec_pos,#[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-            'number_elecs': number_elecs,#150, #number of electrodes along the bundle
-            'dur': h.tstop, # Simulation duration (ms)
-            'rec_CAP': True, #If false means we avoid spending time using LFPy functions
+            "numberContactPoints": numberContactPoints, #Number of points on the circle constituing the cuff electrode
+            'recordingElecPos': recordingElecPos,#[10000], #Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+            'numberElecs': numberElecs,#150, #number of electrodes along the bundle
         }
 
         myelinatedParametersA = {
@@ -123,41 +122,42 @@ for j in range(len(duty_cycles)):
         }
 
         bundleParameters = {         #parameters for Bundle classe
-            'radius_bundle': radius_bundle, #um Radius of the bundle (typically 0.5-1.5mm)
+            'radiusBundle': radiusBundle, #um Radius of the bundle (typically 0.5-1.5mm)
             'lengthOfBundle': lengthOfBundle, #Axon length (micrometer)
-            'number_of_axons': number_of_axons,#640, # Number of axons in the bundle
+            'numberOfAxons': numberOfAxons,#640, # Number of axons in the bundle
             'p_A': p_A[k], # Percentage of myelinated fiber type A
             'p_C': 1-p_A[k], #Percentage of unmyelinated fiber type C
             'myelinated_A': myelinatedParametersA, #parameters for fiber type A
             'unmyelinated': unmyelinatedParameters, #parameters for fiber type C
             'randomDirectionComponent' : randomDirectionComponent,
             'segmentLengthAxon' : segmentLengthAxon,
-            # 'segmentLengthBundle' : segmentLengthBundle,
             'bundleGuide' : bundleGuide
         }
 
 
-        # Parameters1 = dict(bundleParameters, **stimulusParameters)
         Parameters = dict(bundleParameters, **recordingParameters)
 
-        saveParams={'elecCount': len(recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
+        saveParams={'elecCount': len(recordingElecPos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': bundleParameters['p_A'],
                 'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['diam'],
-                'L': bundleParameters['lengthOfBundle']}#, 'stimType': stimulusParameters['stim_type'], 'stimWaveform' : stimulusParameters['waveform'],
-                #'stimDutyCycle': stimulusParameters['duty_cycle'], 'stimAmplitude' : stimulusParameters['amp']}
-
+                'L': bundleParameters['lengthOfBundle']}
         if calculationFlag:
 
+            # create the bundle with all properties of axons and recording setup
             bundle = Bundle(**Parameters)
 
+            # create the wanted mechanisms of how to cause spikes on the axons
+            # continuous spiking
             if upstreamSpikingOn:
                 bundle.addExcitationMechanism(UpstreamSpiking(**upstreamSpikingDict))
 
-            if True:
+            # spiking through a single electrical stimulation
+            if electricalStimulusOn:
                 bundle.addExcitationMechanism(Stimulus(**stimulusParameters))
 
+            # run the simulation
             bundle.simulateBundle()
 
-            # save the whole bundle
+            # save the bundle definition file
             bundleSaveLocation = bundle.basePath
             pickle.dump(bundle,open( bundleSaveLocation+'bundle.cl', "wb" ))
         else:
