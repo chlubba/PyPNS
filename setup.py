@@ -23,44 +23,19 @@ else:
     print("nrnivmodl script not found in PATH, thus NEURON .mod files could     " +
           "not be compiled")
 
-# setup(
-#     name = "PyPN    ",
-#     version = "1.1.1",
-#     maintainer = "Espen Hagen",
-#     maintainer_email = 'e.hagen@fz-juelich.de',
-#     packages = ['LFPy'],
-#     package_data = {'LFPy' : ['stick.hoc', 'sinsyn.mod',
-#                               os.path.join('i686', '*'),
-#                               os.path.join('i686', '.libs', '*'),
-#                               os.path.join('x86_64', '*'),
-#                               os.path.join('x86_64', '.libs', '*'),
-#                               os.path.join('powerpc', '*'),
-#                               os.path.join('powerpc', '.libs', '*'),
-#                               ]},
-#     cmdclass = cmdclass,
-#     ext_modules = ext_modules,
-#     url='http://LFPy.github.io',
-#     download_url = 'https://github.com/LFPy/LFPy/tarball/v1.1.1',
-#     license='LICENSE',
-#     description='A module for modeling Local Field Potentials built on NEURON',
-#     long_description=long_description,
-#     classifiers=[
-#         'License :: OSI Approved :: GNU General Public License (GPL)',
-#         'Programming Language :: Python',
-#         'Programming Language :: Python :: 2.6',
-#         'Programming Language :: Python :: 2.7',
-#         'Programming Language :: Python :: 3.4',
-#         'Programming Language :: Cython',
-#         'Operating System :: OS Independent',
-#         'Topic :: Scientific/Engineering',
-#         'Topic :: Scientific/Engineering :: Physics',
-#         'Topic :: Utilities',
-#         'Intended Audience :: Developers',
-#         'Intended Audience :: Science/Research',
-#         'Development Status :: 5 - Production/Stable',
-#         ],
-#     install_requires = [
-#         'numpy', 'scipy', 'matplotlib', 'neuron', 'Cython'
-#         ],
-#     provides = ['LFPy'],
-#     )
+setup(
+    name = "PyPN    ",
+    version = "0.1.0",
+    maintainer = "Carl Lubba",
+    maintainer_email = 'c.lubba15@imperial.ac.uk',
+    packages = ['PyPN'],
+    #url='http://github.io',
+    # download_url = 'https://github.com/LFPy/LFPy/tarball/v1.1.1',
+    # license='LICENSE',
+    description='A module for simulating bundles of axons built on NEURON and LFPy',
+    #long_description=long_description,
+    install_requires = [
+        'numpy', 'scipy', 'matplotlib', 'neuron', 'Cython' #,'LFPy'
+        ],
+    provides = ['PyPN'],
+    )
