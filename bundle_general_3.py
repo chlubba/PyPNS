@@ -16,8 +16,8 @@ h.finitialize(-65) # initialize voltage state
 calculationFlag = True # execute the calculation or load the last run made with this set of parameters
 
 plottingFlag = True # plot something
-plotGeometry = True # plot the bundle in space
-plotCAP = True # plot the compound action potential
+plotGeometry = False # plot the bundle in space
+plotCAP = False # plot the compound action potential
 plotCAP1D = True # plot the time course for each electrode location in one separate plot
 plotCAP2D = False # if many (>100 electrodes have been used, this plots the CAP in time and space in one image
 plotCAP1D_1Axon = True # plot
@@ -30,7 +30,7 @@ p_A = [.5]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 'draw' # um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 'draw' # um diameter unmyelinated axons 'draw' OR some value below 3. (don't forget the dot to make it a float)
 radius_bundle = 150.0 # um Radius of the bundle (typically 0.5-1.5mm)
-number_of_axons = 10 # 25
+number_of_axons = 1 # 25
 lengthOfBundle = 1000 # 8000
 randomDirectionComponent = .1 # curviness of the axon
 

@@ -445,9 +445,12 @@ class Bundle(object):
         numberOfAxons = np.shape(voltageMatrices)[0]
         numberOfPlots = min(6, numberOfAxons)
 
-        axonSelection = np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
+        axonSelection = [0] #np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
 
-        f, axarr = plt.subplots(numberOfPlots, sharex=True)
+        if len(axonSelection) > 1:
+            f, axarr = plt.subplots(numberOfPlots, sharex=True)
+        else:
+            f = plt.figure()
 
         # colors
         jet = plt.get_cmap('jet')
@@ -473,14 +476,17 @@ class Bundle(object):
             currentNumberOfSegments = np.shape(voltageMatrix)[1]
             currentAxonLength = self.axons[axonIndex].L
 
+            if len(axonSelection) > 1:
+                currentAxis = axarr[i]
+            else:
+                currentAxis = plt.gca()
+
             if not isMyelinated:
                 for j in range(currentNumberOfSegments):
                     colorVal = scalarMap.to_rgba(int(j * currentAxonLength / currentNumberOfSegments))
-                    axarr[i].plot(timeRec, voltageMatrix[:,j], color=colorVal)
+                    currentAxis.plot(timeRec, voltageMatrix[:,j], color=colorVal)
 
-                axarr[i].set_ylabel('Voltage [mV]')
-                axarr[i].set_xlabel('time [ms]')
-                axarr[i].set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
+                currentAxis.set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
             else:
                 Nnodes = self.axons[axonIndex].axonnodes
 
@@ -493,13 +499,15 @@ class Bundle(object):
                 nodeCounter = 0
                 for j in nodePositions:
                     colorVal = scalarMap.to_rgba(int(nodeCounter * nodeDistance))
-                    axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
+                    currentAxis.plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
                     nodeCounter += 1
 
-                axarr[i].set_ylabel('Voltage [mV]')
-                # axarr[i].set_ylim([-100,100])
-                axarr[i].set_xlabel('time [ms]')
-                axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
+                currentAxis.set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
+
+            currentAxis.set_ylabel('Voltage [mV]')
+            # axarr[i].set_ylim([-100,100])
+            currentAxis.set_xlabel('time [ms]')
+
 
             # make room for colorbar
             f.subplots_adjust(right=0.8)
