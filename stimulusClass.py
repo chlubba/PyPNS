@@ -1,8 +1,9 @@
 from neuron import h
-import numpy as np # for arrays managing
+import numpy as np
 import math
+from ExcitationMechanism import *
 
-class Stimulus(object):
+class Stimulus(ExcitationMechanism):
     """
     stim_type: INTRA or EXTRA cellular stimulation
     axon: axon object on which the stimulation is applied
@@ -16,10 +17,13 @@ class Stimulus(object):
     stim_coord=[xe,ye,ze]: spatial coordinates  of the stimulating electrode
     waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
     """
-    def __init__(self, stim_type, dur,amp, freq, duty_cycle, stim_coord, waveform):
+    def __init__(self, stim_type, dur, amp, freq, duty_cycle, radius_bundle, waveform):
         self.waveform = waveform
         self.stim_type = stim_type
-        self.stim_coord = stim_coord
+
+        number_contact_points = 8
+        self.stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points),
+                            radius_bundle*math.sin(math.pi/number_contact_points)]]
         self.dur = dur
         self.freq = freq
         self.amp = amp
@@ -36,7 +40,7 @@ class Stimulus(object):
 
         self.svec = h.Vector(self.signal)
 
-    def connectAxon(self, axon):
+    def connect_axon(self, axon):
         if self.stim_type == "INTRA":
             self.init_intra(axon)
         elif self.stim_type == "EXTRA":
@@ -49,16 +53,16 @@ class Stimulus(object):
         # Place an IClamp on the first element of the allseclist
         # In unmyelinated axon case allseclist is directly the unique axon section
 
-        # counter = 0
-        # for seg in axon.allseclist[0]:
-        #     print 'Segment number ' + str(counter)
-        #     print seg
-        #     counter += 1
+        stim = h.IClamp(0, axon.allseclist)
+        stim.delay = 0
+        stim.dur = self.dur
+        self.svec.play(stim._ref_amp,h.dt)
 
-        axon.stim = h.IClamp(0, axon.allseclist)
-        axon.stim.delay = 0
-        axon.stim.dur = self.dur
-        self.svec.play(axon.stim._ref_amp,h.dt)
+        excitationMechanismVars = [stim]
+        axon.appendExMechVars(excitationMechanismVars)
 
     def init_xtra(self):
         self.svec.play(h._ref_is_xtra,h.dt)
+
+    def delete_neuron_objects(self):
+        self.svec = None

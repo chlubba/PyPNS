@@ -1,15 +1,15 @@
 import os
 import glob
 
-def getBundleDirectory(dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, elecCount=2, stimType = "EXTRA", stimWaveform = "", stimDutyCycle = 0, stimAmplitude = 0, new = False):
+def getBundleDirectory(elecCount, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
 
     homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#
 
     # prepare single parameter values for string insertion
     p_C = 1 - p_A
 
-    if stimType in ["EXTRA", "INTRA", "NONE"]:
-        stimulusPathString = "stimType="+stimType+" stimWaveform="+stimWaveform+" stimDutyCycle="+str(stimDutyCycle)+" stimAmplitude="+str(stimAmplitude)+"/"
+    # if stimType in ["EXTRA", "INTRA", "NONE"]:
+    #     stimulusPathString = "stimType="+stimType+" stimWaveform="+stimWaveform+" stimDutyCycle="+str(stimDutyCycle)+" stimAmplitude="+str(stimAmplitude)+"/"
 
     if type(myelinatedDiam) in [int, float]:
         myelDiamStr = str(myelinatedDiam)
@@ -21,9 +21,17 @@ def getBundleDirectory(dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedD
     else:
         unmyelDiamStr = 'draw'
 
+    if elecCount == 1:
+        poleString = 'monopolarRecording'
+    elif elecCount == 2:
+        poleString = 'bipolarRecording'
+    else:
+        print 'Received ' + str(elecCount) + ' as number of poles. Values 1 or 2 allowed only.'
+        quit()
+
     #concatenate strings
-    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+"/"#+" myelinatedDiam="+myelDiamStr+" unmyelinatedDiam="+unmyelDiamStr
-    pathString = homeDirectory+stimulusPathString+pathStringNoStim
+    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+' '+poleString+"/"#+" myelinatedDiam="+myelDiamStr+" unmyelinatedDiam="+unmyelDiamStr
+    pathString = homeDirectory+pathStringNoStim # +stimulusPathString
 
     # find bundle index
     if new:

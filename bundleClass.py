@@ -46,9 +46,11 @@ class Bundle(object):
     # myelinated_A: parameters for fiber type A
     # umyelinated:  parameters for fiber type C
 
+    # def __init__(self, radius_bundle, lengthOfBundle, segmentLengthAxon, bundleGuide, number_of_axons, p_A, p_C, number_contact_points,
+    #              recording_elec_pos, jitter_para, stim_type, duty_cycle, freq, amplitude, stim_dur, dur, number_elecs,
+    #              myelinated_A, unmyelinated,rec_CAP, waveform, randomDirectionComponent = 0.3):
     def __init__(self, radius_bundle, lengthOfBundle, segmentLengthAxon, bundleGuide, number_of_axons, p_A, p_C, number_contact_points,
-                 recording_elec_pos, jitter_para, stim_type, duty_cycle, freq, amplitude, stim_dur, dur, number_elecs,
-                 myelinated_A, unmyelinated,rec_CAP, waveform, randomDirectionComponent = 0.3):
+                 recording_elec_pos, dur, number_elecs, myelinated_A, unmyelinated,rec_CAP, randomDirectionComponent = 0.3):
 
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
@@ -58,14 +60,16 @@ class Bundle(object):
         self.segmentLengthAxon = segmentLengthAxon
         self.bundleCoords = bundleGuide
 
-        self.waveform = waveform
-        self.stim_type = stim_type
-        self.stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points),
-                            radius_bundle*math.sin(math.pi/number_contact_points)]]
-        self.duty_cycle = duty_cycle
-        self.freq = freq
-        self.amp = amplitude
-        self.stim_dur = stim_dur
+        self.excitationMechanisms = []
+
+        # self.waveform = waveform
+        # self.stim_type = stim_type
+        # self.stim_coord = [[0, radius_bundle*math.cos(math.pi/number_contact_points),
+        #                     radius_bundle*math.sin(math.pi/number_contact_points)]]
+        # self.duty_cycle = duty_cycle
+        # self.freq = freq
+        # self.amp = amplitude
+        # self.stim_dur = stim_dur
         self.dur = dur
         self.rec_CAP = rec_CAP
 
@@ -86,8 +90,8 @@ class Bundle(object):
 
         self.saveParams={'elecCount': len(self.recording_elec_pos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
                     'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['diam'],
-                    'L': self.bundleLength, 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
-                    'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
+                    'L': self.bundleLength} # , 'stimType': self.stim_type, 'stimWaveform' : self.waveform,
+                    # 'stimDutyCycle': self.duty_cycle, 'stimAmplitude' : self.amp}
 
         self.basePath = getBundleDirectory(new = True, **self.saveParams)
 
@@ -111,14 +115,18 @@ class Bundle(object):
                 self.virtual_number_axons +=1
 
 
-        if not self.stim_type == 'NONE':
-            # create Simulus instace used for all axons
-            self.stim = Stimulus(self.stim_type, self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
+        # if not self.stim_type == 'NONE':
+        #     # create Simulus instace used for all axons
+        #     self.stim = Stimulus(self.stim_type, self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
 
 
-    def addUpstreamSpiking(self, tStart=0., tStop=h.tstop, lambd = 1000., correlation = 0.1):
-        # create upstream activity
-        self.upstreamSpiking = UpstreamSpiking(self.number_of_axons, tStart=tStart, tStop=tStop, lambd=lambd, correlation=correlation)
+    # def addUpstreamSpiking(self, tStart=0., tStop=h.tstop, lambd = 1000., correlation = 0.1):
+    #     # create upstream activity
+    #     self.upstreamSpiking = UpstreamSpiking(self.number_of_axons, tStart=tStart, tStop=tStop, lambd=lambd, correlation=correlation)
+
+    def addExcitationMechanism(self, mechanism):
+        self.excitationMechanisms.append(mechanism)
+
 
     def simulateBundle(self):
 
@@ -138,34 +146,13 @@ class Bundle(object):
         # get rid of the all Neuron objects to be able to pickle the bundle-class.
         h('forall delete_section()')
         self.trec = None
-        if not self.stim_type == 'NONE':
-            self.stim.svec = None
-        for axon in self.axons:
-            # from Stimulus
-            axon.stim = None
-            # from upstreamSpiking
-            axon.synapse = None
-            axon.netCon = None
-            axon.spikeVec = None
-            axon.vecStim = None
-
-            try:
-                for memirec in axon.memireclist:
-                    memirec = None
-                axon.memireclist = None
-            except:
-                pass
-            try:
-                for vrec in axon.vreclist:
-                    vrec = None
-                axon.vreclist = None
-            except:
-                pass
-            axon.allseclist = None
-            # also delete unnecessary data that will no longer be used to keep the pickled file small
-            axon.imem = None
         self.voltages = None
         self.sum_CAP = None
+
+        for excitationMechanism in self.excitationMechanisms:
+            excitationMechanism.delete_neuron_objects()
+
+
 
 
 
@@ -371,7 +358,7 @@ class Bundle(object):
 
         if numberOfRecordingSites <= 10:
             print 'Plotting of the CAP in two dimensions (time, space) does not make sense with fewer than 10 electrodes. ' \
-                  'Please select anotherplotting mechanism or restart the simulation with more electrodes.'
+                  'Please select another plotting mechanism or restart the simulation with more electrodes.'
             return
 
 
@@ -445,7 +432,7 @@ class Bundle(object):
         numberOfAxons = np.shape(voltageMatrices)[0]
         numberOfPlots = min(6, numberOfAxons)
 
-        axonSelection = [0] #np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
+        axonSelection = np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
 
         if len(axonSelection) > 1:
             f, axarr = plt.subplots(numberOfPlots, sharex=True)
@@ -594,15 +581,9 @@ class Bundle(object):
             # create the neuron object specified in the axon class object
             axon.create_neuron_object()
 
-            if not self.stim_type == 'NONE':
-                # connect to stimulus
-                self.stim.connectAxon(axon)
-
-            try:
-                # connect up stream nerve spiking
-                self.upstreamSpiking.connectAxon(axon)
-            except:
-                pass
+            # connect stimulus, spontaneous spiking, etc.
+            for excitationMechanism in self.excitationMechanisms:
+                excitationMechanism.connect_axon(axon)
 
             if axonIndex == 0:
             # record time variable
@@ -631,11 +612,6 @@ class Bundle(object):
 
             # delete the object
             axon.delete_neuron_object()
-
-            # keep axon objects clean
-            for vrec in axon.vreclist:
-                vrec = None
-            axon.vreclist = None
 
 
 

@@ -25,6 +25,7 @@ class Axon(object):
         # LFPy initilizations
         self.verbose = False
         self.dotprodresults = None # Not in class cell of LFPY but present in run_simulation as cell.dotprodresults
+        self.exMechVars = []
 
     def calc_totnsegs(self):
         # Calculate the number of segments in the allseclist
@@ -34,7 +35,8 @@ class Axon(object):
 
         return i
 
-
+    def appendExMechVars(self, exMechVars):
+        self.exMechVars.append(exMechVars)
 
     def collect_geometry(self):
         '''Collects x, y, z-coordinates from NEURON'''
@@ -387,12 +389,36 @@ class Unmyelinated(Axon):
             for seg in sec:
                 seg = None
             sec = None
+        self.allseclist = None
         self.axon = None
 
         if not self.synapse == []:
             self.synapse = None
             self.vecStim = None
             self.netCon = None
+
+        try:
+            for memirec in self.memireclist:
+                memirec = None
+            self.memireclist = None
+        except:
+            pass
+
+        try:
+            for vrec in self.vreclist:
+                vrec = None
+            self.vreclist = None
+        except:
+            pass
+
+        # also delete unnecessary data that will no longer be used to keep the pickled file small
+        self.imem = None
+
+        # neuron objects inserted by excitation mechanisms
+        for exMechVars in self.exMechVars:
+            for i in range(len(exMechVars)):
+                exMechVars[i] = None
+
 
 
     def axon_update_property(self):
@@ -898,6 +924,7 @@ class Myelinated(Axon):
             for seg in sec:
                 seg = None
             sec = None
+        self.allseclist = None
 
         self.nodes = None
         self.FLUTs = None
@@ -908,3 +935,39 @@ class Myelinated(Axon):
             self.synapse = None
             self.vecStim = None
             self.netCon = None
+
+        if not self.synapse == []:
+            self.synapse = None
+            self.vecStim = None
+            self.netCon = None
+
+        try:
+            for memirec in self.memireclist:
+                memirec = None
+            self.memireclist = None
+        except:
+            pass
+
+        try:
+            for vrec in self.vreclist:
+                vrec = None
+            self.vreclist = None
+        except:
+            pass
+
+        # also delete unnecessary data that will no longer be used to keep the pickled file small
+        self.imem = None
+
+        # do the following better, soon!! have a separate excitationMechanism list in each axon
+
+        for exMechVars in self.exMechVars:
+            for i in range(len(exMechVars)):
+                exMechVars[i] = None
+
+        # # from Stimulus
+        # self.stim = None
+        # # # from upstreamSpiking
+        # # self.synapse = None
+        # # self.netCon = None
+        # # self.spikeVec = None
+        # # self.vecStim = None
