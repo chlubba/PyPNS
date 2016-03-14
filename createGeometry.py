@@ -2,6 +2,8 @@ from math import pi, tan, cos, sin, sqrt, floor
 import numpy as np
 
 def random_perpendicular_vectors(v):
+    # adapted from: http://codereview.stackexchange.com/questions/43928/algorithm-to-get-an-arbitrary-perpendicular-vector
+    # user: Jaime
     if v[0] == 0 and v[1] == 0:
         if v[2] == 0:
             raise ValueError('zero vector')
@@ -24,6 +26,8 @@ def rotation_matrix(axis, theta):
     """
     Return the rotation matrix associated with counterclockwise rotation about
     the given axis by theta radians.
+    From: http://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector
+    User: unutbu
     """
     axis = np.asarray(axis)
     theta = np.asarray(theta)
@@ -80,11 +84,6 @@ def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon
         # assure axon stays within bundle. If too far away -> next direction
         # equals bundle direction
         # factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.5)))
-        # factorAxonDirection = 1 - 1/(1+np.exp(-20*(distance/bundleRadius - 0.7)))
-        # factorBundleDirection = 1 - factorAxonDirection
-
-
-        # factorBundleDirection = 1.5*1/(1+np.exp(-20*(distance/bundleRadius - 0.7)))
         factorBundleDirection = min((max(0,distance/bundleRadius-0.7))*6,2.5)
         #factorAxonDirection = min(0, 1 - factorBundleDirection)
 
@@ -99,10 +98,6 @@ def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon
 
         # select a direction defined by cylindical coordinate rho
         rho = np.random.uniform(1)*rhoMax
-        # rhoArray = rhoArray[1:-2]
-        # rhoArray = np.concatenate((rhoArray, [rhoDrawn]))
-        # rho = np.mean(rhoArray)
-        # rho = np.random.uniform(1)*rhoMax
 
         randomDirection = (1-randomDirectionComponent)*combinedDirectionNorm + randomDirectionComponent*randomOrthogonalVectorNorm*rho
         # randomDirection = (1-randomDirectionComponent)*combinedDirectionNorm + factorAxonDirection*randomDirectionComponent*randomOrthogonalVectorNorm*rho
@@ -136,10 +131,7 @@ def lengthFromCoords(coords):
 
 def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes, numberOfContacts, recElectrodePositions):
 
-    print '\nCaution, when setting the electrode positions along a non-stylized axon, the electrode position coordinates ' \
-          'will be ignored.\n'
-
-    electrodeRadius = bundleRadius*1.2
+    electrodeRadius = bundleRadius*1.2 # allow 20% distance, not to intrude into nerve bundle
 
     numberOfPoles = len(recElectrodePositions)
 
@@ -153,14 +145,20 @@ def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes
         print 'Wrong number of recording poles.'
         return
 
+    positionLastElectrode = recElectrodePositions[0]
+    bundleGuideSegmentLength = np.linalg.norm(bundleGuide[1,:] - bundleGuide[0,:]) # assume segments are of equal length
+    segmentIndices = np.linspace(1, positionLastElectrode/bundleGuideSegmentLength, numberOfElectrodes)
+
+
     for i in range(numberOfElectrodes):
-        segmentNumber = floor(np.shape(bundleGuide)[0]/numberOfElectrodes)*(i+1) - 1
+        segmentNumber = int(segmentIndices[i])
+        # segmentNumber = floor(np.shape(bundleGuide)[0]/numberOfElectrodes)*(i+1) - 1
 
         segmentStartingPos = bundleGuide[segmentNumber - 1,:]
         segmentEndPos = bundleGuide[segmentNumber,:]
 
         segmentMiddle = (segmentStartingPos + segmentEndPos)/2
-        segmentOrientation = segmentStartingPos - segmentEndPos
+        segmentOrientation = segmentEndPos - segmentStartingPos
         segmentOrientation = segmentOrientation/np.linalg.norm(segmentOrientation)
 
         # get one random orthogonal vector
@@ -195,6 +193,9 @@ def electrodePositionsBundleGuided(bundleGuide, bundleRadius, numberOfElectrodes
 
 def getBundleGuideCorner(bundleLength, segmentLengthAxon):
 
+    overlapLength = 2000 #length after bundle end. necessary for myelinated axons
+    bundleLength = bundleLength + overlapLength
+
     segmentLengthBundle = segmentLengthAxon*3
 
     numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
@@ -207,5 +208,15 @@ def getBundleGuideCorner(bundleLength, segmentLengthAxon):
     bundleCoords[:,0] = range(0, numBundleGuideSteps*segmentLengthBundle, segmentLengthBundle)
     bundleCoords[:,1] = np.concatenate((np.zeros(turningPointIndex1),np.multiply(range(turningPointIndex2), segmentLengthBundle)))
     bundleCoords[:,2] = np.concatenate((np.zeros(turningPointIndex1),np.multiply(range(turningPointIndex2), segmentLengthBundle)))
+
+    return bundleCoords
+
+def getBundleGuideStraight(bundleLength, segmentLengthAxon):
+
+    segmentLengthBundle = segmentLengthAxon*3
+    numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
+
+    bundleCoords = np.zeros([numBundleGuideSteps, 3])
+    bundleCoords[:,0] = range(0, numBundleGuideSteps*segmentLengthBundle, segmentLengthBundle)
 
     return bundleCoords

@@ -398,7 +398,7 @@ class Bundle(object):
 
         plt.savefig(self.basePath+'CAP2D.png')
 
-    def plot_voltage(self):
+    def loadVoltageFromFile(self):
         # get the whole CAP, can be signle electrode or multiple
         directory = getDirectoryName("V", self.basePath)
         try:
@@ -433,6 +433,12 @@ class Bundle(object):
             startIndex = firstIndices[i]
             endIndex = firstIndices[i+1]-1
             voltageMatrices.append(V[startIndex:endIndex,:])
+
+        return timeRec, voltageMatrices
+
+    def plot_voltage(self):
+
+        timeRec, voltageMatrices = self.loadVoltageFromFile()
 
         # now plot
         numberOfAxons = np.shape(voltageMatrices)[0]
@@ -483,13 +489,23 @@ class Bundle(object):
                 #
                 # nodePositions = range(numberOfRecordingSites)
 
+                nodeCounter = 0
                 for j in nodePositions:
                     colorVal = scalarMap.to_rgba(j)
-                    axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
+                    # axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
+                    nodePosition = nodeCounter*self.axons[axonIndex].lengthOneCycle
+                    axarr[i].plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal, label=str(nodePosition)+' um')
+                    nodeCounter += 1
 
                 axarr[i].set_ylabel('Voltage [mV]')
+                # axarr[i].set_ylim([-100,100])
                 axarr[i].set_xlabel('time [ms]')
                 axarr[i].set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
+                axarr[i].legend()
+
+                # Add colorbar, make sure to specify tick locations to match desired ticklabels
+                # cbar = f.colorbar(axarr, ticks=range(Nnodes))
+                # cbar.ax.set_yticklabels(['< -1', '0', '> 1'])# vertically oriented colorbar
 
         plt.savefig(self.basePath+'voltage.png')
 
@@ -585,12 +601,12 @@ class Bundle(object):
             axon.simulate()
             self.electrodes.append(refextelectrode.RecExtElectrode(axon, **electrodeParameters))
             elapsed1 = time.time()-temp
-            print "Elapsed time to simulate CAP: " + str(elapsed1)
+            print "Elapsed time calculate voltage and membrane current: " + str(elapsed1)
 
             temp = time.time()
             self.electrodes[axonIndex].calc_lfp()
             elapsed2 = time.time()-temp
-            print "Elapsed time to calc lfp:" + str(elapsed2)
+            print "Elapsed time to calculate LFP from membrane current:" + str(elapsed2)
 
             self.save_electrode(axonIndex)
             self.electrodes[axonIndex]= None

@@ -766,30 +766,14 @@ class Myelinated(Axon):
             h.define_shape()
         elif (self.layout3D == "PT3D"):
 
-            # first connect all sections
-            for i in range(self.axonnodes-1):
-                self.MYSAs[2*i].connect(self.nodes[i],1,0)
-                self.FLUTs[2*i].connect(self.MYSAs[2*i],1,0)
-                self.STINs[6*i].connect(self.FLUTs[2*i],1,0)
-                self.STINs[6*i+1].connect(self.STINs[6*i],1,0)
-                self.STINs[6*i+2].connect(self.STINs[6*i+1],1,0)
-                self.STINs[6*i+3].connect(self.STINs[6*i+2],1,0)
-                self.STINs[6*i+4].connect(self.STINs[6*i+3],1,0)
-                self.STINs[6*i+5].connect(self.STINs[6*i+4],1,0)
-                self.FLUTs[2*i+1].connect(self.STINs[6*i+5],1,0)
-                self.MYSAs[2*i+1].connect(self.FLUTs[2*i+1],1,0)
-                self.nodes[i+1].connect(self.MYSAs[2*i+1],1,0)
+            lengthArray = np.concatenate(([self.nodelength, self.paralength1, self.paralength2], np.multiply(np.ones(6), self.interlength), [self.paralength2, self.paralength1]))
 
-            lengthArray = np.concatenate(([self.nodelength, self.paralength1, self.paralength2], np.multiply(np.ones(6), self.interlength), [self.paralength2, self.paralength1, self.nodelength]))
-
-            h.pt3dclear()
+            # h.pt3dclear()
 
             # get sections in order (allseclist not subscriptable since NEURON object. But then, iterable.)
             sectionArray = []
             for sec in self.allseclist:
                 sectionArray.append(sec)
-
-
 
 
             # DO-WHILE emulation
@@ -804,24 +788,37 @@ class Myelinated(Axon):
             directionNorm = direction / np.linalg.norm(direction)
 
             # while on the same guide segment
-            sectionTypeIndex = sectionIndex % 12
+            sectionTypeIndex = sectionIndex % 11
             sectionLength = lengthArray[sectionTypeIndex]
 
             # variables to keep track of remaining section lengths and guide segment lengths
             cumulatedLengthOnGuideSeg = 0
             cumulatedLengthFromSection = 0
 
+            # set startpoint of axon /first axon section
+            section = sectionArray[sectionIndex]
+            h.pt3dclear(sec=section)
+            coord=self.coord[0,:]
+            h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
+
+            # print 'Section ' + str(sectionIndex) + ' started at coords ' + str(coord) + '.'
+            lengthReached = 0
+
             while sectionIndex < self.axontotal:
 
-                # if the axon guide segment is longer than the reamining axon section, go to next section
+                # if the axon guide segment is longer than the remaining axon section, go to next section
                 if cumulatedLengthOnGuideSeg + (sectionLength - cumulatedLengthFromSection) < lengthGuideSegment:
 
                     # set coordinates for section as lying in axon guide
-                    coord = self.coord[coordCounter,:] + directionNorm * (sectionLength - cumulatedLengthFromSection)
+                    # coord = self.coord[coordCounter,:] + directionNorm * (sectionLength - cumulatedLengthFromSection)
+                    coord = coord + directionNorm * (sectionLength - cumulatedLengthFromSection)
+                    lengthReached += (sectionLength - cumulatedLengthFromSection)
 
                     # set endpoint of section
-                    section = sectionArray[sectionIndex]
+                    # section = sectionArray[sectionIndex]
                     h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
+                    # print 'Section ' + str(sectionIndex) + ' ended at coords' + str(coord) + '.'
+                    # print 'Direction normed : ' + str(directionNorm) + '\n'
 
                     # print 'Going to next section.'
 
@@ -835,12 +832,17 @@ class Myelinated(Axon):
                         break
 
                     # get the length
-                    sectionTypeIndex = sectionIndex % 12
+                    sectionTypeIndex = sectionIndex % 11
                     sectionLength = lengthArray[sectionTypeIndex]
 
                     # set startpoint of next section
                     section = sectionArray[sectionIndex]
+                    h.pt3dclear(sec=section)
                     h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
+                    # print 'Section ' + str(sectionIndex) + ' started at coords' + str(coord) + '.'
+                    # print 'Length reached : '+str(lengthReached)
+
+                    section.connect(sectionArray[sectionIndex-1],1,0)
 
                     cumulatedLengthFromSection  = 0
 
@@ -851,12 +853,17 @@ class Myelinated(Axon):
                     # for consecutive segments
                     cumulatedLengthFromSection += lengthGuideSegment - cumulatedLengthOnGuideSeg
 
+                    lengthReached += np.linalg.norm(self.coord[coordCounter + 1,:] - coord)
+
                     # get coords of node between guide segments
                     coord = self.coord[coordCounter + 1,:]
 
                     # add coord of guidance node to current section
-                    section = sectionArray[sectionIndex]
+                    # section = sectionArray[sectionIndex]
+
                     h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
+                    # print 'Section ' + str(sectionIndex) + ' has additional corner at coords' + str(coord) + '.'
+                    # print 'Length reached : '+str(lengthReached)
 
                     # print 'Going to next guide segment.'
 
@@ -871,43 +878,6 @@ class Myelinated(Axon):
                     # new guide segment -> no length consumed yet.
                     cumulatedLengthOnGuideSeg = 0
 
-                # print 'section ' + str(sectionIndex) + ' guide segment ' + str(coordCounter) + ' : coords ' + str(coord) + ' added. Direction ' + str(directionNorm) + '.'
-                # print 'Remaining guide segment length: ' + str(lengthGuideSegment - cumulatedLengthOnGuideSeg) + '/' + str(lengthGuideSegment) + ' \nRemaining axon section length: ' + str(sectionLength - cumulatedLengthFromSection) + '/' + str(sectionLength)  + '\n'
-
-
-
-            # for i in range(self.axonnodes-1):
-            #     h.pt3dclear(sec=self.nodes[i])
-            #     h.pt3dadd(0, self.coord[0], self.coord[1], self.nodes[i].diam, sec=self.nodes[i])
-            #     h.pt3dadd(self.nodelength*i+self.interlength*6*i+2*i*self.paralength1+ 2*i*self.paralength2 + self.nodelength, self.coord[0], self.coord[1], self.nodes[i].diam, sec=self.nodes[i])
-            #
-            #     self.MYSAs[2*i].connect(self.nodes[i],1,0)
-            #     h.pt3dclear(sec=self.MYSAs[2*i])
-            #     h.pt3dadd(self.nodelength*i+self.interlength*6*i+2*i*self.paralength1+ 2*i*self.paralength2 + self.nodelength, self.coord[0], self.coord[1], self.MYSAs[2*i].diam, sec=self.MYSAs[2*i])
-            #     h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 +self.paralength1, self.coord[0], self.coord[1], self.MYSAs[2*i].diam, sec=self.MYSAs[2*i])
-            #
-            #     self.FLUTs[2*i].connect(self.MYSAs[2*i],1,0)
-            #     h.pt3dclear(sec=self.FLUTs[2*i])
-            #     h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 +self.paralength1, self.coord[0], self.coord[1], self.FLUTs[2*i].diam, sec=self.FLUTs[2*i])
-            #     h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 + self.paralength1 + self.paralength2, self.coord[0], self.coord[1], self.FLUTs[2*i].diam, sec=self.FLUTs[2*i])
-            #     for j in range(6):
-            #         self.STINs[6*i+j].connect(self.FLUTs[2*i],1,0)
-            #         h.pt3dclear(sec=self.STINs[6*i+j])
-            #         h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*i*self.paralength1+  2*i*self.paralength2 + self.paralength1 + self.paralength2+ j*self.interlength, self.coord[0], self.coord[1], self.STINs[6*i+j].diam, sec=self.STINs[6*i+j])
-            #         h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + (j+1)*self.interlength, self.coord[0], self.coord[1], self.STINs[6*i+j].diam, sec=self.STINs[6*i+j])
-            #     self.FLUTs[2*i+1].connect(self.STINs[6*i+5],1,0)
-            #     h.pt3dclear(sec=self.FLUTs[2*i+1])
-            #     h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*i+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + 6*self.interlength, self.coord[0], self.coord[1], self.FLUTs[2*i+1].diam, sec=self.FLUTs[2*i+1])
-            #     h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 +self.paralength1, self.coord[0], self.coord[1], self.FLUTs[2*i+1].diam, sec=self.FLUTs[2*i+1])
-            #     self.MYSAs[2*i+1].connect(self.FLUTs[2*i+1],1,0)
-            #     h.pt3dclear(sec=self.MYSAs[2*i+1])
-            #     h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 +self.paralength1, self.coord[0], self.coord[1], self.MYSAs[2*i+1].diam, sec=self.MYSAs[2*i+1])
-            #     h.pt3dadd(self.nodelength*(i+1)+self.interlength*6*(i+1)+2*(i+1.0/2)*self.paralength1+  2*(i+1.0/2)*self.paralength2 + self.paralength1 + self.paralength2, self.coord[0], self.coord[1], self.MYSAs[2*i+1].diam, sec=self.MYSAs[2*i+1])
-            #     self.nodes[i+1].connect(self.MYSAs[2*i+1],1,0)
-            #
-            # h.pt3dclear(sec=self.nodes[self.axonnodes-1])
-            # h.pt3dadd(self.nodelength*(self.axonnodes-1)+self.interlength*(self.axonnodes-1)*6+2*(self.axonnodes-1)*self.paralength1+ 2*(self.axonnodes-1)*self.paralength2, self.coord[0], self.coord[1], self.nodes[self.axonnodes-1].diam, sec=self.nodes[self.axonnodes-1])
-            # h.pt3dadd(self.nodelength*(self.axonnodes-1)+self.interlength*(self.axonnodes-1)*6+2*(self.axonnodes-1)*self.paralength1+ 2*(self.axonnodes-1)*self.paralength2 +self.nodelength, self.coord[0], self.coord[1], self.nodes[self.axonnodes-1].diam, sec=self.nodes[self.axonnodes-1])
 
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
