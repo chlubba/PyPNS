@@ -31,6 +31,9 @@ class Stimulus(ExcitationMechanism):
         self.amplitude = amplitude
         self.dutyCycle = dutyCycle
 
+        self.timeRes = timeRes
+        self.tStop = tStop
+
         self.t = np.linspace(0, self.stimDur, (tStop+2*timeRes)/timeRes, endpoint=True)
 
         cut_off = math.sin((-self.dutyCycle+1.0/2)*math.pi)
@@ -60,13 +63,13 @@ class Stimulus(ExcitationMechanism):
         stim = h.IClamp(0, axon.allseclist)
         stim.delay = 0
         stim.dur = self.stimDur
-        self.svec.play(stim._ref_amp, axon.timeRes)
+        self.svec.play(stim._ref_amp, self.timeRes)
 
         excitationMechanismVars = [stim]
         axon.append_ex_mech_vars(excitationMechanismVars)
 
     def init_xtra(self):
-        self.svec.play(h._ref_is_xtra,h.dt)
+        self.svec.play(h._ref_is_xtra, self.timeRes)
 
     def delete_neuron_objects(self):
         self.svec = None

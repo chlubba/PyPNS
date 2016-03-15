@@ -545,7 +545,7 @@ class Myelinated(Axon):
     paralength2: set the length of the second paranode segment followed by the internodes segments
     interlength: set the length of the internode part comprising the 6 segments between two paranodes2
     """
-    def __init__(self, fiberD, coord, tStop, timeRes, temperature=37, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
+    def __init__(self, fiberD, coord, tStop, timeRes, temperature=40, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
         super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes)
 
         self.v_init = -80
