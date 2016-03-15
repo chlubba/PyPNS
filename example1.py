@@ -1,21 +1,17 @@
-from neuron import h
-h('load_file("noload.hoc")')
 import PyPN
 import matplotlib.pyplot as plt
 
-# set up NEURON simulation
-h.celsius = 33 # set temperature in celsius
-h.tstop = 30 # set simulation duration (ms)
-h.dt = 0.0025 # set time step (ms)
-h.finitialize(-65) # initialize voltage state
+# set simulation params
+tStop=30
+timeRes=0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 2000
-numberOfAxons = 10
+numberOfAxons = 3
 
 # create a guide, the axons will follow
 segmentLengthAxon = 10
-bundleGuide = PyPN.createGeometry.get_bundle_guide_cordner(lengthOfBundle, segmentLengthAxon)
+bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
 
 # here the distributions of myelinated and unmyelinated axon diameters are defined
 myelinatedDistribution = {
@@ -28,19 +24,19 @@ unmyelinatedDistribution = {
 }
 
 # definition of properties of spontaeous spiking on axons
-upstreamSpikingDict = { 'lambd' : 100, # mean number of pulses per second
+upstreamSpikingDict = { 'lambd' : 500, # mean number of pulses per second
                         'correlation' : 0.1, # pairwise corrleation between neurons
                         'tStart' : 0,
-                        'tStop' : h.tstop,
-                        'nAxons' : 10}
+                        'tStop' : tStop,
+                        'nAxons' : numberOfAxons}
 
 # definition of the stimulation type of the axon
 stimulusParameters = {  'stimType': "INTRA", #Stimulation type either "INTRA" or "EXTRA"
-                        'amplitude': 1.0, # Pulse amplitude (nA)
+                        'amplitude': 6.0, # Pulse amplitude (nA)
                         'frequency': 0.1, # Frequency of the pulse (kHz)
                         'dutyCycle': 0.01, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                         'stimDur' : 10, # Stimulus duration (ms)
-                        'waveform': 'MONOPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+                        'waveform': 'BIPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
                         'radiusBundle' : 150, #um
 }
 
@@ -51,7 +47,7 @@ recordingParameters = { 'numberContactPoints': 8, # Number of points on the circ
 }
 
 # axon parameters
-myelinatedParametersA = {'fiberD': myelinatedDistribution, # um Axon diameter
+myelinatedParametersA = {'fiberD': myelinatedDistribution, # um Axon diameter (5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0)
 }
 
 # axon parameters
@@ -62,11 +58,13 @@ unmyelinatedParameters = {'fiberD': unmyelinatedDistribution, # um Axon diameter
 bundleParameters = {    'radiusBundle': 150, #um Radius of the bundle (typically 0.5-1.5mm)
                         'lengthOfBundle': lengthOfBundle, # um Axon length
                         'numberOfAxons': numberOfAxons, # Number of axons in the bundle
-                        'p_A': 0.1, # Percentage of myelinated fiber type A
-                        'p_C': 1-0.1, #Percentage of unmyelinated fiber type C
+                        'p_A': 0., # Percentage of myelinated fiber type A
+                        'p_C': 1., #Percentage of unmyelinated fiber type C
                         'myelinated_A': myelinatedParametersA, #parameters for fiber type A
                         'unmyelinated': unmyelinatedParameters, #parameters for fiber type C
-                        'bundleGuide' : bundleGuide
+                        'bundleGuide' : bundleGuide,
+                        'tStop' : tStop,
+                        'timeRes' : timeRes
 }
 
 # combine parameters for the bundle creation
@@ -75,9 +73,9 @@ Parameters = dict(bundleParameters, **recordingParameters)
 # create the bundle with all properties of axons and recording setup
 bundle = PyPN.Bundle(**Parameters)
 
-# create the wanted mechanisms of how to cause spikes on the axons
-# continuous spiking
-bundle.add_excitation_mechanism(PyPN.UpstreamSpiking(**upstreamSpikingDict))
+# # create the wanted mechanisms of how to cause spikes on the axons
+# # continuous spiking
+# bundle.add_excitation_mechanism(PyPN.UpstreamSpiking(**upstreamSpikingDict))
 
 # spiking through a single electrical stimulation
 bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
@@ -87,10 +85,10 @@ bundle.simulate_bundle()
 
 # plot geometry, voltage in axon and extracellular recording
 print '\nStarting to plot'
-PyPN.plotBundleClass.plot_geometry(bundle)
-PyPN.plotBundleClass.plot_CAP1D_singleAxon(bundle, 10)
-PyPN.plotBundleClass.plot_CAP1D(bundle)
-PyPN.plotBundleClass.plot_voltage(bundle)
+PyPN.plot.plot_geometry(bundle)
+PyPN.plot.plot_CAP1D_singleAxon(bundle, 10)
+PyPN.plot.plot_CAP1D(bundle)
+PyPN.plot.plot_voltage(bundle)
 plt.show()
 
 bundle = None
