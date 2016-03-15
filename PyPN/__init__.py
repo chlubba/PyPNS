@@ -8,11 +8,8 @@ from PyPN.stimulusClass import Stimulus
 import PyPN.createGeometry
 
 # plotting
-import PyPN.plotBundleClass
+import PyPN.plotBundleClass as plot
 
 # paths
 from PyPN.nameSetters import get_bundle_directory
 
-# get extensions
-from neuron import h
-h('nrn_load_dll("/home/carl/PyCharmProjects/PNPyGit/PyPN/x86_64/.libs/libnrnmech.so")')

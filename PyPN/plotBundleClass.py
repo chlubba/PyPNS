@@ -64,7 +64,10 @@ def plot_CAP1D_singleAxon(bundle, maxNumberOfAxons):
     axonSelection = np.floor(np.linspace(0,bundle.numberOfAxons-1, numberOfPlots))
 
     # Subplots
-    f, axarr = plt.subplots(numberOfPlots, sharex=True)
+    if len(axonSelection) > 1:
+        f, axarr = plt.subplots(numberOfPlots, sharex=True)
+    else:
+        f = plt.figure()
 
     for i in range(len(axonSelection)):
         axonIndex = int(axonSelection[i])
@@ -80,9 +83,14 @@ def plot_CAP1D_singleAxon(bundle, maxNumberOfAxons):
 
         CAPSingleAxon = CAP[axonIndex,:]
 
-        axarr[i].plot(time, CAPSingleAxon, color= tuple(bundle.axonColors[axonIndex,:]))
-        axarr[i].set_title('Axon ' + str(axonIndex) + ' (' + axonType + ') with diameter ' + str(axonDiameter) + 'um')
-        axarr[i].set_ylabel('CAP [mV]')
+        if len(axonSelection) > 1:
+            currentAxis = axarr[i]
+        else:
+            currentAxis = plt.gca()
+
+        currentAxis.plot(time, CAPSingleAxon, color= tuple(bundle.axonColors[axonIndex,:]))
+        currentAxis.set_title('Axon ' + str(axonIndex) + ' (' + axonType + ') with diameter ' + str(axonDiameter) + 'um')
+        currentAxis.set_ylabel('CAP [mV]')
 
     plt.savefig(bundle.basePath+'CAPSingleAxons.png')
 
@@ -97,11 +105,11 @@ def plot_CAP1D(bundle, maxNumberOfSubplots = 10):
 
     numberOfRecordingSites = np.shape(CAP)[0]
 
-    if numberOfRecordingSites > 2:
+    if numberOfRecordingSites > 1:
 
-        numberOfPlots = min(maxNumberOfSubplots, numberOfRecordingSites-1)
+        numberOfPlots = min(maxNumberOfSubplots, numberOfRecordingSites)
 
-        eletrodeSelection = np.floor(np.linspace(1,numberOfRecordingSites-1, numberOfPlots))
+        eletrodeSelection = np.floor(np.linspace(0,numberOfRecordingSites-1, numberOfPlots))
 
         # Subplots
         f, axarr = plt.subplots(numberOfPlots, sharex=True)
@@ -170,13 +178,13 @@ def plot_CAP2D(bundle):
 
     plt.savefig(bundle.basePath+'CAP2D.png')
 
-def plot_voltage(bundle):
+def plot_voltage(bundle, maxNumberOfSubplots=10):
 
     timeRec, voltageMatrices = bundle.get_voltage_from_file()
 
     # now plot
     numberOfAxons = np.shape(voltageMatrices)[0]
-    numberOfPlots = min(6, numberOfAxons)
+    numberOfPlots = min(maxNumberOfSubplots, numberOfAxons)
 
     axonSelection = np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
 

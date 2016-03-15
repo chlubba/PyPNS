@@ -1,3 +1,15 @@
+import os
+
+# load the neuron packages needed from the path of the package
+PyPNDir = os.path.realpath(__file__)
+PyPNDir = os.path.dirname(PyPNDir)
+
+from neuron import h
+h('load_file("noload.hoc")')
+for processorSpecificFolderName in ['x86_64', 'i386']:
+    neuronCommand = 'nrn_load_dll("'+os.path.join(PyPNDir,processorSpecificFolderName,'.libs','libnrnmech.so')+'")'
+    h(neuronCommand)
+
 from axonClass import *
 # from stimulusClass import *
 # from ExcitationMechanism import *
@@ -13,6 +25,8 @@ import copy
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
+
+import silencer
 
 from nameSetters import *
 
@@ -39,7 +53,7 @@ class Bundle(object):
     # umyelinated:  parameters for fiber type C
 
     def __init__(self, radiusBundle, lengthOfBundle, bundleGuide, numberOfAxons, p_A, p_C, numberContactPoints,
-                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, segmentLengthAxon = 10, randomDirectionComponent = 0.3, temperature=33, tStop=30, timeRes=0.0025, vInit=-65):
+                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025):
 
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
@@ -64,9 +78,13 @@ class Bundle(object):
         self.numberElecs = numberElecs
         self.recordingElecPos = recordingElecPos #um
 
+        # params for NEURON simulation
+        self.tStop = tStop # set simulation duration (ms)
+        self.timeRes = timeRes # set time step (ms)
+
         self.build_disk(self.numberOfAxons,self.radiusBundle)
 
-        self.saveParams={'elecCount': len(self.recordingElecPos), 'dt': h.dt, 'tStop': h.tstop, 'p_A': self.p_A,
+        self.saveParams={'elecCount': len(self.recordingElecPos), 'dt': timeRes, 'tStop': tStop, 'p_A': self.p_A,
                     'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['fiberD'],
                     'L': self.bundleLength}
 
@@ -83,13 +101,6 @@ class Bundle(object):
 
             self.create_axon(self.axons_pos[i,:])
             self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
-
-        # # set up NEURON simulation
-        # h.celsius = temperature # set temperature in celsius
-        # h.tstop = tStop # set simulation duration (ms)
-        # h.dt = timeRes # set time step (ms)
-        # h.finitialize(vInit) # initialize voltage state
-
 
     def build_disk(self,numberOfAxons,radiusBundle):
         """
@@ -129,6 +140,8 @@ class Bundle(object):
         if axonTypeIndex == 1:
             unmyel = copy.copy(self.unmyelinated)
             unmyel['fiberD'] = axonDiameter
+            unmyel['tStop'] = self.tStop
+            unmyel['timeRes'] = self.timeRes
             axonParameters = dict( {'coord': axonCoords},**unmyel)
             #axonParameters = dict( {'coord': axonPosition},**unmyel)
             self.axons.append(Unmyelinated(**axonParameters))
@@ -137,6 +150,8 @@ class Bundle(object):
         elif axonTypeIndex == 0:
             myel = copy.copy(self.myelinated_A)
             myel['fiberD'] = axonDiameter
+            myel['tStop'] = self.tStop
+            myel['timeRes'] = self.timeRes
             axonParameters = dict( {'coord':axonCoords},**myel)
             # axonParameters = dict( {'coord':axonPosition},**myel)
             self.axons.append(Myelinated(**axonParameters))
@@ -248,7 +263,7 @@ class Bundle(object):
                     'method': "pointsource", #or "linesource"
                 }
 
-            ### LAUNCH SIMULATION ###
+            # take time of simulation
             temp = time.time()
 
             # create the neuron object specified in the axon class object
@@ -263,8 +278,7 @@ class Bundle(object):
                 self.trec = h.Vector()
                 self.trec.record(h._ref_t)
 
-
-
+            # actually start simulation of selected axon
             axon.simulate()
 
             # shut down the output, always errors at the end because membrane current too high
@@ -273,8 +287,10 @@ class Bundle(object):
             elapsed1 = time.time()-temp
             print "Elapsed time calculate voltage and membrane current: " + str(elapsed1)
 
+            # take time for LFPy calculation
             temp = time.time()
 
+            # calculate LFP by LFPy from membrane current
             self.electrodes[axonIndex].calc_lfp()
 
             elapsed2 = time.time()-temp

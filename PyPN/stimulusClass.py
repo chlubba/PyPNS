@@ -18,18 +18,22 @@ class Stimulus(ExcitationMechanism):
     waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
     """
     def __init__(self, stimType, stimDur, amplitude, frequency, dutyCycle, radiusBundle, waveform):
+
         self.waveform = waveform
         self.stimType = stimType
 
         number_contact_points = 8
         self.stim_coord = [[0, radiusBundle*math.cos(math.pi/number_contact_points),
                             radiusBundle*math.sin(math.pi/number_contact_points)]]
+
         self.stimDur = stimDur
         self.frequency = frequency
         self.amplitude = amplitude
         self.dutyCycle = dutyCycle
-        cut_off = math.sin((-self.dutyCycle+1.0/2)*math.pi)
+
         self.t = np.linspace(0, self.stimDur, (h.tstop+2*h.dt)/h.dt, endpoint=True)
+
+        cut_off = math.sin((-self.dutyCycle+1.0/2)*math.pi)
         if self.waveform == "MONOPHASIC":
             self.signal = self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*(self.t)))
         elif self.waveform == "BIPHASIC":

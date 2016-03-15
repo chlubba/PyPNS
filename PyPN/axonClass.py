@@ -3,8 +3,8 @@ from neuron import h
 import LFPy
 import numpy as np # for arrays managing
 import math
+import os
 
-import silencer
 import createGeometry
 
 
@@ -16,7 +16,7 @@ class Axon(object):
     # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
 
 
-    def __init__(self, layout3D, rec_v, name, fiberD, coord):
+    def __init__(self, layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes):
         self.layout3D = layout3D
         self.rec_v = rec_v
         self.name = name
@@ -28,7 +28,12 @@ class Axon(object):
         self.dotprodresults = None # Not in class cell of LFPY but present in run_simulation as cell.dotprodresults
         self.exMechVars = []
 
-        self.create_cell_props_for_LFPy()
+        # params for NEURON simulation
+        self.temperature = temperature # set temperature in celsius
+        self.tStop = tStop # set simulation duration (ms)
+        self.timeRes = timeRes # set time step (ms)
+
+        self.create_cell_props_for_LFPy(tStop, timeRes)
 
     def calc_totnsegs(self):
         # Calculate the number of segments in the allseclist
@@ -39,12 +44,11 @@ class Axon(object):
         return i
 
     # this function and the following one are only there for compliance with the LFPy package
-    def create_cell_props_for_LFPy(self):
+    def create_cell_props_for_LFPy(self, tStop, timeRes):
         self.tstartms = 0
-        self.tstopms = h.tstop
-        self.timeres_NEURON = h.dt
-        self.timeres_python = h.dt
-        self.v_init = h.celsius
+        self.tstopms = tStop
+        self.timeres_NEURON = timeRes
+        self.timeres_python = timeRes
     def _loadspikes(self):
         pass
 
@@ -224,12 +228,13 @@ class Axon(object):
         #                 Presumably useful for memory efficient csd or lfp calcs
 
 
+
         if rec_imem:
             self.set_imem_recorders()
         if self.rec_v:
             self.set_voltage_recorders()
 
-
+        h.celsius = self.temperature # set temperature in celsius
         LFPy.run_simulation._run_simulation_with_electrode(self, electrode, variable_dt, atol,
                                                    to_memory, to_file, file_name,
                                                    dotprodcoeffs)
@@ -344,8 +349,8 @@ class Unmyelinated(Axon):
     # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
     # rec_v: set voltage recorders True or False
 
-    def __init__(self, fiberD, coord, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
-        super(Unmyelinated,self).__init__(layout3D, rec_v, name, fiberD, coord)
+    def __init__(self, fiberD, coord, tStop, timeRes, temperature=33, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
+        super(Unmyelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes)
 
         self.L = createGeometry.length_from_coords(coord)
         self.cm = cm
@@ -355,6 +360,8 @@ class Unmyelinated(Axon):
         self.lambda_f = lambda_f
         self.d_lambda = d_lambda
         self.max_nsegs_length = max_nsegs_length
+
+        self.v_init = -64.975
 
         print "Unmyelinated axon diameter: " + str(self.fiberD)
 
@@ -538,8 +545,10 @@ class Myelinated(Axon):
     paralength2: set the length of the second paranode segment followed by the internodes segments
     interlength: set the length of the internode part comprising the 6 segments between two paranodes2
     """
-    def __init__(self, fiberD, coord, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
-        super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord)
+    def __init__(self, fiberD, coord, tStop, timeRes, temperature=37, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
+        super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes)
+
+        self.v_init = -80
 
         print 'Myelinated fiber diameter: ' + str(self.fiberD)
 
