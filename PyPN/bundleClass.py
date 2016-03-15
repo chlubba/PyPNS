@@ -220,7 +220,7 @@ class Bundle(object):
     def add_excitation_mechanism(self, mechanism):
         self.excitationMechanisms.append(mechanism)
     
-    def simulate_bundle(self):
+    def simulate(self):
 
         self.simulate_axons()
 

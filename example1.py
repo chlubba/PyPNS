@@ -76,25 +76,22 @@ Parameters = dict(bundleParameters, **recordingParameters)
 # create the bundle with all properties of axons and recording setup
 bundle = PyPN.Bundle(**Parameters)
 
-# # create the wanted mechanisms of how to cause spikes on the axons
-# # continuous spiking
-# bundle.add_excitation_mechanism(PyPN.UpstreamSpiking(**upstreamSpikingDict))
+# create the wanted mechanisms of how to cause spikes on the axons
+# continuous spiking
+bundle.add_excitation_mechanism(PyPN.UpstreamSpiking(**upstreamSpikingDict))
 
-# spiking through a single electrical stimulation
-bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
+# # spiking through a single electrical stimulation
+# bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
 
-try:
-    # run the simulation
-    bundle.simulate_bundle()
-except:
-    pass
+# run the simulation
+bundle.simulate()
 
 # plot geometry, voltage in axon and extracellular recording
 print '\nStarting to plot'
-# PyPN.plot.plot_geometry(bundle)
-# PyPN.plot.plot_CAP1D_singleAxon(bundle, 10)
-# PyPN.plot.plot_CAP1D(bundle)
-PyPN.plot.plot_voltage(bundle)
+PyPN.plot.geometry(bundle)
+PyPN.plot.CAP1D_singleAxon(bundle, 10)
+PyPN.plot.CAP1D(bundle)
+PyPN.plot.voltage(bundle)
 plt.show()
 
 bundle = None

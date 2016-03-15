@@ -8,7 +8,7 @@ import mpl_toolkits.mplot3d
 from axonClass import *
 from nameSetters import *
 
-def plot_geometry(bundle):
+def geometry(bundle):
 
     if len(bundle.axons[0].xmid) == 0:
         print 'Bundle has not been run yet. No geometry information was generated in NEURON.'
@@ -46,7 +46,7 @@ def plot_geometry(bundle):
     
     plt.savefig(bundle.basePath+'geometry.png')
     
-def plot_CAP1D_singleAxon(bundle, maxNumberOfAxons):
+def CAP1D_singleAxon(bundle, maxNumberOfAxons):
 
     # get the whole CAP, can be single electrode or multiple
     directory = get_directory_name("CAP1A", bundle.basePath)
@@ -98,7 +98,7 @@ def plot_CAP1D_singleAxon(bundle, maxNumberOfAxons):
 
 
 
-def plot_CAP1D(bundle, maxNumberOfSubplots = 10):
+def CAP1D(bundle, maxNumberOfSubplots = 10):
 
     # first load the desired data from file
     time, CAP = bundle.get_CAP_from_file()
@@ -140,7 +140,7 @@ def plot_CAP1D(bundle, maxNumberOfSubplots = 10):
     plt.savefig(bundle.basePath+'CAP1D.png')
 
 
-def plot_CAP2D(bundle):
+def CAP2D(bundle):
 
     # first load the desired data from file
     time, CAP = bundle.get_CAP_from_file()
@@ -178,7 +178,7 @@ def plot_CAP2D(bundle):
 
     plt.savefig(bundle.basePath+'CAP2D.png')
 
-def plot_voltage(bundle, maxNumberOfSubplots=10):
+def voltage(bundle, maxNumberOfSubplots=10):
 
     timeRec, voltageMatrices = bundle.get_voltage_from_file()
 
