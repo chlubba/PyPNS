@@ -263,8 +263,7 @@ class Bundle(object):
                     'method': "pointsource", #or "linesource"
                 }
 
-            # take time of simulation
-            temp = time.time()
+
 
             # create the neuron object specified in the axon class object
             axon.create_neuron_object()
@@ -278,17 +277,21 @@ class Bundle(object):
                 self.trec = h.Vector()
                 self.trec.record(h._ref_t)
 
+            # take time of simulation
+            temp = time.time()
+
             # actually start simulation of selected axon
             axon.simulate()
 
-            # shut down the output, always errors at the end because membrane current too high
-            with silencer.nostdout():
-                self.electrodes.append(LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters))
             elapsed1 = time.time()-temp
             print "Elapsed time calculate voltage and membrane current: " + str(elapsed1)
 
             # take time for LFPy calculation
             temp = time.time()
+
+            # shut down the output, always errors at the end because membrane current too high
+            with silencer.nostdout():
+                self.electrodes.append(LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters))
 
             # calculate LFP by LFPy from membrane current
             self.electrodes[axonIndex].calc_lfp()

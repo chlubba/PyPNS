@@ -1,0 +1,3 @@
+import LFPy
+
+LFPy.testing

@@ -17,7 +17,7 @@ class Stimulus(ExcitationMechanism):
     stim_coord=[xe,ye,ze]: spatial coordinates  of the stimulating electrode
     waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
     """
-    def __init__(self, stimType, stimDur, amplitude, frequency, dutyCycle, radiusBundle, waveform):
+    def __init__(self, stimType, stimDur, amplitude, frequency, dutyCycle, radiusBundle, waveform, tStop, timeRes):
 
         self.waveform = waveform
         self.stimType = stimType
@@ -31,7 +31,7 @@ class Stimulus(ExcitationMechanism):
         self.amplitude = amplitude
         self.dutyCycle = dutyCycle
 
-        self.t = np.linspace(0, self.stimDur, (h.tstop+2*h.dt)/h.dt, endpoint=True)
+        self.t = np.linspace(0, self.stimDur, (tStop+2*timeRes)/timeRes, endpoint=True)
 
         cut_off = math.sin((-self.dutyCycle+1.0/2)*math.pi)
         if self.waveform == "MONOPHASIC":
@@ -60,7 +60,7 @@ class Stimulus(ExcitationMechanism):
         stim = h.IClamp(0, axon.allseclist)
         stim.delay = 0
         stim.dur = self.stimDur
-        self.svec.play(stim._ref_amp,h.dt)
+        self.svec.play(stim._ref_amp, axon.timeRes)
 
         excitationMechanismVars = [stim]
         axon.append_ex_mech_vars(excitationMechanismVars)

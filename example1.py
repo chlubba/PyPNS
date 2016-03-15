@@ -7,7 +7,7 @@ timeRes=0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 2000
-numberOfAxons = 3
+numberOfAxons = 1
 
 # create a guide, the axons will follow
 segmentLengthAxon = 10
@@ -36,8 +36,10 @@ stimulusParameters = {  'stimType': "INTRA", #Stimulation type either "INTRA" or
                         'frequency': 0.1, # Frequency of the pulse (kHz)
                         'dutyCycle': 0.01, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                         'stimDur' : 10, # Stimulus duration (ms)
-                        'waveform': 'BIPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+                        'waveform': 'MONOPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
                         'radiusBundle' : 150, #um
+                        'tStop' : tStop,
+                        'timeRes' : timeRes
 }
 
 # recording parameters of the cuff electrodes
@@ -51,7 +53,7 @@ myelinatedParametersA = {'fiberD': myelinatedDistribution, # um Axon diameter (5
 }
 
 # axon parameters
-unmyelinatedParameters = {'fiberD': unmyelinatedDistribution, # um Axon diameter
+unmyelinatedParameters = {'fiberD': 0.8 # unmyelinatedDistribution, # um Axon diameter
 }
 
 # set all properties of the bundle
@@ -80,14 +82,17 @@ bundle = PyPN.Bundle(**Parameters)
 # spiking through a single electrical stimulation
 bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
 
-# run the simulation
-bundle.simulate_bundle()
+try:
+    # run the simulation
+    bundle.simulate_bundle()
+except:
+    pass
 
 # plot geometry, voltage in axon and extracellular recording
 print '\nStarting to plot'
-PyPN.plot.plot_geometry(bundle)
-PyPN.plot.plot_CAP1D_singleAxon(bundle, 10)
-PyPN.plot.plot_CAP1D(bundle)
+# PyPN.plot.plot_geometry(bundle)
+# PyPN.plot.plot_CAP1D_singleAxon(bundle, 10)
+# PyPN.plot.plot_CAP1D(bundle)
 PyPN.plot.plot_voltage(bundle)
 plt.show()
 

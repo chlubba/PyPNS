@@ -1,0 +1,1249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/inactiveCode/classes_plot.py" line="80" mnemonic="9" />
+    <bookmark url="file://$PROJECT_DIR$/inactiveCode/randomPeripheralNerveGeometryDifferentConfinement.py" line="111" mnemonic="0" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="745af9be-a393-4a53-a80a-86bfbe7bad8d" name="Default" comment="- spike train generation" />
+    <ignored path="PNPyGit.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="PNPyGit" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="example1.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/example1.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.21159874">
+              <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
+              <folding>
+                <element signature="e#0#11#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bundleClass.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PyPN/bundleClass.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="283" column="0" selection-start-line="283" selection-start-column="0" selection-end-line="283" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="axonClass.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PyPN/axonClass.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="237" column="0" selection-start-line="237" selection-start-column="0" selection-end-line="237" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="stimulusClass.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PyPN/stimulusClass.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="64" column="40" selection-start-line="64" selection-start-column="40" selection-end-line="64" selection-end-column="40" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Setup Script" />
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/bundle_paper2.py" />
+        <option value="$PROJECT_DIR$/bundle_general_1.py" />
+        <option value="$PROJECT_DIR$/bundle_CAP_paper.py" />
+        <option value="$PROJECT_DIR$/classes_plot.py" />
+        <option value="$PROJECT_DIR$/axonArrayError.py" />
+        <option value="$PROJECT_DIR$/testPerpendicularVectorStuff.py" />
+        <option value="$PROJECT_DIR$/randomPeripheralNerveGeometryPlusElectrodes.py" />
+        <option value="$PROJECT_DIR$/randomPeripheralNerveGeometry.py" />
+        <option value="$PROJECT_DIR$/randomPeripheralNerveGeometryDifferentConfinement.py" />
+        <option value="$PROJECT_DIR$/randomPNComplete.py" />
+        <option value="$PROJECT_DIR$/classesRestartRestructuring.py" />
+        <option value="$PROJECT_DIR$/randomPNCompleteRandomBundle.py" />
+        <option value="$PROJECT_DIR$/classesBeforeRestructuring.py" />
+        <option value="$PROJECT_DIR$/bundle_general_2_plotting.py" />
+        <option value="$PROJECT_DIR$/test_vecStim_2.py" />
+        <option value="$PROJECT_DIR$/correlatedPoissonSpikingFromLFPy.py" />
+        <option value="$PROJECT_DIR$/test_vecStim_2_again.py" />
+        <option value="$PROJECT_DIR$/spikeTrainGeneration.py" />
+        <option value="$PROJECT_DIR$/testSettingGeometry.py" />
+        <option value="$PROJECT_DIR$/simulusClass.py" />
+        <option value="$PROJECT_DIR$/classes.py" />
+        <option value="$PROJECT_DIR$/CARL's_Comments" />
+        <option value="$PROJECT_DIR$/axonArrayErrorNeatened.py" />
+        <option value="$PROJECT_DIR$/refextelectrode.py" />
+        <option value="$PROJECT_DIR$/testSettingGeometry2.py" />
+        <option value="$PROJECT_DIR$/randomPNCompleteTesting.py" />
+        <option value="$PROJECT_DIR$/sigmoidFunction.py" />
+        <option value="$PROJECT_DIR$/testWritingToTextFile.py" />
+        <option value="$PROJECT_DIR$/McIntyreMinimalGuideLength.py" />
+        <option value="$PROJECT_DIR$/createGeometry.py" />
+        <option value="$PROJECT_DIR$/ExcitationMechanism.py" />
+        <option value="$PROJECT_DIR$/nameSetters.py" />
+        <option value="$PROJECT_DIR$/upstreamSpikingClass.py" />
+        <option value="$PROJECT_DIR$/axonClass.py" />
+        <option value="$PROJECT_DIR$/plotBundleClass.py" />
+        <option value="$PROJECT_DIR$/bundleClass.py" />
+        <option value="$PROJECT_DIR$/setup.py" />
+        <option value="$PROJECT_DIR$/PyPN/nameSetters.py" />
+        <option value="$PROJECT_DIR$/PyPN/bundle_general_3.py" />
+        <option value="$PROJECT_DIR$/PyPN/upstreamSpikingClass.py" />
+        <option value="$PROJECT_DIR$/PyPN/silencer.py" />
+        <option value="$PROJECT_DIR$/PyPN/plotBundleClass.py" />
+        <option value="$PROJECT_DIR$/PyPN/createGeometry.py" />
+        <option value="$PROJECT_DIR$/testLFPy.py" />
+        <option value="$PROJECT_DIR$/PyPN/__init__.py" />
+        <option value="$PROJECT_DIR$/bundle_general_3.py" />
+        <option value="$PROJECT_DIR$/stimulusClass.py" />
+        <option value="$PROJECT_DIR$/PyPN/axonClass.py" />
+        <option value="$PROJECT_DIR$/PyPN/bundleClass.py" />
+        <option value="$PROJECT_DIR$/example1.py" />
+        <option value="$PROJECT_DIR$/PyPN/stimulusClass.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="65" />
+    <option name="y" value="24" />
+    <option name="width" value="1855" />
+    <option name="height" value="1056" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="false">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scratches" />
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PNPyGit" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PNPyGit" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PNPyGit" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PNPyGit" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PNPyGit" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PyPN" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$USER_HOME$/ImperialFestivalEEG/Imperial-festival-master" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+    <property name="settings.editor.splitter.proportion" value="0.2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="217" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="234" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="241" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="1133" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="216" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="234" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="242" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="1133" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
+    <property name="two.files.diff.last.used.file" value="$PROJECT_DIR$/classesBeforeRestructuring.py" />
+    <property name="SearchEverywhereHistoryKey" value="calclf&#9;null&#9;null&#10;conduction&#9;null&#9;null" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/inactiveCode" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/PyPN" />
+      <recent name="$PROJECT_DIR$/codeForTestingPurposes" />
+      <recent name="$PROJECT_DIR$/images" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.example1">
+    <configuration default="false" name="bundle_general_3" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bundle_general_3.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="testWritingToTextFile" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inactiveCode/testWritingToTextFile.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="Unittests in setup" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/setup.py" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="bundle_general_3 (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/PyPN" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bundle_general_3.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="example1" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example1.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Attests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Nosetests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Unittests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="py.test">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="testToRun" value="" />
+      <option name="keywords" value="" />
+      <option name="params" value="" />
+      <option name="USE_PARAM" value="false" />
+      <option name="USE_KEYWORD" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="bundle_general_2_plotting" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inactiveCode/bundle_general_2_plotting.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <list size="6">
+      <item index="0" class="java.lang.String" itemvalue="Python.bundle_general_2_plotting" />
+      <item index="1" class="java.lang.String" itemvalue="Python.bundle_general_3" />
+      <item index="2" class="java.lang.String" itemvalue="Python.testWritingToTextFile" />
+      <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in setup" />
+      <item index="4" class="java.lang.String" itemvalue="Python.bundle_general_3 (1)" />
+      <item index="5" class="java.lang.String" itemvalue="Python.example1" />
+    </list>
+    <recent_temporary>
+      <list size="5">
+        <item index="0" class="java.lang.String" itemvalue="Python.example1" />
+        <item index="1" class="java.lang.String" itemvalue="Python.bundle_general_3" />
+        <item index="2" class="java.lang.String" itemvalue="Python.bundle_general_3 (1)" />
+        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in setup" />
+        <item index="4" class="java.lang.String" itemvalue="Python.testWritingToTextFile" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="745af9be-a393-4a53-a80a-86bfbe7bad8d" name="Default" comment="" />
+      <created>1453929298343</created>
+      <option name="number" value="Default" />
+      <updated>1453929298343</updated>
+    </task>
+    <task id="LOCAL-00030" summary="- fixed the error (synapse deletion omitted for myelinated axons)&#10;">
+      <created>1456762853296</created>
+      <option name="number" value="00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1456762853296</updated>
+    </task>
+    <task id="LOCAL-00031" summary="- plot geometry function added to bundle class&#10;">
+      <created>1456764401000</created>
+      <option name="number" value="00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1456764401000</updated>
+    </task>
+    <task id="LOCAL-00032" summary="- PT3D positionning works">
+      <created>1456765511327</created>
+      <option name="number" value="00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1456765511327</updated>
+    </task>
+    <task id="LOCAL-00033" summary="- corrected myelinated plot (new arrangement of sections -&gt; new indices for nodes)">
+      <created>1456772932444</created>
+      <option name="number" value="00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1456772932444</updated>
+    </task>
+    <task id="LOCAL-00034" summary="- updated comments">
+      <created>1456772992086</created>
+      <option name="number" value="00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1456772992086</updated>
+    </task>
+    <task id="LOCAL-00035" summary="- bundle gets pickled now (saved to file)">
+      <created>1456780278718</created>
+      <option name="number" value="00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1456780278718</updated>
+    </task>
+    <task id="LOCAL-00036" summary="- pickle file is still kind of big, find our what saved internal variables bloat it up!">
+      <created>1456782764278</created>
+      <option name="number" value="00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1456782764278</updated>
+    </task>
+    <task id="LOCAL-00037" summary="- imem in each axon made the bundle file big&#10;&#10;a problem right now:&#10; - with the two seperate runs for voltage and CAP the bundle file gets overwritten. Somehow order these loops better or find out why it crashes when you run both at once.">
+      <created>1456784503377</created>
+      <option name="number" value="00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1456784503377</updated>
+    </task>
+    <task id="LOCAL-00038" summary="- finally simulating voltage and CAP in one run">
+      <created>1456824936538</created>
+      <option name="number" value="00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1456824936538</updated>
+    </task>
+    <task id="LOCAL-00039" summary="- minor corrections">
+      <created>1456826502325</created>
+      <option name="number" value="00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1456826502325</updated>
+    </task>
+    <task id="LOCAL-00040" summary="- push latest changes">
+      <created>1456827519988</created>
+      <option name="number" value="00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1456827519988</updated>
+    </task>
+    <task id="LOCAL-00041" summary="- corrected myelinated plot (again?)">
+      <created>1456835231363</created>
+      <option name="number" value="00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1456835231363</updated>
+    </task>
+    <task id="LOCAL-00042" summary="- make file name setter function external to bundle in order to be able to call it in the main class and use it to save the load bundles">
+      <created>1456854430513</created>
+      <option name="number" value="00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1456854430513</updated>
+    </task>
+    <task id="LOCAL-00043" summary="- geometry plotting shows unmyelinated axons as dashed lines">
+      <created>1456857385430</created>
+      <option name="number" value="00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1456857385430</updated>
+    </task>
+    <task id="LOCAL-00044" summary="- save_CAP1D and load_electrodes got obsolete">
+      <created>1456859062796</created>
+      <option name="number" value="00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1456859062796</updated>
+    </task>
+    <task id="LOCAL-00045" summary="- deleted unused functions from bundleClasses.py">
+      <created>1456859634576</created>
+      <option name="number" value="00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1456859634576</updated>
+    </task>
+    <task id="LOCAL-00046" summary="- changed compute_CAP_fromfiles but results seem strange">
+      <created>1456862906945</created>
+      <option name="number" value="00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1456862906945</updated>
+    </task>
+    <task id="LOCAL-00047" summary="- minor plotting correction">
+      <created>1456863685406</created>
+      <option name="number" value="00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1456863685406</updated>
+    </task>
+    <task id="LOCAL-00048" summary="- fixed saving issue">
+      <created>1456864304762</created>
+      <option name="number" value="00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1456864304762</updated>
+    </task>
+    <task id="LOCAL-00049" summary="- added a save mechanism for the (C)AP caused by one axon. By this, the effect of electrode position and axon morphology can be studied.">
+      <created>1456865980376</created>
+      <option name="number" value="00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1456865980376</updated>
+    </task>
+    <task id="LOCAL-00050" summary="- single axon action potential plot finished">
+      <created>1456867618655</created>
+      <option name="number" value="00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1456867618657</updated>
+    </task>
+    <task id="LOCAL-00051" summary="- bundle plotting color coded and numbered&#10;- color coding in plot of single axon APs matched">
+      <created>1456869659133</created>
+      <option name="number" value="00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1456869659133</updated>
+    </task>
+    <task id="LOCAL-00052" summary="- corrected error in bipolar electrode positionning (np.tile instead of np.repeat needed)">
+      <created>1456914498844</created>
+      <option name="number" value="00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1456914498845</updated>
+    </task>
+    <task id="LOCAL-00053" summary="- changed folder structure (all in one folder now)&#10;&#10;But better printing printing our of parameters needed.">
+      <created>1456918942056</created>
+      <option name="number" value="00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1456918942056</updated>
+    </task>
+    <task id="LOCAL-00054" summary="- corrected errors in saving functions&#10;- added automatic saving of figures">
+      <created>1456919605767</created>
+      <option name="number" value="00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1456919605767</updated>
+    </task>
+    <task id="LOCAL-00055" summary="- commit before branching to random geometry">
+      <created>1456932595722</created>
+      <option name="number" value="00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1456932595723</updated>
+    </task>
+    <task id="LOCAL-00056" summary="- preparations for random axon geometry done">
+      <created>1456936464369</created>
+      <option name="number" value="00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1456936464369</updated>
+    </task>
+    <task id="LOCAL-00057" summary="First version of random axon geometry works! You see different spike shapes.&#10;&#10;Things that are bad:&#10;&#10;- plotting of electrodes not ok&#10;- axons don't really stay within bundle radius&#10;&#10;Other things to do:&#10;&#10;- control curviness by parameter&#10;- maybe save bundle guide as file and make it selectable&#10;">
+      <created>1456961071832</created>
+      <option name="number" value="00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1456961071833</updated>
+    </task>
+    <task id="LOCAL-00058" summary="- corrected electrode plotting&#10;&#10;Also need to add bipolar recording some time.">
+      <created>1456995028812</created>
+      <option name="number" value="00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1456995028813</updated>
+    </task>
+    <task id="LOCAL-00059" summary="- confinement of axons fixed">
+      <created>1456999025004</created>
+      <option name="number" value="00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1456999025004</updated>
+    </task>
+    <task id="LOCAL-00060" summary="- before tidying up a bit">
+      <created>1457701051873</created>
+      <option name="number" value="00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1457701051873</updated>
+    </task>
+    <task id="LOCAL-00061" summary="- bundle coordinate generation outside bundle contructor">
+      <created>1457704480527</created>
+      <option name="number" value="00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1457704480527</updated>
+    </task>
+    <task id="LOCAL-00062" summary="- tidied up everything a little">
+      <created>1457710765243</created>
+      <option name="number" value="00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1457710765243</updated>
+    </task>
+    <task id="LOCAL-00063" summary="- continuous voltage saving">
+      <created>1457716627983</created>
+      <option name="number" value="00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1457716627983</updated>
+    </task>
+    <task id="LOCAL-00064" summary="- bipolar recording done">
+      <created>1457719631678</created>
+      <option name="number" value="00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1457719631678</updated>
+    </task>
+    <task id="LOCAL-00065" summary="- made bundle file smaller (sum_CAP was saved in bundle)">
+      <created>1457720324202</created>
+      <option name="number" value="00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1457720324202</updated>
+    </task>
+    <task id="LOCAL-00066" summary="- myelinated axon random geometry done &#10;&#10;but&#10;- voltage plot strange&#10;- needs a bit tidying&#10;">
+      <created>1457806778586</created>
+      <option name="number" value="00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1457806778587</updated>
+    </task>
+    <task id="LOCAL-00067" summary="- myelinated axons random in space works&#10;- electrode positions better&#10;- bipolar was swapped">
+      <created>1457951677247</created>
+      <option name="number" value="00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1457951677248</updated>
+    </task>
+    <task id="LOCAL-00068" summary="- colormap added">
+      <created>1457954637399</created>
+      <option name="number" value="00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1457954637399</updated>
+    </task>
+    <task id="LOCAL-00069" summary="- deleted legend">
+      <created>1457955073623</created>
+      <option name="number" value="00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1457955073623</updated>
+    </task>
+    <task id="LOCAL-00070" summary="- no error for single axon simulation anymore (plotting)">
+      <created>1457956441083</created>
+      <option name="number" value="00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1457956441083</updated>
+    </task>
+    <task id="LOCAL-00071" summary="- abstract excitationMechanism class introduced&#10;- now stimulus and spontaneous activity get both added after bundle instatiation through the same mechanism&#10;">
+      <created>1457966591846</created>
+      <option name="number" value="00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1457966591847</updated>
+    </task>
+    <task id="LOCAL-00072" summary="- variables renamed">
+      <created>1457975719715</created>
+      <option name="number" value="00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1457975719715</updated>
+    </task>
+    <task id="LOCAL-00073" summary="- setup.py started">
+      <created>1457981917196</created>
+      <option name="number" value="00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1457981917196</updated>
+    </task>
+    <task id="LOCAL-00074" summary="- setup.py first version ready&#10;- only need to structure by __init__.py">
+      <created>1457983772297</created>
+      <option name="number" value="00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1457983772297</updated>
+    </task>
+    <task id="LOCAL-00075" summary="- working example1.py&#10;- in __init__.py, path to dlls is given, maybe bad.">
+      <created>1457991814504</created>
+      <option name="number" value="00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1457991814511</updated>
+    </task>
+    <task id="LOCAL-00076" summary="- example ready&#10;- only fresh, complete LFPy">
+      <created>1457995332220</created>
+      <option name="number" value="00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1457995332220</updated>
+    </task>
+    <task id="LOCAL-00077" summary="- added loading mechanism for extensions">
+      <created>1458068998707</created>
+      <option name="number" value="00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1458068998708</updated>
+    </task>
+    <task id="LOCAL-00078" summary="- complete commit before error search &#10;- intra does only stimulate first axon">
+      <created>1458069477955</created>
+      <option name="number" value="00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1458069477955</updated>
+    </task>
+    <option name="localTasksCounter" value="79" />
+    <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="Unittests_in_setup - 2016.03.14 at 18h 05m 11s.xml">
+      <configuration name="Unittests in setup" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_setup - 2016.03.14 at 18h 08m 44s.xml">
+      <configuration name="Unittests in setup" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_setup - 2016.03.14 at 18h 09m 08s.xml">
+      <configuration name="Unittests in setup" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_setup - 2016.03.14 at 18h 12m 33s.xml">
+      <configuration name="Unittests in setup" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_setup - 2016.03.14 at 18h 12m 48s.xml">
+      <configuration name="Unittests in setup" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_setup - 2016.03.14 at 18h 13m 00s.xml">
+      <configuration name="Unittests in setup" configurationId="tests" />
+    </history-entry>
+    <history-entry file="Unittests_in_setup - 2016.03.14 at 18h 28m 16s.xml">
+      <configuration name="Unittests in setup" configurationId="tests" />
+    </history-entry>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="65" y="24" width="1855" height="1056" extended-state="6" />
+    <editor active="false" />
+    <layout>
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959184" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.15902965" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18814017" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.38367346" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31836733" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959184" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32959184" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="5.3908356E-4" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="Vcs.Log.UiProperties">
+    <option name="RECENTLY_FILTERED_USER_GROUPS">
+      <collection />
+    </option>
+    <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+      <collection />
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
+    <MESSAGE value="- corrected errors in saving functions&#10;- added automatic saving of figures" />
+    <MESSAGE value="- commit before branching to random geometry" />
+    <MESSAGE value="- preparations for random axon geometry done" />
+    <MESSAGE value="First version of random axon geometry works! You see different spike shapes.&#10;&#10;Things that are bad:&#10;&#10;- plotting of electrodes not ok&#10;- axons don't really stay within bundle radius&#10;&#10;Other things to do:&#10;&#10;- control curviness by parameter&#10;- maybe save bundle guide as file and make it selectable&#10;" />
+    <MESSAGE value="- corrected electrode plotting&#10;&#10;Also need to add bipolar recording some time." />
+    <MESSAGE value="- confinement of axons fixed" />
+    <MESSAGE value="- before tidying up a bit" />
+    <MESSAGE value="- bundle coordinate generation outside bundle contructor" />
+    <MESSAGE value="- tidied up everything a little" />
+    <MESSAGE value="- continuous voltage saving" />
+    <MESSAGE value="- bipolar recording done" />
+    <MESSAGE value="- made bundle file smaller (sum_CAP was saved in bundle)" />
+    <MESSAGE value="- myelinated axon random geometry done &#10;&#10;but&#10;- voltage plot strange&#10;- needs a bit tidying&#10;" />
+    <MESSAGE value="- myelinated axons random in space works&#10;- electrode positions better&#10;- bipolar was swapped" />
+    <MESSAGE value="- colormap added" />
+    <MESSAGE value="- deleted legend" />
+    <MESSAGE value="- no error for single axon simulation anymore (plotting)" />
+    <MESSAGE value="- abstract excitationMechanism class introduced&#10;- now stimulus and spontaneous activity get both added after bundle instatiation through the same mechanism&#10;" />
+    <MESSAGE value="- variables renamed" />
+    <MESSAGE value="- setup.py started" />
+    <MESSAGE value="- setup.py first version ready&#10;- only need to structure by __init__.py" />
+    <MESSAGE value="- working example1.py&#10;- in __init__.py, path to dlls is given, maybe bad." />
+    <MESSAGE value="- example ready&#10;- only fresh, complete LFPy" />
+    <MESSAGE value="- added loading mechanism for extensions" />
+    <MESSAGE value="- complete commit before error search &#10;- intra does only stimulate first axon" />
+    <option name="LAST_COMMIT_MESSAGE" value="- complete commit before error search &#10;- intra does only stimulate first axon" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/classes_plot.py</url>
+          <line>317</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/figure1.py</url>
+          <line>117</line>
+          <option name="timeStamp" value="37" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/figure1_oneVoltageOnly.py</url>
+          <line>116</line>
+          <option name="timeStamp" value="79" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/figure1_oneVoltageOnly.py</url>
+          <line>49</line>
+          <option name="timeStamp" value="80" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/figure1_oneVoltageOnly_multipleAxons.py</url>
+          <line>60</line>
+          <option name="timeStamp" value="87" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/figure1_oneVoltageOnly_multipleAxons.py</url>
+          <line>129</line>
+          <option name="timeStamp" value="89" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/figure3.py</url>
+          <line>126</line>
+          <option name="timeStamp" value="91" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/figure3.py</url>
+          <line>59</line>
+          <option name="timeStamp" value="98" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/bundle_paper2.py</url>
+          <line>55</line>
+          <option name="timeStamp" value="100" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/classes_plot.py</url>
+          <line>72</line>
+          <option name="timeStamp" value="158" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/randomPeripheralNerveGeometryDifferentConfinement.py</url>
+          <line>107</line>
+          <option name="timeStamp" value="237" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/classesRestartRestructuring.py</url>
+          <line>981</line>
+          <option name="timeStamp" value="242" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/classesRestartRestructuring.py</url>
+          <line>755</line>
+          <option name="timeStamp" value="244" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/inactiveCode/bundle_general_2_plotting.py</url>
+          <line>310</line>
+          <option name="timeStamp" value="268" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/codeForTestingPurposes/test_vecStim_2.py</url>
+          <line>27</line>
+          <option name="timeStamp" value="277" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/PyPN/bundleClass.py</url>
+          <line>271</line>
+          <option name="timeStamp" value="529" />
+        </line-breakpoint>
+      </breakpoints>
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+      <option name="time" value="530" />
+    </breakpoint-manager>
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/bundle_general_3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#13#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/figure1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.02388535">
+          <caret line="118" column="63" selection-start-line="117" selection-start-column="8" selection-end-line="118" selection-end-column="63" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/randomPeripheralNerveGeometryDifferentConfinement.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="88" column="58" selection-start-line="88" selection-start-column="58" selection-end-line="88" selection-end-column="58" />
+          <folding>
+            <element signature="e#0#34#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/classesRestartRestructuring.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1006" column="38" selection-start-line="995" selection-start-column="8" selection-end-line="1006" selection-end-column="38" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/classesBeforeRestructuring.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="984" column="38" selection-start-line="984" selection-start-column="38" selection-end-line="984" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/figure2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="128" column="59" selection-start-line="126" selection-start-column="0" selection-end-line="128" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/lib/python2.7/dist-packages/numpy/core/fromnumeric.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1489" column="0" selection-start-line="1489" selection-start-column="0" selection-end-line="1489" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/bundle_general_2_plotting.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.51369864">
+          <caret line="179" column="20" selection-start-line="179" selection-start-column="20" selection-end-line="189" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#43#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/bundle_paper2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="40" column="9" selection-start-line="40" selection-start-column="8" selection-end-line="40" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/stimulus.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6210191">
+          <caret line="30" column="27" selection-start-line="30" selection-start-column="27" selection-end-line="30" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/lib/python2.7/dist-packages/numpy/lib/function_base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33280253">
+          <caret line="1747" column="0" selection-start-line="1747" selection-start-column="0" selection-end-line="1747" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/codeForTestingPurposes/test_vecStim_2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="24" column="25" selection-start-line="24" selection-start-column="25" selection-end-line="24" selection-end-column="25" />
+          <folding>
+            <element signature="e#0#13#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/codeForTestingPurposes/test_expSyn4_iSyn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.02388535">
+          <caret line="28" column="14" selection-start-line="28" selection-start-column="14" selection-end-line="28" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/images/classes_PNPY.png">
+      <provider selected="true" editor-type-id="images">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CARL's_Comments">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.28253424">
+          <caret line="11" column="65" selection-start-line="11" selection-start-column="65" selection-end-line="11" selection-end-column="65" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/codeForTestingPurposes/axonArrayErrorNeatened.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="24" column="15" selection-start-line="24" selection-start-column="15" selection-end-line="24" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/bundle_CAP.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.18181819">
+          <caret line="53" column="26" selection-start-line="53" selection-start-column="26" selection-end-line="53" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/bundle_CAP2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.9529781">
+          <caret line="99" column="79" selection-start-line="99" selection-start-column="79" selection-end-line="99" selection-end-column="79" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/plot_CAP_bip.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.4780564">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/randomPeripheralNerveGeometry.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.5642633">
+          <caret line="89" column="40" selection-start-line="89" selection-start-column="40" selection-end-line="89" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/plot_CAP_2cm.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.61128527">
+          <caret line="26" column="53" selection-start-line="26" selection-start-column="53" selection-end-line="26" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/testWritingToTextFile.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="8" column="9" selection-start-line="8" selection-start-column="9" selection-end-line="8" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/McIntyreMinimalGuideLength.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/classes_plot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="339" column="4" selection-start-line="339" selection-start-column="4" selection-end-line="339" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/LFPy/recextelectrode.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="57" column="12" selection-start-line="57" selection-start-column="12" selection-end-line="57" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/LFPy/run_simulation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-45.0">
+          <caret line="153" column="12" selection-start-line="153" selection-start-column="4" selection-end-line="153" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inactiveCode/bundle_CAP_paper.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.51724136">
+          <caret line="69" column="9" selection-start-line="69" selection-start-column="9" selection-end-line="69" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python2.7/dist-packages/neuron/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="99" column="7" selection-start-line="99" selection-start-column="7" selection-end-line="99" selection-end-column="7" />
+          <folding>
+            <element signature="e#2994#3004#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bundle_general_3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.7288401">
+          <caret line="31" column="34" selection-start-line="31" selection-start-column="34" selection-end-line="31" selection-end-column="34" />
+          <folding>
+            <element signature="e#0#13#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyPN/axonClass.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="237" column="0" selection-start-line="237" selection-start-column="0" selection-end-line="237" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyPN/bundleClass.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="283" column="0" selection-start-line="283" selection-start-column="0" selection-end-line="283" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyPN/stimulusClass.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="64" column="40" selection-start-line="64" selection-start-column="40" selection-end-line="64" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.21159874">
+          <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
