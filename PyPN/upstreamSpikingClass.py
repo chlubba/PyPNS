@@ -5,7 +5,7 @@ import spikeTrainGeneration
 
 class UpstreamSpiking(ExcitationMechanism):
 
-    def __init__(self, nAxons, tStart, tStop, lambd = 1000., correlation = 0.1):
+    def __init__(self, nAxons, tStop, tStart=0, lambd = 1000., correlation = 0.1):
         self.spikeTrains = spikeTrainGeneration.generateCorrelaSpikeTimes(nAxons, tStart, tStop, lambd, correlation)
         self.axonIndex = 0 # select one specific of the nAxon spike trains in the connectAxon function
 

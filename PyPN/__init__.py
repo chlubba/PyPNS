@@ -12,4 +12,3 @@ import PyPN.plotBundleClass as plot
 
 # paths
 from PyPN.nameSetters import get_bundle_directory
-

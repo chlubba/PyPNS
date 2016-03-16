@@ -1,5 +1,12 @@
 import PyPN
 import matplotlib.pyplot as plt
+import cPickle as pickle
+import os
+
+calculationFlag = False # run simulation or load latest bundle with this parameters (not all taken into account for identification)
+
+upstreamSpikingOn = True
+electricalStimulusOn = False
 
 # set simulation params
 tStop=30
@@ -7,7 +14,7 @@ timeRes=0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 2000
-numberOfAxons = 30
+numberOfAxons = 1
 
 # create a guide, the axons will follow
 segmentLengthAxon = 10
@@ -73,18 +80,36 @@ bundleParameters = {    'radiusBundle': 150, #um Radius of the bundle (typically
 # combine parameters for the bundle creation
 Parameters = dict(bundleParameters, **recordingParameters)
 
-# create the bundle with all properties of axons and recording setup
-bundle = PyPN.Bundle(**Parameters)
+if calculationFlag:
 
-# # create the wanted mechanisms of how to cause spikes on the axons
-# # continuous spiking
-# bundle.add_excitation_mechanism(PyPN.UpstreamSpiking(**upstreamSpikingDict))
+    # create the bundle with all properties of axons and recording setup
+    bundle = PyPN.Bundle(**Parameters)
 
-# spiking through a single electrical stimulation
-bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
+    # create the wanted mechanisms of how to cause spikes on the axons
+    # continuous spiking
+    if upstreamSpikingOn:
+        bundle.add_excitation_mechanism(PyPN.UpstreamSpiking(**upstreamSpikingDict))
 
-# run the simulation
-bundle.simulate()
+    # spiking through a single electrical stimulation
+    if electricalStimulusOn:
+        bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
+
+    # run the simulation
+    bundle.simulate()
+
+    # save the bundle definition file
+    bundleSaveLocation = bundle.basePath
+    pickle.dump(bundle,open( os.path.join(bundleSaveLocation, 'bundle.cl'), "wb" ))
+else:
+    saveParams={'elecCount': len(Parameters['recordingElecPos']), 'dt': Parameters['timeRes'], 'tStop': Parameters['tStop'], 'p_A': bundleParameters['p_A'],
+                'myelinatedDiam': myelinatedParametersA['fiberD'], 'unmyelinatedDiam': unmyelinatedParameters['fiberD'],
+                'L': bundleParameters['lengthOfBundle']}
+    bundleSaveLocation = PyPN.get_bundle_directory(new = False, **saveParams)
+    try:
+        bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))
+    except:
+        print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
+        quit()
 
 # plot geometry, voltage in axon and extracellular recording
 print '\nStarting to plot'

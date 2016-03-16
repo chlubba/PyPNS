@@ -3,7 +3,7 @@ import glob
 
 def get_bundle_directory(elecCount, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
 
-    homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#
+    homeDirectory="results"#"/media/carl/4ECC-1C44/PyPN/"#""#
 
     # prepare single parameter values for string insertion
     p_C = 1 - p_A
@@ -30,25 +30,25 @@ def get_bundle_directory(elecCount, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, 
         quit()
 
     #concatenate strings
-    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+' '+poleString+"/"#+" myelinatedDiam="+myelDiamStr+" unmyelinatedDiam="+unmyelDiamStr
-    pathString = homeDirectory+pathStringNoStim # +stimulusPathString
+    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+' '+poleString
+    pathString = os.path.join(homeDirectory, pathStringNoStim) # +stimulusPathString
 
     # find bundle index
     if new:
         versionIndex = 0
-        folderName = 'bundle'+str(versionIndex).zfill(5)+'/'
-        while os.path.isdir(pathString+folderName):
+        folderName = 'bundle'+str(versionIndex).zfill(5)
+        while os.path.isdir(os.path.join(pathString, folderName)):
             versionIndex += 1
-            folderName = 'bundle'+str(versionIndex).zfill(5)+'/'
-        finalBasePath = pathString+folderName
+            folderName = 'bundle'+str(versionIndex).zfill(5)
+        finalBasePath = os.path.join(pathString, folderName)
     else:
         try:
-            latestFolder = max(glob.iglob(pathString+'bundle*'), key=os.path.getmtime)
+            latestFolder = max(glob.iglob(os.path.join(pathString,'')+'bundle*'), key=os.path.getmtime)
         except:
             print 'Desired folder empty.'
             return ''
 
-        finalBasePath = latestFolder + '/'
+        finalBasePath = latestFolder
 
     return finalBasePath
 
@@ -63,15 +63,15 @@ def get_directory_name(keyword, basePath):
     # V -> voltage folder
 
     suffix = {
-        'elec': "electrodes/",
-        'draw': "draws/",
-        'CAP': "CAP/",
-        'CAP1A': "CAPSingleAxons/",
-        'V': "Voltage/",
+        'elec': "electrodes",
+        'draw': "draws",
+        'CAP': "CAP",
+        'CAP1A': "CAPSingleAxons",
+        'V': "Voltage",
         'bundle' : ""
     }.get(keyword,-1)
 
-    finalCombinedPath = basePath + suffix
+    finalCombinedPath = os.path.join(basePath, suffix)
 
     if not os.path.exists(finalCombinedPath):
             os.makedirs(finalCombinedPath)
@@ -88,11 +88,11 @@ def get_file_name(recordingType, basePath, newFile=True):
         number = 0
         filenameTemp = filename
         if newFile:
-            while os.path.isfile(directory+filenameTemp):
+            while os.path.isfile(os.path.join(directory,filenameTemp)):
                 number += 1
                 # print "Be careful this file name already exist! We concatenate a number to the name to avoid erasing your previous file."
                 filenameTemp = str(number).zfill(5) + filename
 
-        filename = directory+filenameTemp
+        filename = os.path.join(directory,filenameTemp)
 
         return filename

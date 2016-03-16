@@ -44,17 +44,17 @@ def geometry(bundle):
             ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
             
     
-    plt.savefig(bundle.basePath+'geometry.png')
+    plt.savefig(os.path.join(bundle.basePath, 'geometry.png'))
     
 def CAP1D_singleAxon(bundle, maxNumberOfAxons):
 
     # get the whole CAP, can be single electrode or multiple
     directory = get_directory_name("CAP1A", bundle.basePath)
     try:
-        newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+        newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
     except ValueError:
         print 'No CAP calculation has been performed yet with this set of parameters.'
-        quit()
+        return
 
     CAPraw = np.transpose(np.loadtxt(newestFile))
     time = CAPraw[0,:]
@@ -92,7 +92,7 @@ def CAP1D_singleAxon(bundle, maxNumberOfAxons):
         currentAxis.set_title('Axon ' + str(axonIndex) + ' (' + axonType + ') with diameter ' + str(axonDiameter) + 'um')
         currentAxis.set_ylabel('CAP [mV]')
 
-    plt.savefig(bundle.basePath+'CAPSingleAxons.png')
+    plt.savefig(os.path.join(bundle.basePath, 'CAPSingleAxons.png'))
 
 
 
@@ -104,6 +104,14 @@ def CAP1D(bundle, maxNumberOfSubplots = 10):
     time, CAP = bundle.get_CAP_from_file()
 
     numberOfRecordingSites = np.shape(CAP)[0]
+
+    # downsample
+    wantedTimeStep = 0.025 #ms
+    actualTimeStep = bundle.timeRes
+    downsamplingFactor = math.floor(wantedTimeStep/actualTimeStep)
+    downsamplingIndexArray = range(0,len(time),int(downsamplingFactor))
+
+    time, CAP = time[downsamplingIndexArray], CAP[:, downsamplingIndexArray]
 
     if numberOfRecordingSites > 1:
 
@@ -137,7 +145,7 @@ def CAP1D(bundle, maxNumberOfSubplots = 10):
         plt.ylabel('CAP [mV]')
         plt.xlabel('time [ms]')
 
-    plt.savefig(bundle.basePath+'CAP1D.png')
+    plt.savefig(os.path.join(bundle.basePath, 'CAP1D.png'))
 
 
 def CAP2D(bundle):
@@ -176,7 +184,7 @@ def CAP2D(bundle):
     plt.ylabel('Distance from axon origin [um]')
     cbar = plt.colorbar(im)
 
-    plt.savefig(bundle.basePath+'CAP2D.png')
+    plt.savefig(os.path.join(bundle.basePath, 'CAP2D.png'))
 
 def voltage(bundle, maxNumberOfSubplots=10):
 
@@ -261,4 +269,4 @@ def voltage(bundle, maxNumberOfSubplots=10):
                                         orientation='vertical')
         cb1.set_label('length [um]')
 
-    plt.savefig(bundle.basePath+'voltage.png')
+    plt.savefig(os.path.join(bundle.basePath, 'voltage.png'))

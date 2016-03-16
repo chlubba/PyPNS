@@ -6,16 +6,13 @@ PyPNDir = os.path.dirname(PyPNDir)
 
 from neuron import h
 h('load_file("noload.hoc")')
-for processorSpecificFolderName in ['x86_64', 'i386']:
+for processorSpecificFolderName in ['x86_64', 'i686', 'powerpc']:
     neuronCommand = 'nrn_load_dll("'+os.path.join(PyPNDir,processorSpecificFolderName,'.libs','libnrnmech.so')+'")'
     h(neuronCommand)
 
 from axonClass import *
-# from stimulusClass import *
-# from ExcitationMechanism import *
 import createGeometry
 
-# from neuron import h
 import LFPy
 import numpy as np # for arrays managing
 import time
@@ -52,8 +49,8 @@ class Bundle(object):
     # myelinated_A: parameters for fiber type A
     # umyelinated:  parameters for fiber type C
 
-    def __init__(self, radiusBundle, lengthOfBundle, bundleGuide, numberOfAxons, p_A, p_C, numberContactPoints,
-                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025):
+    def __init__(self, radiusBundle, lengthOfBundle, bundleGuide, numberOfAxons, p_A, p_C,
+                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, numberContactPoints=8, segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025):
 
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
@@ -329,7 +326,7 @@ class Bundle(object):
         DataOut = np.array(self.electrodes[i].LFP[0])#,1:-1
         for j in range(1,len(self.electrodes[i].LFP)):
             DataOut = np.column_stack((DataOut, np.array(self.electrodes[i].LFP[j])))#,1:-1
-        np.savetxt(directory+filename, DataOut)
+        np.savetxt(os.path.join(directory,filename), DataOut)
 
     def load_one_electrode(self, elecIndex):
 
@@ -337,7 +334,7 @@ class Bundle(object):
         filename = "electrode_"+str(elecIndex)+".dat"
 
         t0 = time.time()
-        electrodeData = np.loadtxt(directory + filename, unpack=True)
+        electrodeData = np.loadtxt(os.path.join(directory, filename), unpack=True)
         print "loaded electrode "+ str(elecIndex) +  " in " + str(time.time()-t0)
 
         return electrodeData
@@ -400,10 +397,10 @@ class Bundle(object):
         # get the whole CAP, can be single electrode or multiple
         directory = get_directory_name("CAP", self.basePath)
         try:
-            newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+            newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
             print 'No CAP calculation has been performed yet with this set of parameters.'
-            quit()
+            return
 
         CAPraw = np.transpose(np.loadtxt(newestFile))
         time = CAPraw[0,:]
@@ -416,7 +413,7 @@ class Bundle(object):
         # get the whole CAP, can be signle electrode or multiple
         directory = get_directory_name("V", self.basePath)
         try:
-            newestFile = max(glob.iglob(directory+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+            newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
             print 'No voltage calculation has been performed yet with this set of parameter.'
             return
@@ -539,12 +536,12 @@ class Bundle(object):
 
         number = 0
         filenameTemp = filename
-        while os.path.isfile(directory+filenameTemp):
+        while os.path.isfile(os.path.join(directory, filenameTemp)):
             number += 1
             # print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
             filenameTemp = str(number).zfill(5) + filename
 
-        self.filename = directory+filenameTemp
+        self.filename = os.path.join(directory, filenameTemp)
 
         return self.filename
 

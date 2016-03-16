@@ -24,18 +24,18 @@ else:
           "not be compiled")
 
 setup(
-    name = "PyPN    ",
+    name = "PyPN",
     version = "0.1.0",
     maintainer = "Carl Lubba",
     maintainer_email = 'c.lubba15@imperial.ac.uk',
     packages = ['PyPN'],
-    #url='http://github.io',
-    # download_url = 'https://github.com/LFPy/LFPy/tarball/v1.1.1',
+    #url='',
+    # download_url = '',
     # license='LICENSE',
     description='A module for simulating bundles of axons built on NEURON and LFPy',
-    #long_description=long_description,
+    #long_description=,
     install_requires = [
-        'numpy', 'scipy', 'matplotlib', 'neuron', 'Cython' #,'LFPy'
+        'numpy', 'scipy', 'matplotlib', 'neuron', 'Cython','LFPy'
         ],
     provides = ['PyPN'],
     )
