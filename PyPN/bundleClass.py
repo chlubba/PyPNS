@@ -159,60 +159,139 @@ class Bundle(object):
 
         # self.stim = Stimulus(self.stim_type,self.axons[i], delay[i],self.stim_dur,self.amp, self.freq,self.duty_cycle, self.stim_coord, self.waveform)
 
+    def draw_sample(self, distName, params, size=1):
+
+        if distName=='constant':
+            # take fixed diameter
+
+            diam = np.multiply(np.ones(size),params)
+
+        elif distName=='manual':
+            # draw from distribution provided as diameter and density arrays
+
+            # get diameter distribution
+            densities = params['densities']
+            diameters = params['diameters']
+
+            # normalize it
+            sum_d = float(sum(densities))
+            normalize_densities = [x / sum_d for x in densities]
+
+            # draw one diameter value from the distribution
+            diamIndex = np.random.choice(len(normalize_densities), size, p = normalize_densities)
+            diam = diameters[diamIndex]
+
+        else:
+            # draw from theoretical distribution
+
+            dist = getattr(np.random, distName)
+            diam = dist(*params, size=size)
+
+            diam = max(0, diam)
+
+        return diam
+
+
     def get_diam(self, axonType):
 
         if axonType == 'm':
-            givenDiameter = self.myelinated_A['fiberD']
 
-            if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
-                return givenDiameter
-            elif isinstance(givenDiameter, dict):
-                # get diameter distribution
-                fiberD = self.myelinated_A['fiberD']
-                densities = fiberD['densities']
+            fiberDef = self.myelinated_A['fiberD']
 
-                # normalize it
-                sum_d = float(sum(densities))
-                normalize_densities = [x / sum_d for x in densities]
+            if isinstance(fiberDef, dict):
 
-                # draw one diameter value from the distribution
-                draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+                distName = fiberDef['distName']
+                params = fiberDef['params']
 
-                # why add 2.8?
-                axonD = fiberD['diameters'][draw_diam]+2.8
-
-                # choose the closest from existing axonD
-                axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
-                diff_axonD = [abs(x-axonD) for x in axonD_choices]
-                fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
-                fiberD = fiberD_choices[np.argmin(diff_axonD)]
-                diam = fiberD
+                drawnDiam = self.draw_sample(distName, params, size=1)
+            elif isinstance(fiberDef, float) or isinstance(fiberDef, int):
+                drawnDiam = fiberDef
             else:
-                raise('Something is wrong with your given axon diameter for myelinated axons.')
+                print 'Fiber diameter definition for myelinated axons not valid.'
+                quit()
 
-        elif  axonType == 'u':
-            givenDiameter = self.unmyelinated['fiberD']
+            # choose the closest from existing axonD
+            fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
+            diff_axonD = [abs(x - drawnDiam) for x in fiberD_choices]
 
-            if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
-                return givenDiameter
-            elif isinstance(givenDiameter, dict):
-                fiberD = self.unmyelinated['fiberD']
-                densities = fiberD['densities']
+            diam = fiberD_choices[np.argmin(diff_axonD)]
 
-                sum_d = float(sum(densities))
-                normalize_densities = [x / sum_d for x in densities]
+        elif axonType == 'u':
 
-                draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-                D = fiberD['diameters'][draw_diam]
-                diam = D
+            fiberDef = self.unmyelinated['fiberD']
+
+            if isinstance(fiberDef, dict):
+
+                distName = fiberDef['distName']
+                params = fiberDef['params']
+
+                diam = self.draw_sample(distName, params, size=1)
+
+            elif isinstance(fiberDef, float) or isinstance(fiberDef, int):
+                diam = fiberDef
             else:
-                raise('Something is wrong with your given axon diameter for unmyelinated axons.')
-
-
+                print 'Fiber diameter definition for unmyelinated axons not valid.'
+                quit()
         else:
-            raise('Wrong axon type given to function get_diam. Valid ones: u or m')
+            print 'Invalid axon type given to getDiam function.'
+            quit()
 
         return diam
+
+    # def get_diam(self, axonType):
+    #
+    #     if axonType == 'm':
+    #         givenDiameter = self.myelinated_A['fiberD']
+    #
+    #         if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
+    #             return givenDiameter
+    #         elif isinstance(givenDiameter, dict):
+    #             # get diameter distribution
+    #             fiberD = self.myelinated_A['fiberD']
+    #             densities = fiberD['densities']
+    #
+    #             # normalize it
+    #             sum_d = float(sum(densities))
+    #             normalize_densities = [x / sum_d for x in densities]
+    #
+    #             # draw one diameter value from the distribution
+    #             draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+    #
+    #             # why add 2.8?
+    #             axonD = fiberD['diameters'][draw_diam]+2.8
+    #
+    #             # choose the closest from existing axonD
+    #             axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
+    #             diff_axonD = [abs(x-axonD) for x in axonD_choices]
+    #             fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
+    #             fiberD = fiberD_choices[np.argmin(diff_axonD)]
+    #             diam = fiberD
+    #         else:
+    #             raise('Something is wrong with your given axon diameter for myelinated axons.')
+    #
+    #     elif  axonType == 'u':
+    #         givenDiameter = self.unmyelinated['fiberD']
+    #
+    #         if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
+    #             return givenDiameter
+    #         elif isinstance(givenDiameter, dict):
+    #             fiberD = self.unmyelinated['fiberD']
+    #             densities = fiberD['densities']
+    #
+    #             sum_d = float(sum(densities))
+    #             normalize_densities = [x / sum_d for x in densities]
+    #
+    #             draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
+    #             D = fiberD['diameters'][draw_diam]
+    #             diam = D
+    #         else:
+    #             raise('Something is wrong with your given axon diameter for unmyelinated axons.')
+    #
+    #
+    #     else:
+    #         raise('Wrong axon type given to function get_diam. Valid ones: u or m')
+    #
+    #     return diam
     
     def add_excitation_mechanism(self, mechanism):
         self.excitationMechanisms.append(mechanism)
