@@ -1,7 +1,21 @@
 import os
 import glob
 
-def get_bundle_directory(elecCount, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
+def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
+
+    elecCount = len(paramDict['recordingElecPos'])
+    dt=paramDict['timeRes']
+    tStop = paramDict['tStop']
+    p_A = paramDict['p_A']
+    L = paramDict['lengthOfBundle']
+    numberOfAxons = paramDict['numberOfAxons']
+
+    myelinated_A = paramDict['myelinated_A']
+    unmyelinated = paramDict['unmyelinated']
+
+    unmyelinatedDiam = unmyelinated['fiberD']
+    myelinatedDiam = myelinated_A['fiberD']
+
 
     homeDirectory="results"#"/media/carl/4ECC-1C44/PyPN/"#""#
 
@@ -30,7 +44,7 @@ def get_bundle_directory(elecCount, dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, 
         quit()
 
     #concatenate strings
-    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+' '+poleString
+    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+' nAxons='+str(numberOfAxons)+' '+poleString
     pathString = os.path.join(homeDirectory, pathStringNoStim) # +stimulusPathString
 
     # find bundle index

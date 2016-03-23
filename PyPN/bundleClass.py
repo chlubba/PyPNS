@@ -81,11 +81,11 @@ class Bundle(object):
 
         self.build_disk(self.numberOfAxons,self.radiusBundle)
 
-        self.saveParams={'elecCount': len(self.recordingElecPos), 'dt': timeRes, 'tStop': tStop, 'p_A': self.p_A,
-                    'myelinatedDiam': self.myelinated_A['fiberD'], 'unmyelinatedDiam': self.unmyelinated['fiberD'],
-                    'L': self.bundleLength}
+        self.saveParams={'recordingElecPos': self.recordingElecPos, 'timeRes': timeRes, 'tStop': tStop, 'p_A': self.p_A,
+                    'myelinated_A': myelinated_A, 'unmyelinated': unmyelinated,
+                    'lengthOfBundle': lengthOfBundle, 'numberOfAxons' : numberOfAxons}
 
-        self.basePath = get_bundle_directory(new = True, **self.saveParams)
+        self.basePath = get_bundle_directory(self.saveParams, new = True)
 
         # create axon-specific color
         jet = plt.get_cmap('Paired')
@@ -222,8 +222,12 @@ class Bundle(object):
 
             if isinstance(fiberDef, dict):
 
-                distName = fiberDef['distName']
-                params = fiberDef['params']
+                if 'distName' in fiberDef.keys():
+                    distName = fiberDef['distName']
+                    params = fiberDef['params']
+                else:
+                    distName = 'manual'
+                    params = fiberDef
 
                 diam = self.draw_sample(distName, params, size=1)
 

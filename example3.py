@@ -14,29 +14,16 @@ timeRes=0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 2000
-numberOfAxons = 1
+numberOfAxons = 10
 
 # create a guide, the axons will follow
 segmentLengthAxon = 10
 bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
 
-# here the distributions of myelinated and unmyelinated axon diameters are defined
-myelinatedDistribution = {
-    'densities':[100,300,1150,2750,3650,2850,1750,900,500,250,200,150,110,100,110,100,105], #fibers densities can be given either in No/mm2 or percentage
-    'diameters': [ 1., 1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 5.5, 6., 6.5, 7.,7.5, 8., 8.5, 9.],  # corresponding diameters for each densities
-}
-unmyelinatedDistribution = {
-    'densities':[250,1250,5000,8000,9800,10200,8900,7600,5700,4000,3900,2300,2000,1300,900,750,600,600,500,250], #fibers densities can be given either in No/mm2 or percentage
-    'diameters': [ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.], # corresponding diameters for each densities
-}
-
-# definition of properties of spontaeous spiking on axons
-upstreamSpikingDict = { 'lambd' : 500, # mean number of pulses per second
-                        'correlation' : 0.1, # pairwise corrleation between neurons
-                        'tStart' : 0,
-                        'tStop' : tStop,
-                        'nAxons' : numberOfAxons
-}
+# set the diameter distribution or fixed value
+myelinatedDiam = {'distName' : 'gamma',
+                  'params' : (6,2)}
+unmyelinatedDiam = 1
 
 # definition of the stimulation type of the axon
 stimulusParameters = {  'stimType': "INTRA", #Stimulation type either "INTRA" or "EXTRA"
@@ -57,19 +44,19 @@ recordingParameters = { 'numberContactPoints': 8, # Number of points on the circ
 }
 
 # axon parameters
-myelinatedParametersA = {'fiberD': myelinatedDistribution, # um Axon diameter (5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0)
+myelinatedParametersA = {'fiberD': myelinatedDiam, # um Axon diameter (5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0)
 }
 
 # axon parameters
-unmyelinatedParameters = {'fiberD': unmyelinatedDistribution, # um Axon diameter
+unmyelinatedParameters = {'fiberD': unmyelinatedDiam, # um Axon diameter
 }
 
 # set all properties of the bundle
 bundleParameters = {    'radiusBundle': 150, #um Radius of the bundle (typically 0.5-1.5mm)
                         'lengthOfBundle': lengthOfBundle, # um Axon length
                         'numberOfAxons': numberOfAxons, # Number of axons in the bundle
-                        'p_A': 0.1, # Percentage of myelinated fiber type A
-                        'p_C': 0.9, #Percentage of unmyelinated fiber type C
+                        'p_A': 0.5, # Percentage of myelinated fiber type A
+                        'p_C': 0.5, #Percentage of unmyelinated fiber type C
                         'myelinated_A': myelinatedParametersA, #parameters for fiber type A
                         'unmyelinated': unmyelinatedParameters, #parameters for fiber type C
                         'bundleGuide' : bundleGuide,
@@ -84,11 +71,6 @@ if calculationFlag:
 
     # create the bundle with all properties of axons and recording setup
     bundle = PyPN.Bundle(**Parameters)
-
-    # create the wanted mechanisms of how to cause spikes on the axons
-    # continuous spiking
-    if upstreamSpikingOn:
-        bundle.add_excitation_mechanism(PyPN.UpstreamSpiking(**upstreamSpikingDict))
 
     # spiking through a single electrical stimulation
     if electricalStimulusOn:
