@@ -242,7 +242,7 @@ class Bundle(object):
             print 'Invalid axon type given to getDiam function.'
             quit()
 
-        return diam
+        return round(diam,1)
 
     # def get_diam(self, axonType):
     #
@@ -329,6 +329,8 @@ class Bundle(object):
 
             print "\nStarting simulation of axon " + str(axonIndex)
 
+            tStart = time.time()
+
             axon = self.axons[axonIndex]
 
             # where is the axon
@@ -360,36 +362,54 @@ class Bundle(object):
                 self.trec.record(h._ref_t)
 
             # take time of simulation
-            temp = time.time()
+            t0 = time.time()
 
+
+            print 'Calculating voltage and membrane current...',
             # actually start simulation of selected axon
             axon.simulate()
 
-            elapsed1 = time.time()-temp
-            print "Elapsed time calculate voltage and membrane current: " + str(elapsed1)
+            elapsedVI = time.time()-t0
+            print('%.2f s' % elapsedVI)
 
+            print 'Calculating extracellular potential...',
             # take time for LFPy calculation
-            temp = time.time()
+            t0 = time.time()
 
             # shut down the output, always errors at the end because membrane current too high
             with silencer.nostdout():
                 self.electrodes.append(LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters))
 
             # calculate LFP by LFPy from membrane current
-            self.electrodes[axonIndex].calc_lfp()
+            with silencer.nostdout():
+                self.electrodes[axonIndex].calc_lfp()
 
-            elapsed2 = time.time()-temp
-            print "Elapsed time to calculate LFP from membrane current:" + str(elapsed2)
+            elapsedLFP = time.time()-t0
+            print('%.2f s' % elapsedLFP)
 
+            print 'Saving extracellular recordings to disk...',
+            # take time for saving process
+            t0 = time.time()
             self.save_electrode(axonIndex)
+            elapsedSaveLFP = time.time()-t0
+            print('%.2f s' % elapsedSaveLFP)
+
             self.electrodes[axonIndex]= None
             self.CAP_to_file = True
 
-            # self.voltages.append(axon.vreclist)
+            print 'Saving membrane potential recordings to disk...',
+            # save voltage to file and take time
+            t0 = time.time()
             self.save_voltage_to_file_axonwise(axon.vreclist, axonIndex)
+            elapsedSaveV = time.time()-t0
+            print('%.2f s' % elapsedSaveV)
 
             # delete the object
             axon.delete_neuron_object()
+
+            elapsedAxon = time.time()-tStart
+
+            print ("Overall processing of axon %i took %.2f s. ( %.2f %% saving.)" % (axonIndex, elapsedAxon, (elapsedSaveV + elapsedSaveLFP)/elapsedAxon*100))
 
 
     def store_geometry(self):
@@ -398,7 +418,7 @@ class Bundle(object):
     def save_electrode(self,i):
         directory = get_directory_name("elec", self.basePath)
 
-        print "Saving extracellular potential of axon "+str(i)+" to disk."
+        # print "Saving extracellular potential of axon "+str(i)+" to disk."
 
         if i==0:
             if not os.path.exists(directory):
@@ -419,11 +439,13 @@ class Bundle(object):
 
         t0 = time.time()
         electrodeData = np.loadtxt(os.path.join(directory, filename), unpack=True)
-        print "loaded electrode "+ str(elecIndex) +  " in " + str(time.time()-t0)
+        print ("Loaded electrode %i in %.2f s." % (elecIndex, time.time()-t0))
 
         return electrodeData
 
     def save_CAP_to_file(self):
+
+        t0 = time.time()
 
         DataOut = np.array(self.trec)
         DataOut = np.column_stack( (DataOut, np.transpose(np.array(self.sum_CAP))))
@@ -446,6 +468,8 @@ class Bundle(object):
         print "Save location for single axon differentiated CAP file: " + filename
 
         np.savetxt(filename, DataOut)
+
+        print 'CAP saved in ' + str(time.time()-t0) + 's.'
 
     def clear_CAP_vars(self):
         self.AP_axonwise = None
@@ -629,7 +653,8 @@ class Bundle(object):
                     self.AP_axonwise[elecIndex,:] = sumOverContactPoints
 
         elapsed = time.time()-temp
-        print "Elapsed time to compute CAP " + str(elapsed) + " \n"
+
+        print ("Elapsed time to compute CAP %.2f \n" % elapsed)
 
 
     def setup_recording_elec(self):

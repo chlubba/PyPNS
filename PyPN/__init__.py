@@ -10,5 +10,5 @@ import PyPN.createGeometry
 # plotting
 import PyPN.plotBundleClass as plot
 
-# paths
-from PyPN.nameSetters import get_bundle_directory
+# paths and open/ save
+from PyPN.nameSetters import get_bundle_directory, save_bundle, open_recent_bundle

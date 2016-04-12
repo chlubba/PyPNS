@@ -1,8 +1,13 @@
 import os
 import glob
+import cPickle as pickle
 
-def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
+def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
 
+    # define here the root of the PyPN file system
+    homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#"results"#
+
+    # read out dictionary of parameters (more elegant methon possible?)
     elecCount = len(paramDict['recordingElecPos'])
     dt=paramDict['timeRes']
     tStop = paramDict['tStop']
@@ -16,10 +21,7 @@ def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, p_A=0, myeli
     unmyelinatedDiam = unmyelinated['fiberD']
     myelinatedDiam = myelinated_A['fiberD']
 
-
-    homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#"results"#
-
-    # prepare single parameter values for string insertion
+    # further process save parameters
     p_C = 1 - p_A
 
     # if stimType in ["EXTRA", "INTRA", "NONE"]:
@@ -55,6 +57,7 @@ def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, p_A=0, myeli
             versionIndex += 1
             folderName = 'bundle'+str(versionIndex).zfill(5)
         finalBasePath = os.path.join(pathString, folderName)
+        os.makedirs(finalBasePath)
     else:
         try:
             latestFolder = max(glob.iglob(os.path.join(pathString,'')+'bundle*'), key=os.path.getmtime)
@@ -63,6 +66,7 @@ def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, p_A=0, myeli
             return ''
 
         finalBasePath = latestFolder
+
 
     return finalBasePath
 
@@ -115,3 +119,18 @@ def get_file_name(recordingType, basePath, newFile=True, directoryType=False):
 
 
         return filename
+
+def save_bundle(bundle):
+
+    # save the bundle definition file
+    bundleSaveLocation = bundle.basePath
+    pickle.dump(bundle,open( os.path.join(bundleSaveLocation, 'bundle.cl'), "wb" ))
+
+def open_recent_bundle(Parameters):
+    bundleSaveLocation = get_bundle_directory(Parameters, new=False)
+    try:
+        bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))
+    except:
+        print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
+
+    return bundle

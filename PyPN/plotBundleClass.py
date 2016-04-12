@@ -270,3 +270,34 @@ def voltage(bundle, maxNumberOfSubplots=10):
         cb1.set_label('length [um]')
 
     plt.savefig(os.path.join(bundle.basePath, 'voltage.png'))
+
+def diameterHistogram(bundle):
+    diametersM = []
+    diametersUm = []
+    for axon in bundle.axons:
+        diameter = axon.fiberD
+        if isinstance(axon, Myelinated):
+            diametersM.append(diameter)
+        else:
+            diametersUm.append(diameter)
+
+    # if only unmyelinated axons are present
+    if not diametersM and diametersUm:
+        plt.hist(diametersUm)
+        plt.title('Unmyelinated Diameters')
+    # if only myelinated axons are present
+    elif diametersM and not diametersUm:
+        plt.hist(diametersM)
+        plt.title('Myelinated Diameters')
+    # if both kinds are present
+    elif diametersM and diametersUm:
+        f, (ax1, ax2) = plt.subplots(2,1)
+
+        ax1.hist(diametersM)
+        ax1.set_title('Myelinated Diameters')
+
+        ax2.hist(diametersUm)
+        ax2.set_title('Unmyelinated Diameters')
+    # whoops, no axons?
+    else:
+        print 'No axons in bundle. Cannot plot their diameters.'

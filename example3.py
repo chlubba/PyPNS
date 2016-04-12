@@ -14,15 +14,15 @@ timeRes=0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 200
-numberOfAxons = 2
+numberOfAxons = 4
 
 # create a guide, the axons will follow
 segmentLengthAxon = 10
 bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
 
 # set the diameter distribution or fixed value
-myelinatedDiam = .2 # {'distName' : 'gamma', 'params' : (6,2)}
-unmyelinatedDiam = 0.1
+myelinatedDiam = {'distName' : 'normal', 'params' : (4, 1)} # .2 #
+unmyelinatedDiam = {'distName' : 'normal', 'params' : (2, 0.5)} # .2 #
 
 # definition of the stimulation type of the axon
 stimulusParameters = {  'stimType': "INTRA", #Stimulation type either "INTRA" or "EXTRA"
@@ -78,23 +78,19 @@ if calculationFlag:
     # run the simulation
     bundle.simulate()
 
-    # save the bundle definition file
-    bundleSaveLocation = bundle.basePath
-    pickle.dump(bundle,open( os.path.join(bundleSaveLocation, 'bundle.cl'), "wb" ))
+    # save the bundle disk
+    PyPN.save_bundle(bundle)
 else:
-    bundleSaveLocation = PyPN.get_bundle_directory(Parameters, new = False)
-    try:
-        bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))
-    except:
-        print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
-        quit()
+    # try to open a bundle with the
+    bundle = PyPN.open_recent_bundle(Parameters)
 
-# plot geometry, voltage in axon and extracellular recording
+# plot geometry, intra and extracellular recording, axon diameters
 print '\nStarting to plot'
 PyPN.plot.geometry(bundle)
 PyPN.plot.CAP1D_singleAxon(bundle, 10)
 PyPN.plot.CAP1D(bundle)
 PyPN.plot.voltage(bundle)
+PyPN.plot.diameterHistogram(bundle)
 
 # import matplotlib2tikz as mtz
 # mtz.save('CAP.tex')
