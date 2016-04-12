@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import cPickle as pickle
 import os
 
-calculationFlag = True # run simulation or load latest bundle with this parameters (not all taken into account for identification)
+calculationFlag = False # run simulation or load latest bundle with this parameters (not all taken into account for identification)
 
 upstreamSpikingOn = False
 electricalStimulusOn = True
@@ -13,8 +13,8 @@ tStop=30
 timeRes=0.0025
 
 # set length of bundle and number of axons
-lengthOfBundle = 2000
-numberOfAxons = 50
+lengthOfBundle = 200
+numberOfAxons = 2
 
 # create a guide, the axons will follow
 segmentLengthAxon = 10

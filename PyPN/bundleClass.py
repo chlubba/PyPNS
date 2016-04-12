@@ -385,9 +385,8 @@ class Bundle(object):
             self.electrodes[axonIndex]= None
             self.CAP_to_file = True
 
-            # test if voltages can be recorded on the side
             # self.voltages.append(axon.vreclist)
-            self.save_voltage_to_file_axonwise(axon.vreclist)
+            self.save_voltage_to_file_axonwise(axon.vreclist, axonIndex)
 
             # delete the object
             axon.delete_neuron_object()
@@ -452,29 +451,49 @@ class Bundle(object):
         self.AP_axonwise = None
         self.CAP = None
 
-    def save_voltage_to_file_axonwise(self, vreclist):
+    def save_voltage_to_file_axonwise(self, vreclist, axonIndex):
 
-        filename = get_file_name("V", self.basePath, newFile=False)
+        # generate axon specific file name (a little clumsy, directory
+        filename = get_file_name("V"+str(axonIndex), self.basePath, directoryType='V')
 
-        # append voltages to file to save memory usage. Open file first with mode ab (append, binary)
-        f=open(filename,'ab')
-
+        # transform NEURON voltage vector to numpy array
         voltageSingleAxon = np.transpose(np.array(vreclist))
 
-        # append the sectionlength in the first column in order to differentiate different axons later
+        # append the sectionlength in the first column for later processing
+        # in fact this is not needed now anymore because we have single files for each axon
         numberOfSegments = np.shape(voltageSingleAxon)[1]
         numberOfSegmentsArray = np.multiply(np.ones(numberOfSegments), np.array(numberOfSegments))
         voltageSingleAxonFormatted = np.row_stack((numberOfSegmentsArray, voltageSingleAxon))
         voltageSingleAxonFormatted = np.transpose(voltageSingleAxonFormatted)
 
-        if os.stat(filename).st_size == 0:
-            firstLine = np.transpose(np.concatenate(([0],np.array(self.trec))))
-            dataOut = np.row_stack( (firstLine, voltageSingleAxonFormatted))
-            np.savetxt(f, dataOut)
-        else:
-            np.savetxt(f, voltageSingleAxonFormatted)
+        # add the time vector as the first list
+        firstLine = np.transpose(np.concatenate(([0],np.array(self.trec))))
+        dataOut = np.row_stack((firstLine, voltageSingleAxonFormatted))
+        np.savetxt(filename, dataOut)
 
-        f.close()
+    # def save_voltage_to_file_axonwise(self, vreclist, axonIndex):
+    #
+    #     filename = get_file_name("V", self.basePath, newFile=False)
+    #
+    #     # append voltages to file to save memory usage. Open file first with mode ab (append, binary)
+    #     f=open(filename,'ab')
+    #
+    #     voltageSingleAxon = np.transpose(np.array(vreclist))
+    #
+    #     # append the sectionlength in the first column in order to differentiate different axons later
+    #     numberOfSegments = np.shape(voltageSingleAxon)[1]
+    #     numberOfSegmentsArray = np.multiply(np.ones(numberOfSegments), np.array(numberOfSegments))
+    #     voltageSingleAxonFormatted = np.row_stack((numberOfSegmentsArray, voltageSingleAxon))
+    #     voltageSingleAxonFormatted = np.transpose(voltageSingleAxonFormatted)
+    #
+    #     if os.stat(filename).st_size == 0:
+    #         firstLine = np.transpose(np.concatenate(([0],np.array(self.trec))))
+    #         dataOut = np.row_stack( (firstLine, voltageSingleAxonFormatted))
+    #         np.savetxt(f, dataOut)
+    #     else:
+    #         np.savetxt(f, voltageSingleAxonFormatted)
+    #
+    #     f.close()
 
 
     def get_CAP_from_file(self):
@@ -493,43 +512,88 @@ class Bundle(object):
 
         return time, CAP
 
-
     def get_voltage_from_file(self):
-        # get the whole CAP, can be signle electrode or multiple
+
+        # get the voltage
         directory = get_directory_name("V", self.basePath)
+
+        # check if calculations have been made
         try:
             newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
-            print 'No voltage calculation has been performed yet with this set of parameter.'
+            print 'No voltage calculation has been performed yet with this set of parameters.'
             return
 
-        # load the raw voltage file
+        # load the all voltage files
         timeStart = time.time()
-        Vraw = np.loadtxt(newestFile)
+
+        # iterate over all single axon voltage files
+        voltageMatrices = []
+        for axonIndex in range(0,self.numberOfAxons):
+
+            # get axon specific file name (of existing file)
+            filename = get_file_name("V"+str(axonIndex), self.basePath, newFile=False, directoryType='V')
+
+            Vraw = np.loadtxt(filename)
+
+            timeRec = Vraw[0,1:] # extract time vector
+            segmentArray = Vraw[1:,0] # extract segment numbers for each axon (varies with diameter, lambda rule)
+            V = Vraw[1:,1:] # free actual voltage signals from surrounding formatting
+
+            # # separate the axons, first get segment counts for each axon
+            # segmentNumbers = [segmentArray[0]]
+            # indexNextFirstEntry = segmentNumbers[0]
+            # while indexNextFirstEntry < len(segmentArray):
+            #     segmentNumbers.append(segmentArray[indexNextFirstEntry])
+            #     indexNextFirstEntry += segmentNumbers[-1]
+            #
+            # numberOfAxons = len(segmentNumbers)
+            #
+            # firstIndices = np.cumsum((np.insert(segmentNumbers,0,0)))
+            #
+
+            voltageMatrices.append(V)
+
         print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
 
-        timeRec = Vraw[0,1:] # extract time vector
-        segmentArray = Vraw[1:,0] # extract segment numbers for each axon (varies with diameter, lambda rule)
-        V = Vraw[1:,1:] # free actual voltage signals from surrounding formatting
-
-        # separate the axons, first get segment counts for each axon
-        segmentNumbers = [segmentArray[0]]
-        indexNextFirstEntry = segmentNumbers[0]
-        while indexNextFirstEntry < len(segmentArray):
-            segmentNumbers.append(segmentArray[indexNextFirstEntry])
-            indexNextFirstEntry += segmentNumbers[-1]
-
-        numberOfAxons = len(segmentNumbers)
-
-        firstIndices = np.cumsum((np.insert(segmentNumbers,0,0)))
-
-        voltageMatrices = []
-        for i in range(numberOfAxons):
-            startIndex = firstIndices[i]
-            endIndex = firstIndices[i+1]-1
-            voltageMatrices.append(V[startIndex:endIndex,:])
-
         return timeRec, voltageMatrices
+
+    # def get_voltage_from_file(self):
+    #     # get the voltage
+    #     directory = get_directory_name("V", self.basePath)
+    #     try:
+    #         newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+    #     except ValueError:
+    #         print 'No voltage calculation has been performed yet with this set of parameters.'
+    #         return
+    #
+    #     # load the raw voltage file
+    #     timeStart = time.time()
+    #     Vraw = np.loadtxt(newestFile)
+    #     print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
+    #
+    #     timeRec = Vraw[0,1:] # extract time vector
+    #     segmentArray = Vraw[1:,0] # extract segment numbers for each axon (varies with diameter, lambda rule)
+    #     V = Vraw[1:,1:] # free actual voltage signals from surrounding formatting
+    #
+    #     # separate the axons, first get segment counts for each axon
+    #     segmentNumbers = [segmentArray[0]]
+    #     indexNextFirstEntry = segmentNumbers[0]
+    #     while indexNextFirstEntry < len(segmentArray):
+    #         segmentNumbers.append(segmentArray[indexNextFirstEntry])
+    #         indexNextFirstEntry += segmentNumbers[-1]
+    #
+    #     numberOfAxons = len(segmentNumbers)
+    #
+    #     firstIndices = np.cumsum((np.insert(segmentNumbers,0,0)))
+    #
+    #     voltageMatrices = []
+    #     for i in range(numberOfAxons):
+    #         startIndex = firstIndices[i]
+    #         endIndex = firstIndices[i+1]-1
+    #         voltageMatrices.append(V[startIndex:endIndex,:])
+    #
+    #     return timeRec, voltageMatrices
 
     def compute_CAP_fromfiles(self):
         temp = time.time()

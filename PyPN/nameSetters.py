@@ -92,9 +92,12 @@ def get_directory_name(keyword, basePath):
 
     return finalCombinedPath
 
-def get_file_name(recordingType, basePath, newFile=True):
+def get_file_name(recordingType, basePath, newFile=True, directoryType=False):
 
-        directory = get_directory_name(recordingType, basePath)
+        if isinstance(directoryType, bool):
+            directory = get_directory_name(recordingType, basePath)
+        else:
+            directory = get_directory_name(directoryType, basePath)
 
         # filename = 'recording.dat'
         filename = recordingType+'.dat'
@@ -107,6 +110,8 @@ def get_file_name(recordingType, basePath, newFile=True):
                 # print "Be careful this file name already exist! We concatenate a number to the name to avoid erasing your previous file."
                 filenameTemp = str(number).zfill(5) + filename
 
+
         filename = os.path.join(directory,filenameTemp)
+
 
         return filename
