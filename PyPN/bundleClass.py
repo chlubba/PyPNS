@@ -210,11 +210,13 @@ class Bundle(object):
                 print 'Fiber diameter definition for myelinated axons not valid.'
                 quit()
 
-            # choose the closest from existing axonD
-            fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
-            diff_axonD = [abs(x - drawnDiam) for x in fiberD_choices]
+            # # choose the closest from existing axonD
+            # fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
+            # diff_axonD = [abs(x - drawnDiam) for x in fiberD_choices]
+            #
+            # diam = fiberD_choices[np.argmin(diff_axonD)]
 
-            diam = fiberD_choices[np.argmin(diff_axonD)]
+            diam = drawnDiam
 
         elif axonType == 'u':
 

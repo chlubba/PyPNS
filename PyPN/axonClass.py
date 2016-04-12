@@ -530,6 +530,45 @@ McIntyre CC, Richardson AG, and Grill WM. Modeling the excitability of
 mammalian nerve fibers: influence of afterpotentials on the recovery
 cycle. Journal of Neurophysiology 87:995-1006, 2002.
 ----------------------------------------------------------------------*/'''
+
+def createMyelinatedParaFits():
+
+    # we will extrapolate the McIntyre data in order to obtain arbitrary myelinated axon diameters
+
+    # these values come directly from the McIntyre publication
+    diams = [5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.]
+    nodeNodeSep = [500, 760, 1000, 1150, 1250, 1350, 1400, 1450, 1500]
+    noLamella = [80, 100, 110, 120, 130, 135, 140, 145, 150]
+    nodeDiam = [1.9, 2.4, 2.8, 3.3, 3.7, 4.2, 4.7, 5., 5.5]
+    # MYSADiam = nodeDiam
+    FLUTLen = [35, 38, 40, 46, 50, 54, 56, 58, 60]
+    FLUTDiam = [3.4, 4.6, 5.8, 6.9, 8.1, 9.2, 10.4, 11.5, 12.7]
+    STINLen = [70.5, 111.2, 152.2, 175.2, 190.5, 205.8, 213.5, 221.2, 228.8]
+    # STIDiam = FLUTDiam
+
+    zNodeSep = np.polyfit(diams, nodeNodeSep, 1)
+    pNodeSep = np.poly1d(zNodeSep)
+
+    zNoLamella = np.polyfit(diams, noLamella, 1)
+    pNoLamella = np.poly1d(zNoLamella)
+
+    # diameters are fitted quadratically because linear fit results in negative values
+    zNodeDiam = np.polyfit(diams, nodeDiam, 2)
+    pNodeDiam = np.poly1d(zNodeDiam)
+
+    zFLUTLen = np.polyfit(diams, FLUTLen, 1)
+    pFLUTLen = np.poly1d(zFLUTLen)
+
+    zSTINLen = np.polyfit(diams, STINLen, 1)
+    pSTINLen = np.poly1d(zSTINLen)
+
+    # diameters are fitted quadratically because linear fit results in negative values
+    zFLUTDiam = np.polyfit(diams, FLUTDiam, 2)
+    pFLUTDiam = np.poly1d(zFLUTDiam)
+
+    return pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam
+
+
 class Myelinated(Axon):
     """
     name: axon name (for neuron)
@@ -545,6 +584,24 @@ class Myelinated(Axon):
     paralength2: set the length of the second paranode segment followed by the internodes segments
     interlength: set the length of the internode part comprising the 6 segments between two paranodes2
     """
+
+    # static variables containing the fitted functions for diameter, node distances, etc.
+    pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam = createMyelinatedParaFits()
+
+    def getFittedMcIntyreParams(self, diameter):
+
+        axonD=Myelinated.pFLUTDiam(diameter)
+        nodeD=Myelinated.pNodeDiam(diameter)
+        paraD1=nodeD
+        paraD2=axonD
+        deltax=round(Myelinated.pNodeSep(diameter))
+        paralength2=Myelinated.pFLUTLen(diameter)
+        nl=np.round(Myelinated.pNoLamella(diameter))
+        interlength=int(round(Myelinated.pSTINLen(diameter)))
+        g=axonD/diameter
+
+        return axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, interlength, g
+
     def __init__(self, fiberD, coord, tStop, timeRes, temperature=40, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
         super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes)
 
@@ -565,87 +622,89 @@ class Myelinated(Axon):
         self.mygm=0.001 #S/cm2/lamella membrane
 
 
-        if (self.fiberD==5.7):
-            g=0.605
-            axonD=3.4
-            nodeD=1.9
-            paraD1=1.9
-            paraD2=3.4
-            deltax=500
-            self.paralength2=35
-            nl=80
-        if (self.fiberD==7.3):
-            g=0.630
-            axonD=4.6
-            nodeD=2.4
-            paraD1=2.4
-            paraD2=4.6
-            deltax=750
-            self.paralength2=38
-            nl=100
-        if (self.fiberD==8.7):
-            g=0.661
-            axonD=5.8
-            nodeD=2.8
-            paraD1=2.8
-            paraD2=5.8
-            deltax=1000
-            self.paralength2=40
-            nl=110
-        if (self.fiberD==10.0):
-            g=0.690
-            axonD=6.9
-            nodeD=3.3
-            paraD1=3.3
-            paraD2=6.9
-            deltax=1150
-            self.paralength2=46
-            nl=120
-        if (self.fiberD==11.5):
-            g=0.700
-            axonD=8.1
-            nodeD=3.7
-            paraD1=3.7
-            paraD2=8.1
-            deltax=1250
-            self.paralength2=50
-            nl=130
-        if (self.fiberD==12.8):
-            g=0.719
-            axonD=9.2
-            nodeD=4.2
-            paraD1=4.2
-            paraD2=9.2
-            deltax=1350
-            self.paralength2=54
-            nl=135
-        if (self.fiberD==14.0):
-            g=0.739
-            axonD=10.4
-            nodeD=4.7
-            paraD1=4.7
-            paraD2=10.4
-            deltax=1400
-            self.paralength2=56
-            nl=140
-        if (self.fiberD==15.0):
-            g=0.767
-            axonD=11.5
-            nodeD=5.0
-            paraD1=5.0
-            paraD2=11.5
-            deltax=1450
-            self.paralength2=58
-            nl=145
-        if (self.fiberD==16.0):
-            g=0.791
-            axonD=12.7
-            nodeD=5.5
-            paraD1=5.5
-            paraD2=12.7
-            deltax=1500
-            self.paralength2=60
-            nl=150
+        axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, interlength, g = self.getFittedMcIntyreParams(self.fiberD)
+
+        # if (self.fiberD==5.7):
+        #     g=0.605
+        #     axonD=3.4
+        #     nodeD=1.9
+        #     paraD1=1.9
+        #     paraD2=3.4
+        #     deltax=500
+        #     self.paralength2=35
+        #     nl=80
+        # if (self.fiberD==7.3):
+        #     g=0.630
+        #     axonD=4.6
+        #     nodeD=2.4
+        #     paraD1=2.4
+        #     paraD2=4.6
+        #     deltax=750
+        #     self.paralength2=38
+        #     nl=100
+        # if (self.fiberD==8.7):
+        #     g=0.661
+        #     axonD=5.8
+        #     nodeD=2.8
+        #     paraD1=2.8
+        #     paraD2=5.8
+        #     deltax=1000
+        #     self.paralength2=40
+        #     nl=110
+        # if (self.fiberD==10.0):
+        #     g=0.690
+        #     axonD=6.9
+        #     nodeD=3.3
+        #     paraD1=3.3
+        #     paraD2=6.9
+        #     deltax=1150
+        #     self.paralength2=46
+        #     nl=120
+        # if (self.fiberD==11.5):
+        #     g=0.700
+        #     axonD=8.1
+        #     nodeD=3.7
+        #     paraD1=3.7
+        #     paraD2=8.1
+        #     deltax=1250
+        #     self.paralength2=50
+        #     nl=130
+        # if (self.fiberD==12.8):
+        #     g=0.719
+        #     axonD=9.2
+        #     nodeD=4.2
+        #     paraD1=4.2
+        #     paraD2=9.2
+        #     deltax=1350
+        #     self.paralength2=54
+        #     nl=135
+        # if (self.fiberD==14.0):
+        #     g=0.739
+        #     axonD=10.4
+        #     nodeD=4.7
+        #     paraD1=4.7
+        #     paraD2=10.4
+        #     deltax=1400
+        #     self.paralength2=56
+        #     nl=140
+        # if (self.fiberD==15.0):
+        #     g=0.767
+        #     axonD=11.5
+        #     nodeD=5.0
+        #     paraD1=5.0
+        #     paraD2=11.5
+        #     deltax=1450
+        #     self.paralength2=58
+        #     nl=145
+        # if (self.fiberD==16.0):
+        #     g=0.791
+        #     axonD=12.7
+        #     nodeD=5.5
+        #     paraD1=5.5
+        #     paraD2=12.7
+        #     deltax=1500
+        #     self.paralength2=60
+        #     nl=150
 
         self.g = g
         self.axonD = axonD
@@ -653,6 +712,7 @@ class Myelinated(Axon):
         self.paraD1 = paraD1
         self.paraD2 = paraD2
         self.deltax = deltax
+        self.paralength2 = paralength2
         self.nl = nl
 
         self.Rpn0=(self.rhoa*0.01)/(math.pi*((math.pow((self.nodeD/2)+self.space_p1,2))-(math.pow(nodeD/2,2))))

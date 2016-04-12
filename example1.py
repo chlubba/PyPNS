@@ -8,7 +8,7 @@ timeRes=0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 2000
-numberOfAxons = 30
+numberOfAxons = 1
 
 # create a guide, the axons will follow
 segmentLengthAxon = 10

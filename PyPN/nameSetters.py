@@ -17,7 +17,7 @@ def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, p_A=0, myeli
     myelinatedDiam = myelinated_A['fiberD']
 
 
-    homeDirectory="results"#"/media/carl/4ECC-1C44/PyPN/"#""#
+    homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#"results"#
 
     # prepare single parameter values for string insertion
     p_C = 1 - p_A
