@@ -4,6 +4,7 @@ import LFPy
 import numpy as np # for arrays managing
 import math
 import os
+from scipy import interpolate
 
 import createGeometry
 
@@ -16,7 +17,7 @@ class Axon(object):
     # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
 
 
-    def __init__(self, layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes):
+    def __init__(self, layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments):
         self.layout3D = layout3D
         self.rec_v = rec_v
         self.name = name
@@ -32,6 +33,7 @@ class Axon(object):
         self.temperature = temperature # set temperature in celsius
         self.tStop = tStop # set simulation duration (ms)
         self.timeRes = timeRes # set time step (ms)
+        self.numberOfSavedSegments = numberOfSavedSegments
 
         self.create_cell_props_for_LFPy(tStop, timeRes)
 
@@ -167,10 +169,10 @@ class Axon(object):
 
         for sec in self.allseclist:
             # address the problem of the important number of segments necessary to compute the accurate AP propagation in the unmyelinated axon case
-            if sec.nseg > 100:
-                for i in range(1,101):
+            if sec.nseg > self.numberOfSavedSegments:
+                for i in range(1,self.numberOfSavedSegments+1):
                     vrec = h.Vector(int(h.tstop/h.dt+1))
-                    vrec.record(sec(float(i)/100)._ref_v)
+                    vrec.record(sec(float(i)/self.numberOfSavedSegments)._ref_v)
                     self.vreclist.append(vrec)
             else:
                 for seg in sec:
@@ -349,8 +351,8 @@ class Unmyelinated(Axon):
     # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
     # rec_v: set voltage recorders True or False
 
-    def __init__(self, fiberD, coord, tStop, timeRes, temperature=33, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
-        super(Unmyelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes)
+    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=33, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
+        super(Unmyelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments)
 
         self.L = createGeometry.length_from_coords(coord)
         self.cm = cm
@@ -546,6 +548,41 @@ def createMyelinatedParaFits():
     STINLen = [70.5, 111.2, 152.2, 175.2, 190.5, 205.8, 213.5, 221.2, 228.8]
     # STIDiam = FLUTDiam
 
+    # diamsMYSA = [0., 1., 1., 1., 16., 30, 40, 60, 80, 100.]
+    # MYSALen = np.multiply([0.4, 0.7, 0.7, 0.7, 1, 1, 1, 1, 1, 1], 2.9)
+    #
+    # zMYSALen = np.polyfit(diamsMYSA, MYSALen, 5)
+    # pMYSALen = np.poly1d(zMYSALen)
+
+    shrinkingFactorMYSA = 0.4
+    shrinkingFactorNode = shrinkingFactorMYSA
+
+    diamsMYSA = [0., 16.]
+    MYSALen = np.multiply([shrinkingFactorMYSA, 1], 3)
+
+    zMYSALen = np.polyfit(diamsMYSA, MYSALen, 1)
+    pMYSALen = np.poly1d(zMYSALen)
+
+    diamsNode = [0., 16.]
+    NodeLen = np.multiply([shrinkingFactorNode, 1], 1)
+
+    # new
+
+    diamsMYSA = [           0.,     0.25,   0.5,    0.75,   1.,     16.]
+    MYSALen = np.multiply([ 0.15,    0.55,   0.6,    0.7,    0.8,    1], 3)
+
+    MYSASpline = interpolate.splrep(diamsMYSA, MYSALen, k=1)
+
+    diamsNode =             [0.,    0.25,   0.5,    0.75,   1.,     16.]
+    NodeLen = np.multiply(  [0.15,   0.45,   0.55,   0.6,    0.7,    1], 1)
+
+    NodeSpline = interpolate.splrep(diamsNode, NodeLen, k=1)
+
+    # end new
+
+    zNodeLen = np.polyfit(diamsNode, NodeLen, 1)
+    pNodeLen = np.poly1d(zNodeLen)
+
     zNodeSep = np.polyfit(diams, nodeNodeSep, 1)
     pNodeSep = np.poly1d(zNodeSep)
 
@@ -566,7 +603,7 @@ def createMyelinatedParaFits():
     zFLUTDiam = np.polyfit(diams, FLUTDiam, 2)
     pFLUTDiam = np.poly1d(zFLUTDiam)
 
-    return pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam
+    return pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam, pMYSALen, pNodeLen, MYSASpline, NodeSpline
 
 
 class Myelinated(Axon):
@@ -586,7 +623,7 @@ class Myelinated(Axon):
     """
 
     # static variables containing the fitted functions for diameter, node distances, etc.
-    pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam = createMyelinatedParaFits()
+    pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam, pMYSALen, pNodeLen, MYSASpline, nodeSpline = createMyelinatedParaFits()
 
     def getFittedMcIntyreParams(self, diameter):
 
@@ -597,21 +634,116 @@ class Myelinated(Axon):
         deltax=round(Myelinated.pNodeSep(diameter))
         paralength2=Myelinated.pFLUTLen(diameter)
         nl=np.round(Myelinated.pNoLamella(diameter))
-        interlength=int(round(Myelinated.pSTINLen(diameter)))
+        # interlength=int(round(Myelinated.pSTINLen(diameter)))
         g=axonD/diameter
 
-        return axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, interlength, g
+        return axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl,  g # interlength,
 
-    def __init__(self, fiberD, coord, tStop, timeRes, temperature=40, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
-        super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes)
+    def getOriginalMcIntyreParams(self, diameter):
+
+        # find diameter closest to give nones in McIntyre's paper
+        possibleDiams = np.array([5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.])
+        diffArray = np.abs(np.subtract(possibleDiams, diameter))
+        diameterIndex = diffArray.argmin()
+
+        fiberD = possibleDiams[diameterIndex]
+
+        if (fiberD==5.7):
+            g=0.605
+            axonD=3.4
+            nodeD=1.9
+            paraD1=1.9
+            paraD2=3.4
+            deltax=500
+            paralength2=35
+            nl=80
+        if (fiberD==7.3):
+            g=0.630
+            axonD=4.6
+            nodeD=2.4
+            paraD1=2.4
+            paraD2=4.6
+            deltax=750
+            paralength2=38
+            nl=100
+        if (fiberD==8.7):
+            g=0.661
+            axonD=5.8
+            nodeD=2.8
+            paraD1=2.8
+            paraD2=5.8
+            deltax=1000
+            paralength2=40
+            nl=110
+        if (fiberD==10.0):
+            g=0.690
+            axonD=6.9
+            nodeD=3.3
+            paraD1=3.3
+            paraD2=6.9
+            deltax=1150
+            paralength2=46
+            nl=120
+        if (fiberD==11.5):
+            g=0.700
+            axonD=8.1
+            nodeD=3.7
+            paraD1=3.7
+            paraD2=8.1
+            deltax=1250
+            paralength2=50
+            nl=130
+        if (fiberD==12.8):
+            g=0.719
+            axonD=9.2
+            nodeD=4.2
+            paraD1=4.2
+            paraD2=9.2
+            deltax=1350
+            paralength2=54
+            nl=135
+        if (fiberD==14.0):
+            g=0.739
+            axonD=10.4
+            nodeD=4.7
+            paraD1=4.7
+            paraD2=10.4
+            deltax=1400
+            paralength2=56
+            nl=140
+        if (fiberD==15.0):
+            g=0.767
+            axonD=11.5
+            nodeD=5.0
+            paraD1=5.0
+            paraD2=11.5
+            deltax=1450
+            paralength2=58
+            nl=145
+        if (fiberD==16.0):
+            g=0.791
+            axonD=12.7
+            nodeD=5.5
+            paraD1=5.5
+            paraD2=12.7
+            deltax=1500
+            paralength2=60
+            nl=150
+
+        return axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g
+
+    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=40, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
+        super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments)
 
         self.v_init = -80
+
+        self.endOverlap = 7 # number of axon segments after last node
 
         print 'Myelinated fiber diameter: ' + str(self.fiberD)
 
         # morphological parameters
-        self.paralength1=3
-        self.nodelength=1.0
+        self.paralength1=3 # MYSA length
+        self.nodelength=1.0 # node length
         self.space_p1=0.002
         self.space_p2=0.004
         self.space_i=0.004
@@ -622,89 +754,13 @@ class Myelinated(Axon):
         self.mygm=0.001 #S/cm2/lamella membrane
 
 
-        axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, interlength, g = self.getFittedMcIntyreParams(self.fiberD)
+        axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getFittedMcIntyreParams(self.fiberD) # interlength,
+        # self.paralength1 = Myelinated.pMYSALen(self.fiberD)
+        # self.nodelength = Myelinated.pNodeLen(self.fiberD)
+        self.paralength1 = interpolate.splev(self.fiberD, Myelinated.MYSASpline)
+        self.nodelength = interpolate.splev(self.fiberD, Myelinated.nodeSpline)
 
-        # if (self.fiberD==5.7):
-        #     g=0.605
-        #     axonD=3.4
-        #     nodeD=1.9
-        #     paraD1=1.9
-        #     paraD2=3.4
-        #     deltax=500
-        #     self.paralength2=35
-        #     nl=80
-        # if (self.fiberD==7.3):
-        #     g=0.630
-        #     axonD=4.6
-        #     nodeD=2.4
-        #     paraD1=2.4
-        #     paraD2=4.6
-        #     deltax=750
-        #     self.paralength2=38
-        #     nl=100
-        # if (self.fiberD==8.7):
-        #     g=0.661
-        #     axonD=5.8
-        #     nodeD=2.8
-        #     paraD1=2.8
-        #     paraD2=5.8
-        #     deltax=1000
-        #     self.paralength2=40
-        #     nl=110
-        # if (self.fiberD==10.0):
-        #     g=0.690
-        #     axonD=6.9
-        #     nodeD=3.3
-        #     paraD1=3.3
-        #     paraD2=6.9
-        #     deltax=1150
-        #     self.paralength2=46
-        #     nl=120
-        # if (self.fiberD==11.5):
-        #     g=0.700
-        #     axonD=8.1
-        #     nodeD=3.7
-        #     paraD1=3.7
-        #     paraD2=8.1
-        #     deltax=1250
-        #     self.paralength2=50
-        #     nl=130
-        # if (self.fiberD==12.8):
-        #     g=0.719
-        #     axonD=9.2
-        #     nodeD=4.2
-        #     paraD1=4.2
-        #     paraD2=9.2
-        #     deltax=1350
-        #     self.paralength2=54
-        #     nl=135
-        # if (self.fiberD==14.0):
-        #     g=0.739
-        #     axonD=10.4
-        #     nodeD=4.7
-        #     paraD1=4.7
-        #     paraD2=10.4
-        #     deltax=1400
-        #     self.paralength2=56
-        #     nl=140
-        # if (self.fiberD==15.0):
-        #     g=0.767
-        #     axonD=11.5
-        #     nodeD=5.0
-        #     paraD1=5.0
-        #     paraD2=11.5
-        #     deltax=1450
-        #     self.paralength2=58
-        #     nl=145
-        # if (self.fiberD==16.0):
-        #     g=0.791
-        #     axonD=12.7
-        #     nodeD=5.5
-        #     paraD1=5.5
-        #     paraD2=12.7
-        #     deltax=1500
-        #     self.paralength2=60
-        #     nl=150
+        # axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getOriginalMcIntyreParams(self.fiberD)
 
         self.g = g
         self.axonD = axonD
@@ -730,13 +786,15 @@ class Myelinated(Axon):
         self.L = createGeometry.length_from_coords(coord)
 
         # number of nodes
-        self.axonnodes = int(math.ceil(self.L/self.lengthOneCycle))
+        # self.axonnodes = int(math.ceil(self.L/self.lengthOneCycle))
+        self.axonnodes = int(math.ceil(self.L/self.lengthOneCycle)) - 1 # substract one for overlap
 
         # number of remaining sections
         self.paranodes1= 2*(self.axonnodes-1)
         self.paranodes2= 2*(self.axonnodes-1)
         self.axoninter= 6*(self.axonnodes-1)
-        self.axontotal= self.axonnodes+self.paranodes1+self.paranodes2+self.axoninter
+        # self.axontotal= self.axonnodes+self.paranodes1+self.paranodes2+self.axoninter
+        self.axontotal= self.axonnodes+self.paranodes1+self.paranodes2+self.axoninter + self.endOverlap
 
     def createSingleNode(self, nodeType):
 
@@ -841,11 +899,15 @@ class Myelinated(Axon):
 
         # iterate through nodes in the way they are ordered in the axon in order to have an ordered allsectionlist
         nodeSequence = ['n', 'm', 'f', 's', 's', 's', 's', 's', 's', 'f', 'm']
+        endSequence = nodeSequence[0:self.endOverlap+1] # add some
         for i in range(self.axonnodes-1):
             for j in range(len(nodeSequence)):
                 nodeType = nodeSequence[j]
                 self.createSingleNode(nodeType)
-        self.createSingleNode('n')
+        for j in range(len(endSequence)):
+            nodeType = endSequence[j]
+            self.createSingleNode(nodeType)
+        # self.createSingleNode('n')
 
         if (self.layout3D == "DEFINE_SHAPE"):
             for i in range(self.axonnodes-1):
