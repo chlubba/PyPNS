@@ -271,6 +271,99 @@ def voltage(bundle, maxNumberOfSubplots=10):
 
     plt.savefig(os.path.join(bundle.basePath, 'voltage.png'))
 
+def voltage_one_myelinated_axon(bundle, myelinatedIndex=0):
+
+    timeRec, voltageMatrices = bundle.get_voltage_from_file()
+
+    # now plot
+    numberOfAxons = np.shape(voltageMatrices)[0]
+    if myelinatedIndex >= numberOfAxons:
+        print 'voltage_one_myelinated_axon: Axon index too high'
+        return
+    elif myelinatedIndex < 0:
+        print 'voltage_one_myelinated_axon: Axon index <0 given.'
+        return
+
+    # first search through neurons. This function is for myelinated ones only.
+    myelinatedIndexTemp = 0
+    axonIndex = 0
+    selectedAxon = []
+    for axon in bundle.axons:
+        # find out whether axon is myelinated or not
+        isMyelinated = (type(bundle.axons[axonIndex]) == Myelinated)
+
+        if myelinatedIndexTemp == myelinatedIndex:
+            selectedAxon = axon
+            break
+
+        if isMyelinated:
+            myelinatedIndex += 1
+
+        axonIndex += 1
+    if selectedAxon == None:
+        print 'Select axon index between 0 and ' + str(myelinatedIndex)
+        return
+
+
+    # extract appropriate voltages from matrix
+    voltageMatrix = np.transpose(voltageMatrices[axonIndex])
+
+    # get some fiber properties
+    axonDiameter = selectedAxon.fiberD
+    # numberOfSegments = np.shape(voltageMatrix)[1]
+    axonLength = selectedAxon.L
+    Nnodes = bundle.axons[axonIndex].axonnodes
+    # numberOfRecordingSites = np.shape(voltageMatrix)[1]
+    nodeDistance = bundle.axons[axonIndex].lengthOneCycle
+
+    f, axarr = plt.subplots(11,1)
+
+    # colors
+    jet = plt.get_cmap('jet')
+    cNorm = colors.Normalize(vmin=0, vmax=int(axonLength)-1)
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+
+
+    nodePositions = range(0,(Nnodes-1)*11,11)
+
+    segmentNames = ['node', 'MYSA', 'FLUT', 'STIN', 'STIN', 'STIN', 'STIN', 'STIN', 'STIN', 'FLUT', 'MYSA']
+
+    for i in range(11):
+
+        currentAxis = axarr[i]
+
+        stepFromNode = i
+
+        positions = np.add(nodePositions, stepFromNode) # np.sort(np.concatenate((np.add(nodePositions, 1), np.add(nodePositions, -1))))
+
+        counter = 0
+        for j in positions:
+            colorVal = scalarMap.to_rgba(int(counter * nodeDistance))
+            currentAxis.plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
+            counter += 1
+
+        # currentAxis.set_title('Voltage of segment ' + str(stepFromNode) + ' step(s) behind node of myelinated axon with diameter ' + str(axonDiameter) + ' um')
+        if i == 0:
+            currentAxis.set_title(segmentNames[i] + ', axon diameter = ' + str(axonDiameter) + 'um')
+        else:
+            currentAxis.set_title(segmentNames[i])
+
+        currentAxis.set_ylabel('Voltage [mV]')
+        currentAxis.set_xlabel('time [ms]')
+
+    # make room for colorbar
+    f.subplots_adjust(right=0.8)
+
+    # add colorbar axis
+    axColorbar = f.add_axes([0.85, 0.15, 0.05, 0.7])
+
+    cb1 = mpl.colorbar.ColorbarBase(axColorbar, cmap=jet,
+                                    norm=cNorm,
+                                    orientation='vertical')
+    cb1.set_label('length [um]')
+
+    plt.savefig(os.path.join(bundle.basePath, 'voltage.png'))
+
 def diameterHistogram(bundle):
     diametersM = []
     diametersUm = []

@@ -2,7 +2,7 @@ from PyPN.bundleClass import Bundle
 
 # excitation mechanisms
 from PyPN.upstreamSpikingClass import UpstreamSpiking
-from PyPN.stimulusClass import Stimulus
+from PyPN.stimulusClass import Stimulus, SimpleIClamp
 
 # geometry
 import PyPN.createGeometry

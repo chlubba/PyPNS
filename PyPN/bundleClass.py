@@ -369,6 +369,14 @@ class Bundle(object):
             # take time of simulation
             t0 = time.time()
 
+            # # caution, test wise change of fast potassium channel conductance
+            # h('forall for (x,0) if (ismembrane("axflut")) gkbar_axflut(x) = 0') # .16
+            # h('forall for (x,0) if (ismembrane("axnode")) gkbar_axnode(x) = 0.005') # .16
+
+            # here we correct the conductance of the slow potassium channel from 0.08 S/cm2 to 0.12 S/cm2 to prevent
+            # multiple action potentials for thin fibers
+            h('forall for (x,0) if (ismembrane("axnode")) gkbar_axnode(x) = 0.12') # .16
+
 
             print 'Calculating voltage and membrane current...',
             # actually start simulation of selected axon
@@ -474,7 +482,8 @@ class Bundle(object):
 
         np.savetxt(filename, DataOut)
 
-        print 'CAP saved in ' + str(time.time()-t0) + 's.'
+        # print 'CAP saved in ' + str(time.time()-t0) + 's.'
+        print ("CAP saved in %.2f s." % (time.time()-t0))
 
     def clear_CAP_vars(self):
         self.AP_axonwise = None
@@ -559,7 +568,8 @@ class Bundle(object):
 
             voltageMatrices.append(V)
 
-        print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
+        # print 'Elapsed time to load voltage file ' + str(time.time() - timeStart) + 's'
+        print ("Elapsed time to load voltage file  %.2f s." % (time.time()-timeStart))
 
         return timeRec, voltageMatrices
 
@@ -663,7 +673,7 @@ class Bundle(object):
 
         return self.filename
 
-    def conduction_velocities(self):
+    def conduction_velocities(self, saveToFile=False, plot=True):
 
         voltageMatricesTime =  self.get_voltage_from_file()
 
@@ -674,10 +684,12 @@ class Bundle(object):
 
         diameterArrayMyel = []
         meanVelocityArrayMyel = []
+        medianVelocityArrayMyel = []
         stdVelocityArrayMyel = []
 
         diameterArrayUnmyel = []
         meanVelocityArrayUnmyel = []
+        medianVelocityArrayUnmyel = []
         stdVelocityArrayUnmyel = []
 
         # iterate over all axons
@@ -760,38 +772,59 @@ class Bundle(object):
             velCut = velocities[minIndex:maxIndex]
 
             meanVelocity = velCut.mean()
+            medianVelocity = np.median(velCut)
             stdVelocity = velCut.std()
 
             if isinstance(axon, Myelinated):
                 meanVelocityArrayMyel.append(meanVelocity)
+                medianVelocityArrayMyel.append(medianVelocity)
                 stdVelocityArrayMyel.append(stdVelocity)
             else:
                 meanVelocityArrayUnmyel.append(meanVelocity)
+                medianVelocityArrayUnmyel.append(medianVelocity)
                 stdVelocityArrayUnmyel.append(stdVelocity)
 
             # plt.plot(velocities)
             # plt.title('axon diameter '+str(axon.fiberD)+ ' um')
             # plt.show()
 
+        if plot:
+            f, (ax1, ax2) = plt.subplots(1,2)
+            ax1.scatter(diameterArrayMyel, meanVelocityArrayMyel, label='mean')
+            ax1.scatter(diameterArrayMyel, medianVelocityArrayMyel, label='median', color='red')
+            ax1.errorbar(diameterArrayMyel, meanVelocityArrayMyel, yerr=stdVelocityArrayMyel, linestyle='None')
+            ax1.set_title('Conduction velocity of myelinated axons')
+            ax1.set_xlabel('Diameter [um]')
+            ax1.set_ylabel('Conduction velocity [m/s]')
+            ax1.legend()
+
+            ax2.scatter(diameterArrayUnmyel, meanVelocityArrayUnmyel, label='mean')
+            ax2.scatter(diameterArrayUnmyel, medianVelocityArrayUnmyel, label='median')
+            ax2.errorbar(diameterArrayUnmyel, meanVelocityArrayUnmyel, yerr=stdVelocityArrayUnmyel, linestyle='None')
+            ax2.set_title('Conduction velocity of unmyelinated axons')
+            ax2.set_xlabel('Diameter [um]')
+            ax2.set_ylabel('Conduction velocity [m/s]')
+            ax2.legend()
+
+            # plt.show()
 
 
+        # pack for return values
+        myelinatedDict = {'diams': diameterArrayMyel,
+                          'meanVelocity': meanVelocityArrayMyel,
+                          'medianVelocity': medianVelocityArrayMyel,
+                          'stdVelocity': stdVelocityArrayMyel}
 
+        unmyelinatedDict = {'diams': diameterArrayUnmyel,
+                            'meanVelocity': meanVelocityArrayUnmyel,
+                          'medianVelocity': medianVelocityArrayUnmyel,
+                          'stdVelocity': stdVelocityArrayUnmyel}
 
+        returnDict = {'myel': myelinatedDict,
+                      'unmyel': unmyelinatedDict}
 
-        f, (ax1, ax2) = plt.subplots(1,2)
-        ax1.scatter(diameterArrayMyel, meanVelocityArrayMyel)
-        ax1.errorbar(diameterArrayMyel, meanVelocityArrayMyel, yerr=stdVelocityArrayMyel, linestyle='None')
-        ax1.set_title('Conduction velocity of myelinated axons')
-        ax1.set_xlabel('Diameter [um]')
-        ax1.set_ylabel('Conduction velocity [m/s]')
+        if saveToFile:
+            pickle.dump(returnDict,open( os.path.join(self.basePath, 'conductionVelocities.dict'), "wb" ))
 
-        ax2.scatter(diameterArrayUnmyel, meanVelocityArrayUnmyel)
-        ax2.errorbar(diameterArrayUnmyel, meanVelocityArrayUnmyel, yerr=stdVelocityArrayUnmyel, linestyle='None')
-        ax2.set_title('Conduction velocity of unmyelinated axons')
-        ax2.set_xlabel('Diameter [um]')
-        ax2.set_ylabel('Conduction velocity [m/s]')
-
-        plt.show()
-
-
+        return returnDict
 

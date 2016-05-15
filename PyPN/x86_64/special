@@ -10,4 +10,4 @@ if test "" = "yes" ; then
 else
 	NRNIV="${NRNBIN}nrniv"
 fi
-"${NRNIV}" -dll "/home/carl/PyCharmProjects/PNPyGit/PyPN/x86_64/.libs/libnrnmech.so" "$@"
+"${NRNIV}" -dll "/home/carl/PyCharmProjects/PyPN/PyPN/x86_64/.libs/libnrnmech.so" "$@"

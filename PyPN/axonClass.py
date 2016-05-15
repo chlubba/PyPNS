@@ -161,6 +161,16 @@ class Axon(object):
                 memirec = h.Vector(int(h.tstop/h.dt +1))
                 memirec.record(seg._ref_i_membrane)
                 self.memireclist.append(memirec)
+
+        # # test if this works
+        # self.ikflutlist = []
+        # for sec in self.allseclist:
+        #     if
+        #     for seg in sec:
+        #         memirec = h.Vector(int(h.tstop/h.dt +1))
+        #         memirec.record(seg.ikf)
+        #         self.memireclist.append(memirec)
+
     def set_voltage_recorders(self):
 
         # Record voltage for all segments (not from LFPy sources)
@@ -566,19 +576,18 @@ def createMyelinatedParaFits():
     diamsNode = [0., 16.]
     NodeLen = np.multiply([shrinkingFactorNode, 1], 1)
 
-    # new
+    # # new
+    #
+    # diamsMYSA = [           0.,     0.25,   0.5,    0.75,   1.,     16.]
+    # MYSALen = np.multiply([ 0.15,    0.55,   0.6,    0.7,    0.8,    1], 3)
+    #
+    # MYSASpline = interpolate.splrep(diamsMYSA, MYSALen, k=1)
+    #
+    # diamsNode =             [0.,    0.25,   0.5,    0.75,   1.,     16.]
+    # NodeLen = np.multiply(  [0.15,   0.45,   0.55,   0.6,    0.7,    1], 1)
+    #
+    # NodeSpline = interpolate.splrep(diamsNode, NodeLen, k=1)
 
-    diamsMYSA = [           0.,     0.25,   0.5,    0.75,   1.,     16.]
-    MYSALen = np.multiply([ 0.15,    0.55,   0.6,    0.7,    0.8,    1], 3)
-
-    MYSASpline = interpolate.splrep(diamsMYSA, MYSALen, k=1)
-
-    diamsNode =             [0.,    0.25,   0.5,    0.75,   1.,     16.]
-    NodeLen = np.multiply(  [0.15,   0.45,   0.55,   0.6,    0.7,    1], 1)
-
-    NodeSpline = interpolate.splrep(diamsNode, NodeLen, k=1)
-
-    # end new
 
     zNodeLen = np.polyfit(diamsNode, NodeLen, 1)
     pNodeLen = np.poly1d(zNodeLen)
@@ -603,7 +612,7 @@ def createMyelinatedParaFits():
     zFLUTDiam = np.polyfit(diams, FLUTDiam, 2)
     pFLUTDiam = np.poly1d(zFLUTDiam)
 
-    return pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam, pMYSALen, pNodeLen, MYSASpline, NodeSpline
+    return pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam, pMYSALen, pNodeLen # , MYSASpline, NodeSpline
 
 
 class Myelinated(Axon):
@@ -623,7 +632,7 @@ class Myelinated(Axon):
     """
 
     # static variables containing the fitted functions for diameter, node distances, etc.
-    pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam, pMYSALen, pNodeLen, MYSASpline, nodeSpline = createMyelinatedParaFits()
+    pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam, pMYSALen, pNodeLen = createMyelinatedParaFits() # , MYSASpline, nodeSpline
 
     def getFittedMcIntyreParams(self, diameter):
 
@@ -732,7 +741,7 @@ class Myelinated(Axon):
 
         return axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g
 
-    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=40, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
+    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=37, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
         super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments)
 
         self.v_init = -80
@@ -755,10 +764,11 @@ class Myelinated(Axon):
 
 
         axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getFittedMcIntyreParams(self.fiberD) # interlength,
-        # self.paralength1 = Myelinated.pMYSALen(self.fiberD)
-        # self.nodelength = Myelinated.pNodeLen(self.fiberD)
-        self.paralength1 = interpolate.splev(self.fiberD, Myelinated.MYSASpline)
-        self.nodelength = interpolate.splev(self.fiberD, Myelinated.nodeSpline)
+        # axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getOriginalMcIntyreParams(self.fiberD) # interlength,
+        # # # self.paralength1 = Myelinated.pMYSALen(self.fiberD)
+        # # # self.nodelength = Myelinated.pNodeLen(self.fiberD)
+        # self.paralength1 = interpolate.splev(self.fiberD, Myelinated.MYSASpline)
+        # self.nodelength = interpolate.splev(self.fiberD, Myelinated.nodeSpline)
 
         # axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getOriginalMcIntyreParams(self.fiberD)
 
@@ -839,6 +849,9 @@ class Myelinated(Axon):
             MYSA.xc[1] = self.mycm/(self.nl*2)
             MYSA.insert('xtra')
 
+            # Attention, this is experimental. But e.g. in Roper and Schwarz 1989 'paranode regions' should also comprise MYSA segments in this model.
+            # MYSA.insert('axflut') # self-made potassium channel with parameters from McIntyre et al. 2014 CNS data
+
             self.MYSAs.append(MYSA)
             self.allseclist.append(sec=MYSA)
 
@@ -862,6 +875,8 @@ class Myelinated(Axon):
             FLUT.xc[1] = self.mycm/(self.nl*2)
             FLUT.insert('xtra')
 
+            FLUT.insert('axflut') # self-made potassium channel with parameters from McIntyre et al. 2014 CNS data
+
             self.FLUTs.append(FLUT)
             self.allseclist.append(sec=FLUT)
 
@@ -884,6 +899,9 @@ class Myelinated(Axon):
             STIN.xc[0] = self.mycm/(self.nl*2)
             STIN.xc[1] = self.mycm/(self.nl*2)
             STIN.insert('xtra')
+
+            # # CAREFUL, this does not really belong here.
+            # STIN.insert('axflut') # self-made potassium channel with parameters from McIntyre et al. 2014 CNS data
 
             self.STINs.append(STIN)
             self.allseclist.append(sec=STIN)

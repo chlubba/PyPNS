@@ -73,3 +73,29 @@ class Stimulus(ExcitationMechanism):
 
     def delete_neuron_objects(self):
         self.svec = None
+
+
+class SimpleIClamp(ExcitationMechanism):
+
+    def __init__(self, delay, stimDur, amplitude):
+
+        self.delay = delay
+        self.stimDur = stimDur
+        self.amplitude = amplitude
+
+
+    def connect_axon(self, axon):
+
+        # Place an IClamp on the first element of the allseclist
+        # In unmyelinated axon case allseclist is directly the unique axon section
+
+        stim = h.IClamp(0, axon.allseclist)
+        stim.delay = self.delay
+        stim.dur = self.stimDur
+        stim.amp = self.amplitude
+
+        excitationMechanismVars = [stim]
+        axon.append_ex_mech_vars(excitationMechanismVars)
+
+    def delete_neuron_objects(self):
+        pass
