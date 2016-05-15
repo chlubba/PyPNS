@@ -285,22 +285,22 @@ def voltage_one_myelinated_axon(bundle, myelinatedIndex=0):
         return
 
     # first search through neurons. This function is for myelinated ones only.
-    myelinatedIndexTemp = 0
+    myelinatedIndexTemp = -1
     axonIndex = 0
     selectedAxon = []
     for axon in bundle.axons:
         # find out whether axon is myelinated or not
         isMyelinated = (type(bundle.axons[axonIndex]) == Myelinated)
 
+        if isMyelinated:
+            myelinatedIndexTemp += 1
+
         if myelinatedIndexTemp == myelinatedIndex:
             selectedAxon = axon
             break
 
-        if isMyelinated:
-            myelinatedIndex += 1
-
         axonIndex += 1
-    if selectedAxon == None:
+    if selectedAxon == []:
         print 'Select axon index between 0 and ' + str(myelinatedIndex)
         return
 
