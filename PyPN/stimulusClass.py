@@ -1,6 +1,7 @@
 from neuron import h
 import numpy as np
 import math
+from scipy import signal
 from excitationMechanismClass import *
 
 class Stimulus(ExcitationMechanism):
@@ -17,7 +18,7 @@ class Stimulus(ExcitationMechanism):
     stim_coord=[xe,ye,ze]: spatial coordinates  of the stimulating electrode
     waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
     """
-    def __init__(self, stimType, stimDur, amplitude, frequency, dutyCycle, radiusBundle, waveform, tStop, timeRes):
+    def __init__(self, stimType, stimDur, amplitude, frequency, dutyCycle, radiusBundle, waveform, timeRes, delay=0):
 
         self.waveform = waveform
         self.stimType = stimType
@@ -30,22 +31,34 @@ class Stimulus(ExcitationMechanism):
         self.frequency = frequency
         self.amplitude = amplitude
         self.dutyCycle = dutyCycle
+        self.delay = delay
 
         self.timeRes = timeRes
-        self.tStop = tStop
 
-        self.t = np.linspace(0, self.stimDur, (tStop+2*timeRes)/timeRes, endpoint=True)
+        # self.t = np.linspace(0, self.stimDur, (tStop+2*timeRes)/timeRes, endpoint=True)
+        self.t = np.arange(0, self.stimDur, timeRes)
 
-        cut_off = math.sin((-self.dutyCycle+1.0/2)*math.pi)
-        if self.waveform == "MONOPHASIC":
-            self.signal = self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*(self.t)))
-        elif self.waveform == "BIPHASIC":
-            self.signal = self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*self.t))-self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*(self.t+self.dutyCycle/self.frequency)))
+        if self.waveform == 'MONOPHASIC':
+            self.stimulusSignal = self.amplitude * 0.5 * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle) + self.amplitude * 0.5
+        elif self.waveform == 'BIPHASIC':
+            self.stimulusSignal = self.amplitude * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle)
         else:
             print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
-            self.signal = self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*(self.t)))
+            self.stimulusSignal = self.amplitude * 0.5 * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle) + self.amplitude * 0.5
 
-        self.svec = h.Vector(self.signal)
+        # # add delay
+        # self.stimulusSignalDelayed = np.concatenate((np.zeros(self.delay/timeRes), self.stimulusSignal))
+
+        # cut_off = math.sin((-self.dutyCycle+1.0/2)*math.pi)
+        # if self.waveform == "MONOPHASIC":
+        #     self.signal = self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*(self.t)))
+        # elif self.waveform == "BIPHASIC":
+        #     self.signal = self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*self.t))-self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*(self.t+self.dutyCycle/self.frequency)))
+        # else:
+        #     print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
+        #     self.signal = self.amplitude*(cut_off < np.sin(2*math.pi*self.frequency*(self.t)))
+
+        self.svec = h.Vector(self.stimulusSignal)
 
     def connect_axon(self, axon):
         if self.stimType == "INTRA":
@@ -61,7 +74,7 @@ class Stimulus(ExcitationMechanism):
         # In unmyelinated axon case allseclist is directly the unique axon section
 
         stim = h.IClamp(0, axon.allseclist)
-        stim.delay = 0
+        stim.delay = self.delay
         stim.dur = self.stimDur
         self.svec.play(stim._ref_amp, self.timeRes)
 

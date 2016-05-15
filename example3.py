@@ -25,25 +25,26 @@ bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segm
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
 # 5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.
-myelinatedDiam =  .2 # 0.3 # {'distName' : 'uniform', 'params' : (5.1, 16)} # .2 #
+myelinatedDiam =  10.2 # 0.3 # {'distName' : 'uniform', 'params' : (5.1, 16)} # .2 #
 unmyelinatedDiam =  {'distName' : 'uniform', 'params' : (0.1, 20)} # .2 #
 
-# # definition of the stimulation type of the axon
-# stimulusParameters = {  'stimType': "INTRA", #Stimulation type either "INTRA" or "EXTRA"
-#                         'amplitude': 1, #0.2, # 0.004, # 10., #  # Pulse amplitude (nA)
-#                         'frequency': 0.1, # Frequency of the pulse (kHz)
-#                         'dutyCycle': 0.05, # 0.05, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-#                         'stimDur' : 10, # Stimulus duration (ms)
-#                         'waveform': 'MONOPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-#                         'radiusBundle' : 150, #um
-#                         'tStop' : tStop,
-#                         'timeRes' : timeRes
-# }
 # definition of the stimulation type of the axon
-stimulusParameters = {  'delay': 5, # delay (ms)
-                        'stimDur': 0.05, # Stimulus duration (ms)
-                        'amplitude': 1.5 # 0.15 # Pulse amplitude (nA)
+stimulusParameters = {  'stimType': "INTRA", #Stimulation type either "INTRA" or "EXTRA"
+                        'amplitude': 1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (nA)
+                        'frequency': 20., # Frequency of the pulse (kHz)
+                        'dutyCycle': 1., # 0.05, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+                        'stimDur' : 0.05, # Stimulus duration (ms)
+                        'waveform': 'MONOPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+                        'radiusBundle' : 150, #um
+                        # 'tStop' : tStop,
+                        'timeRes' : timeRes,
+                        'delay': 5 # ms
 }
+# # definition of the stimulation type of the axon
+# stimulusParameters = {  'delay': 5, # delay (ms)
+#                         'stimDur': 0.05, # Stimulus duration (ms)
+#                         'amplitude': 1.5 # 0.15 # Pulse amplitude (nA)
+# }
 
 # recording parameters of the cuff electrodes
 recordingParameters = { 'numberContactPoints': 8, # Number of points on the circle constituing the cuff electrode
@@ -83,8 +84,9 @@ if calculationFlag:
 
     # spiking through a single electrical stimulation
     if electricalStimulusOn:
-        # bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
-        bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
+        stimulusInstance = PyPN.Stimulus(**stimulusParameters)
+        bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
+        # bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
 
     # run the simulation
     bundle.simulate()
