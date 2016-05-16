@@ -104,8 +104,10 @@ class Stimulus(ExcitationMechanism):
         self.stimType = stimType
 
         number_contact_points = 8
-        self.stim_coord = [[0, radiusBundle*math.cos(math.pi/number_contact_points),
-                            radiusBundle*math.sin(math.pi/number_contact_points)]]
+        angles = 2*np.pi/number_contact_points*np.arange(number_contact_points)
+        # self.stim_coord = [[0, radiusBundle*math.cos(math.pi/number_contact_points),
+        #                     radiusBundle*math.sin(math.pi/number_contact_points)]]
+        self.stim_coord = np.column_stack((np.zeros(number_contact_points), np.cos(angles), np.sin(angles)))
 
         self.stimDur = stimDur
         self.frequency = frequency

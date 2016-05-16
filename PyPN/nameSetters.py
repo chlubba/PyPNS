@@ -134,3 +134,12 @@ def open_recent_bundle(Parameters):
         print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
 
     return bundle
+
+def open_bundle_from_location(bundleSaveLocation):
+
+    try:
+        bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))
+    except:
+        print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
+
+    return bundle

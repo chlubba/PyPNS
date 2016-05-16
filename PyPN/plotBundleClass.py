@@ -45,6 +45,58 @@ def geometry(bundle):
             
     
     plt.savefig(os.path.join(bundle.basePath, 'geometry.png'))
+
+def geometry_definition(bundle, axis_equal=True):
+
+    # if len(bundle.axons[0].xmid) == 0:
+    #     print 'Bundle has not been run yet. No geometry information was generated in NEURON.'
+    #     return
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    axonID = 0
+    for axon in bundle.axons:
+        if type(axon) == Myelinated:
+            style = '--'
+        else:
+            style = '-'
+        ax.plot(axon.coord[:,0], axon.coord[:,1], axon.coord[:,2], style, color= tuple(bundle.axonColors[axonID,:])) # label='axon '+str(axonID),
+        ax.text(axon.coord[-1, 0], axon.coord[-1, 1], axon.coord[-1, 2], str(axonID))
+        axonID += 1
+    ax.plot(bundle.bundleCoords[:,0], bundle.bundleCoords[:,1], bundle.bundleCoords[:,2])#, label='bundle guide')
+    #plt.legend()
+    plt.title('Axons in space')
+
+    elecCoords = bundle.electrodeCoords
+    ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
+
+    elecPoles = len(bundle.recordingElecPos)
+    for i in range(bundle.numberElecs):
+        for j in range(elecPoles):
+            # selectionIndices = range(i+j*bundle.numberContactPoints, bundle.numberContactPoints*bundle.numberElecs + j*bundle.numberContactPoints, bundle.numberElecs)
+            selectionIndices = range((i*elecPoles+j)*bundle.numberContactPoints, bundle.numberContactPoints*(i*elecPoles+j+1))
+
+            ringCoords = elecCoords[selectionIndices,:]
+            ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
+            ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.2,0,0], linewidth=2.0)
+
+
+    if axis_equal:
+        X = bundle.bundleCoords[:,0]
+        Y = bundle.bundleCoords[:,1]
+        Z = bundle.bundleCoords[:,2]
+
+        max_range = np.array([X.max()-X.min(), Y.max()-Y.min(), Z.max()-Z.min()]).max() / 2.0
+
+        mid_x = (X.max()+X.min()) * 0.5
+        mid_y = (Y.max()+Y.min()) * 0.5
+        mid_z = (Z.max()+Z.min()) * 0.5
+        ax.set_xlim(mid_x - max_range, mid_x + max_range)
+        ax.set_ylim(mid_y - max_range, mid_y + max_range)
+        ax.set_zlim(mid_z - max_range, mid_z + max_range)
+
+    plt.savefig(os.path.join(bundle.basePath, 'geometry_definition.png'))
     
 def CAP1D_singleAxon(bundle, maxNumberOfAxons):
 

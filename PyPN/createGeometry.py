@@ -208,6 +208,25 @@ def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000)
 
     return bundleCoords
 
+def get_bundle_guide_random(bundleLength, segmentLength = 200, overlapLength=1000):
+
+    bundleLength = bundleLength + overlapLength
+
+    numBundleGuideSteps = int(np.floor(bundleLength/segmentLength))
+
+    randomDeltaX = np.random.uniform(0,2,numBundleGuideSteps)
+    randomDeltaYZ = np.random.uniform(-1,1,(numBundleGuideSteps,2))
+    randomDelta = np.column_stack((randomDeltaX, randomDeltaYZ))
+
+    for i in range(numBundleGuideSteps):
+        randomDelta[i,:] = randomDelta[i,:]/np.linalg.norm(randomDelta[i,:])
+
+    bundleGuide = np.cumsum(randomDelta,0)
+
+    bundleGuideScaled = bundleGuide*segmentLength
+
+    return bundleGuideScaled
+
 def get_bundle_guide_straight(bundleLength, segmentLengthAxon, overlapLength=1000):
 
     #length after bundle end. necessary for myelinated axons

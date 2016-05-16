@@ -102,6 +102,8 @@ class Bundle(object):
             self.create_axon(self.axons_pos[i,:])
             self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
 
+        self.setup_recording_elec()
+
     def build_disk(self,numberOfAxons,radiusBundle):
         """
         Partly from http://blog.marmakoide.org/?p=1
@@ -344,8 +346,8 @@ class Bundle(object):
             electrodeParameters = {         #parameters for RecExtElectrode class
                     'sigma' : 0.3,              #Extracellular potential
                     'x' : X,  #Coordinates of electrode contacts
-                    'y' : Y-axonPosition[0],
-                    'z' : Z-axonPosition[1],
+                    'y' : Y, # -axonPosition[0],
+                    'z' : Z, # -axonPosition[1],
                     # 'n' : 20,
                     # 'r' : 10,
                     # 'N' : N,
@@ -595,11 +597,13 @@ class Bundle(object):
             for i in range(self.numberElecs):
                 if monopolar:
                     contactPointIndices = range(self.numberContactPoints*i, self.numberContactPoints*(1+i))
-                    sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
+                    sumOverContactPoints = np.mean(electrodeData[contactPointIndices, :], 0)
+                    # sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
                 else:
                     contactPointIndicesPole1 = range(self.numberContactPoints*2*i, self.numberContactPoints*(1+2*i))
                     contactPointIndicesPole2 = range(self.numberContactPoints*(2*i+1), self.numberContactPoints*(2*(i+1)))
-                    sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
+                    sumOverContactPoints = np.mean(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
+                    # sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
 
                 self.sum_CAP[i,:] = self.sum_CAP[i,:] +  sumOverContactPoints
 
