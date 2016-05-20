@@ -188,7 +188,7 @@ def electrode_positions_bundle_guided(bundleGuide, bundleRadius, numberOfElectro
 
     return allElectrodePositions
 
-def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000):
+def get_bundle_guide_corner(bundleLength, segmentLengthAxon=10, overlapLength=1000):
 
     #length after bundle end. necessary for myelinated axons
     bundleLength = bundleLength + overlapLength

@@ -18,10 +18,9 @@ lengthOfBundle = 4000
 numberOfAxons = 3
 
 # create a guide the axons will follow
-segmentLengthAxon = 10
+bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle)
 # bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
-# bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
-bundleGuide = PyPN.createGeometry.get_bundle_guide_random(lengthOfBundle, segmentLength=200)
+# bundleGuide = PyPN.createGeometry.get_bundle_guide_random(lengthOfBundle, segmentLength=200)
 
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
