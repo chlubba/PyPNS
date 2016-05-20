@@ -7,5 +7,6 @@ class ExcitationMechanism(object):
     def connect_axon(self, axon):
         pass
 
+    @abstractmethod
     def delete_neuron_objects(self):
         pass
