@@ -8,7 +8,7 @@ def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop 
     homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#"results"#
 
     # read out dictionary of parameters (more elegant methon possible?)
-    elecCount = len(paramDict['recordingElecPos'])
+    # elecCount = len(paramDict['recordingElecPos'])
     dt=paramDict['timeRes']
     tStop = paramDict['tStop']
     p_A = paramDict['p_A']
@@ -37,16 +37,16 @@ def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop 
     else:
         unmyelDiamStr = 'draw'
 
-    if elecCount == 1:
-        poleString = 'monopolarRecording'
-    elif elecCount == 2:
-        poleString = 'bipolarRecording'
-    else:
-        print 'Received ' + str(elecCount) + ' as number of poles. Values 1 or 2 allowed only.'
-        quit()
+    # if elecCount == 1:
+    #     poleString = 'monopolarRecording'
+    # elif elecCount == 2:
+    #     poleString = 'bipolarRecording'
+    # else:
+    #     print 'Received ' + str(elecCount) + ' as number of poles. Values 1 or 2 allowed only.'
+    #     quit()
 
     #concatenate strings
-    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+' nAxons='+str(numberOfAxons)+' '+poleString
+    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+' nAxons='+str(numberOfAxons)#+' '+poleString
     pathString = os.path.join(homeDirectory, pathStringNoStim) # +stimulusPathString
 
     # find bundle index
@@ -80,14 +80,19 @@ def get_directory_name(keyword, basePath):
     # CAP -> compound action potential folder
     # V -> voltage folder
 
-    suffix = {
-        'elec': "electrodes",
-        'draw': "draws",
-        'CAP': "CAP",
-        'CAP1A': "CAPSingleAxons",
-        'V': "Voltage",
-        'bundle' : ""
-    }.get(keyword,-1)
+    # suffix = {
+    #     'elec': "electrodes",
+    #     'draw': "draws",
+    #     'CAP': "CAP",
+    #     'CAP1A': "CAPSingleAxons",
+    #     'V': "Voltage",
+    #     'bundle' : ""
+    # }.get(keyword,-1)
+
+    if keyword=='bundle':
+        suffix=''
+    else:
+        suffix=keyword
 
     finalCombinedPath = os.path.join(basePath, suffix)
 

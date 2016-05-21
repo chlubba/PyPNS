@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # import cPickle as pickle
 # import os
 
-calculationFlag = True # run simulation or load latest bundle with this parameters (not all taken into account for identification)
+calculationFlag = False # run simulation or load latest bundle with this parameters (not all taken into account for identification)
 
 upstreamSpikingOn = False
 electricalStimulusOn = True
@@ -15,13 +15,13 @@ timeRes=0.005#0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 4000
-numberOfAxons = 3
+numberOfAxons = 2
 
 # create a guide the axons will follow
 segmentLengthAxon = 10
+bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
 # bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
-# bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
-bundleGuide = PyPN.createGeometry.get_bundle_guide_random(lengthOfBundle, segmentLength=200)
+# bundleGuide = PyPN.createGeometry.get_bundle_guide_random(lengthOfBundle, segmentLength=200)
 
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -30,17 +30,17 @@ myelinatedDiam =  {'distName' : 'uniform', 'params' : (1.5, 4)} # .2 #
 unmyelinatedDiam =  {'distName' : 'uniform', 'params' : (0.1, 2)} # .2 #
 
 # definition of the stimulation type of the axon
-stimulusParameters = {  'stimType': "EXTRA", #Stimulation type either "INTRA" or "EXTRA"
-                        'amplitude': .0001,#1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (nA)
+stimulusParameters = {  'stimType': "INTRA", #Stimulation type either "INTRA" or "EXTRA"
+                        'amplitude': 1.5,# .0001,#1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (nA)
                         'frequency': 20., # Frequency of the pulse (kHz)
                         'dutyCycle': 1., # 0.05, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                         'stimDur' : 0.05, # Stimulus duration (ms)
-                        'waveform': 'BIPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+                        'waveform': 'MONOPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
                         'radiusBundle' : 150, #um
                         # 'tStop' : tStop,
                         'timeRes' : timeRes,
                         'delay': 5, # ms
-                        'invert': True
+                        # 'invert': True
 }
 # # definition of the stimulation type of the axon
 # stimulusParameters = {  'delay': 5, # delay (ms)
@@ -49,9 +49,12 @@ stimulusParameters = {  'stimType': "EXTRA", #Stimulation type either "INTRA" or
 # }
 
 # recording parameters of the cuff electrodes
-recordingParameters = { 'numberContactPoints': 8, # Number of points on the circle constituing the cuff electrode
-                        'recordingElecPos': [lengthOfBundle, lengthOfBundle + 50], #um Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-                        'numberElecs': 3, # number of electrodes along the bundle
+# recordingParameters = { 'numberContactPoints': 8, # Number of points on the circle constituing the cuff electrode
+#                         'recordingElecPos': [lengthOfBundle, lengthOfBundle + 50], #um Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
+#                         'numberElecs': 3, # number of electrodes along the bundle
+# }
+recordingParameters = { 'radius': 200,
+                        'numberOfElectrodes': 2
 }
 
 # axon parameters
@@ -82,13 +85,15 @@ Parameters = dict(bundleParameters, **recordingParameters)
 if calculationFlag:
 
     # create the bundle with all properties of axons and recording setup
-    bundle = PyPN.Bundle(**Parameters)
+    bundle = PyPN.Bundle(**bundleParameters)
 
     # spiking through a single electrical stimulation
     if electricalStimulusOn:
         stimulusInstance = PyPN.Stimulus(**stimulusParameters)
         bundle.add_excitation_mechanism(PyPN.Stimulus(**stimulusParameters))
         # bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
+
+    bundle.add_recording_mechanism(PyPN.CuffElectrode2D(**recordingParameters))
 
     # PyPN.plot.geometry_definition(bundle)
     # plt.show()
@@ -108,8 +113,8 @@ else:
 # print '\nStarting to plot'
 # PyPN.plot.geometry(bundle)
 # PyPN.plot.CAP1D_singleAxon(bundle, 10)
-# PyPN.plot.CAP1D(bundle)
-# PyPN.plot.voltage(bundle)
+PyPN.plot.CAP1D(bundle)
+PyPN.plot.voltage(bundle)
 # PyPN.plot.voltage_one_myelinated_axon(bundle)
 # PyPN.plot.diameterHistogram(bundle)
 

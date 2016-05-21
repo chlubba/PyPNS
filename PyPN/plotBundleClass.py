@@ -150,10 +150,10 @@ def CAP1D_singleAxon(bundle, maxNumberOfAxons):
 
 
 
-def CAP1D(bundle, maxNumberOfSubplots = 10):
+def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0):
 
     # first load the desired data from file
-    time, CAP = bundle.get_CAP_from_file()
+    time, CAP = bundle.get_CAP_from_file(recMechIndex)
 
     numberOfRecordingSites = np.shape(CAP)[0]
 
@@ -179,7 +179,7 @@ def CAP1D(bundle, maxNumberOfSubplots = 10):
             electrodeIndex = eletrodeSelection[i]
 
             CAPSingleElectrode =  CAP[electrodeIndex,:]
-            distanceFromOrigin = bundle.saveParams['L']/numberOfRecordingSites*electrodeIndex
+            distanceFromOrigin = bundle.bundleLength/numberOfRecordingSites*electrodeIndex
 
             axarr[i].plot(time, CAPSingleElectrode)
             axarr[i].set_title('distance ' + str(distanceFromOrigin) + ' [um]')
@@ -190,7 +190,7 @@ def CAP1D(bundle, maxNumberOfSubplots = 10):
     else:
         fig = plt.figure()
         CAPSingleElectrode =  CAP[numberOfRecordingSites-1,:]
-        distanceFromOrigin = bundle.recordingElecPos[0]
+        distanceFromOrigin = bundle.recordingMechanisms[recMechIndex].positionMax*bundle.bundleLength
 
         plt.plot(time, CAPSingleElectrode)
         plt.title('distance ' + str(distanceFromOrigin) + ' [um]')

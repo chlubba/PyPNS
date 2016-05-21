@@ -51,8 +51,8 @@ class Bundle(object):
     # myelinated_A: parameters for fiber type A
     # umyelinated:  parameters for fiber type C
 
-    def __init__(self, radiusBundle, lengthOfBundle, bundleGuide, numberOfAxons, p_A, p_C,
-                 recordingElecPos, numberElecs, myelinated_A, unmyelinated, numberContactPoints=8, segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300):
+    def __init__(self, radiusBundle, lengthOfBundle, bundleGuide, numberOfAxons, p_A, p_C, myelinated_A, unmyelinated,
+                 segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300):
 
         self.myelinated_A =  myelinated_A
         self.unmyelinated =  unmyelinated
@@ -63,6 +63,7 @@ class Bundle(object):
         self.bundleCoords = bundleGuide
 
         self.excitationMechanisms = []
+        self.recordingMechanisms = []
 
         self.p_A = float(p_A)/(p_A+p_C)
         self.p_C = float(p_C)/(p_A+p_C)
@@ -71,11 +72,11 @@ class Bundle(object):
         self.axons = []
         self.axonColors = np.zeros([self.numberOfAxons,4])
         self.radiusBundle = radiusBundle # um
-        self.electrodes = []
+        # self.electrodes = []
         self.voltages = []
-        self.numberContactPoints = numberContactPoints
-        self.numberElecs = numberElecs
-        self.recordingElecPos = recordingElecPos #um
+        # self.numberContactPoints = numberContactPoints
+        # self.numberElecs = numberElecs
+        # self.recordingElecPos = recordingElecPos #um
 
         # params for NEURON simulation
         self.tStop = tStop # set simulation duration (ms)
@@ -83,7 +84,7 @@ class Bundle(object):
 
         self.build_disk(self.numberOfAxons,self.radiusBundle)
 
-        self.saveParams={'recordingElecPos': self.recordingElecPos, 'timeRes': timeRes, 'tStop': tStop, 'p_A': self.p_A,
+        self.saveParams={'timeRes': timeRes, 'tStop': tStop, 'p_A': self.p_A,
                     'myelinated_A': myelinated_A, 'unmyelinated': unmyelinated,
                     'lengthOfBundle': lengthOfBundle, 'numberOfAxons' : numberOfAxons}
         self.numberOfSavedSegments = numberOfSavedSegments
@@ -102,7 +103,7 @@ class Bundle(object):
             self.create_axon(self.axons_pos[i,:])
             self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
 
-        self.setup_recording_elec()
+        # self.setup_recording_elec()
 
     def build_disk(self,numberOfAxons,radiusBundle):
         """
@@ -251,71 +252,28 @@ class Bundle(object):
 
         return round(diam,1)
 
-    # def get_diam(self, axonType):
-    #
-    #     if axonType == 'm':
-    #         givenDiameter = self.myelinated_A['fiberD']
-    #
-    #         if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
-    #             return givenDiameter
-    #         elif isinstance(givenDiameter, dict):
-    #             # get diameter distribution
-    #             fiberD = self.myelinated_A['fiberD']
-    #             densities = fiberD['densities']
-    #
-    #             # normalize it
-    #             sum_d = float(sum(densities))
-    #             normalize_densities = [x / sum_d for x in densities]
-    #
-    #             # draw one diameter value from the distribution
-    #             draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-    #
-    #             # why add 2.8?
-    #             axonD = fiberD['diameters'][draw_diam]+2.8
-    #
-    #             # choose the closest from existing axonD
-    #             axonD_choices = [3.4,4.6,6.9,8.1,9.2,10.4,11.5,12.7] # assuming the user consider usually in the axon diameter
-    #             diff_axonD = [abs(x-axonD) for x in axonD_choices]
-    #             fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
-    #             fiberD = fiberD_choices[np.argmin(diff_axonD)]
-    #             diam = fiberD
-    #         else:
-    #             raise('Something is wrong with your given axon diameter for myelinated axons.')
-    #
-    #     elif  axonType == 'u':
-    #         givenDiameter = self.unmyelinated['fiberD']
-    #
-    #         if isinstance(givenDiameter, float) or isinstance(givenDiameter, int):
-    #             return givenDiameter
-    #         elif isinstance(givenDiameter, dict):
-    #             fiberD = self.unmyelinated['fiberD']
-    #             densities = fiberD['densities']
-    #
-    #             sum_d = float(sum(densities))
-    #             normalize_densities = [x / sum_d for x in densities]
-    #
-    #             draw_diam = np.random.choice(len(normalize_densities),1,p = normalize_densities)
-    #             D = fiberD['diameters'][draw_diam]
-    #             diam = D
-    #         else:
-    #             raise('Something is wrong with your given axon diameter for unmyelinated axons.')
-    #
-    #
-    #     else:
-    #         raise('Wrong axon type given to function get_diam. Valid ones: u or m')
-    #
-    #     return diam
+
+
+    def add_recording_mechanism(self, mechanism):
+        self.recordingMechanisms.append(mechanism)
     
     def add_excitation_mechanism(self, mechanism):
         self.excitationMechanisms.append(mechanism)
+
+    def setup_recording_mechanisms(self):
+        for recMech in self.recordingMechanisms:
+            recMech.setup_recording_elec(self.bundleCoords)
     
     def simulate(self):
+
+        # once calculate the positions of electrodes etc. for each recording mechanism
+        self.setup_recording_mechanisms()
 
         self.simulate_axons()
 
         # compute the compound action potential by summing all axon contributions up
-        self.compute_CAP_fromfiles()
-        self.save_CAP_to_file()
+        self.compute_CAPs_from_files()
+        self.save_CAPs_to_file()
         self.clear_CAP_vars()
 
         # get rid of the all Neuron objects to be able to pickle the bundle-class.
@@ -330,7 +288,7 @@ class Bundle(object):
 
         # where are the electrodes
         # [X,Y,Z,N] = self.setup_recording_elec()
-        [X,Y,Z] = self.setup_recording_elec()
+        # [X,Y,Z] = self.setup_recording_elec()
 
         for axonIndex in range(self.numberOfAxons):
 
@@ -339,22 +297,6 @@ class Bundle(object):
             tStart = time.time()
 
             axon = self.axons[axonIndex]
-
-            # where is the axon
-            axonPosition = axon.axonPosition
-
-            electrodeParameters = {         #parameters for RecExtElectrode class
-                    'sigma' : 0.3,              #Extracellular potential
-                    'x' : X,  #Coordinates of electrode contacts
-                    'y' : Y, # -axonPosition[0],
-                    'z' : Z, # -axonPosition[1],
-                    # 'n' : 20,
-                    # 'r' : 10,
-                    # 'N' : N,
-                    'method': "pointsource", #or "linesource"
-                }
-
-
 
             # create the neuron object specified in the axon class object
             axon.create_neuron_object()
@@ -370,10 +312,6 @@ class Bundle(object):
 
             # take time of simulation
             t0 = time.time()
-
-            # # caution, test wise change of fast potassium channel conductance
-            # h('forall for (x,0) if (ismembrane("axflut")) gkbar_axflut(x) = 0') # .16
-            # h('forall for (x,0) if (ismembrane("axnode")) gkbar_axnode(x) = 0.005') # .16
 
             # here we correct the conductance of the slow potassium channel from 0.08 S/cm2 to 0.12 S/cm2 to prevent
             # multiple action potentials for thin fibers
@@ -391,26 +329,31 @@ class Bundle(object):
             # take time for LFPy calculation
             t0 = time.time()
 
-            # shut down the output, always errors at the end because membrane current too high
-            with silencer.nostdout():
-                self.electrodes.append(LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters))
+            recMechIndex = 0
+            for recMech in self.recordingMechanisms:
 
-            # calculate LFP by LFPy from membrane current
-            with silencer.nostdout():
-                self.electrodes[axonIndex].calc_lfp()
+                # get the locations of electrodes, method of LFPy calculation and specific resistance
+                electrodeParameters = recMech.electrodeParameters
 
-            elapsedLFP = time.time()-t0
-            print('%.2f s' % elapsedLFP)
+                # shut down the output, always errors at the end because membrane current too high
+                with silencer.nostdout():
+                    electrodes = LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters)
 
-            print 'Saving extracellular recordings to disk...',
-            # take time for saving process
-            t0 = time.time()
-            self.save_electrode(axonIndex)
-            elapsedSaveLFP = time.time()-t0
-            print('%.2f s' % elapsedSaveLFP)
+                    # calculate LFP by LFPy from membrane current
+                    electrodes.calc_lfp()
 
-            self.electrodes[axonIndex]= None
-            self.CAP_to_file = True
+                elapsedLFP = time.time()-t0
+                print('%.2f s' % elapsedLFP)
+
+                print 'Saving extracellular recordings to disk...',
+                # take time for saving process
+                t0 = time.time()
+                self.save_extra_recording(electrodes, axonIndex, recMechIndex)
+                # self.save_extra_recordings(electrodes, axonIndex)
+                elapsedSaveLFP = time.time()-t0
+                print('%.2f s' % elapsedSaveLFP)
+
+                recMechIndex += 1
 
             print 'Saving membrane potential recordings to disk...',
             # save voltage to file and take time
@@ -418,6 +361,7 @@ class Bundle(object):
             self.save_voltage_to_file_axonwise(axon.vreclist, axonIndex)
             elapsedSaveV = time.time()-t0
             print('%.2f s' % elapsedSaveV)
+
 
             # delete the object
             axon.delete_neuron_object()
@@ -430,22 +374,44 @@ class Bundle(object):
     def store_geometry(self):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
 
-    def save_electrode(self,i):
-        directory = get_directory_name("elec", self.basePath)
+    # def save_electrode(self,i):
+    #     directory = get_directory_name("elec", self.basePath)
+    #
+    #     # print "Saving extracellular potential of axon "+str(i)+" to disk."
+    #
+    #     if i==0:
+    #         if not os.path.exists(directory):
+    #             os.makedirs(directory)
+    #         else:
+    #             shutil.rmtree(directory)
+    #             os.makedirs(directory)
+    #     filename = "electrode_"+str(i)+".dat"
+    #     DataOut = np.array(self.electrodes[i].LFP[0])#,1:-1
+    #     for j in range(1,len(self.electrodes[i].LFP)):
+    #         DataOut = np.column_stack((DataOut, np.array(self.electrodes[i].LFP[j])))#,1:-1
+    #     np.savetxt(os.path.join(directory,filename), DataOut)
 
-        # print "Saving extracellular potential of axon "+str(i)+" to disk."
+    def save_extra_recording(self, electrodes, axonIndex, recMechIndex):
 
-        if i==0:
+        directory = get_directory_name("elec"+str(recMechIndex), self.basePath)
+
+        # if this is the first axon to save the extracellular recording to, create the directory
+        if axonIndex==0:
+            self.recordingMechanisms[recMechIndex].savePath = directory
             if not os.path.exists(directory):
                 os.makedirs(directory)
             else:
                 shutil.rmtree(directory)
                 os.makedirs(directory)
-        filename = "electrode_"+str(i)+".dat"
-        DataOut = np.array(self.electrodes[i].LFP[0])#,1:-1
-        for j in range(1,len(self.electrodes[i].LFP)):
-            DataOut = np.column_stack((DataOut, np.array(self.electrodes[i].LFP[j])))#,1:-1
+
+        filename = "electrode_"+str(axonIndex)+".dat"
+
+        DataOut = np.array(electrodes.LFP[0])#,1:-1
+        for j in range(1,len(electrodes.LFP)):
+            DataOut = np.column_stack((DataOut, np.array(electrodes.LFP[j])))#,1:-1
+
         np.savetxt(os.path.join(directory,filename), DataOut)
+
 
     def load_one_electrode(self, elecIndex):
 
@@ -458,38 +424,67 @@ class Bundle(object):
 
         return electrodeData
 
-    def save_CAP_to_file(self):
+    # def save_CAP_to_file(self):
+    #
+    #     t0 = time.time()
+    #
+    #     DataOut = np.array(self.trec)
+    #     DataOut = np.column_stack( (DataOut, np.transpose(np.array(self.sum_CAP))))
+    #
+    #     # maybe add the header later. Right now we assume that the simulation is defined by the bundle object that get
+    #     # always generated during the whole simulation. If files are opened independently from a bundle object, such a
+    #     # header would be useful.
+    #     # header = repr(parameters)
+    #
+    #     filename = get_file_name("CAP", self.basePath)
+    #     print "Save location for CAP file: " + filename
+    #
+    #     np.savetxt(filename, DataOut)
+    #
+    #     # now save the extracellular signals of every cell
+    #     DataOut = np.array(self.trec)
+    #     DataOut = np.column_stack((DataOut, np.transpose(self.AP_axonwise)))
+    #
+    #     filename = get_file_name("CAP1A", self.basePath)
+    #     print "Save location for single axon differentiated CAP file: " + filename
+    #
+    #     np.savetxt(filename, DataOut)
+    #
+    #     # print 'CAP saved in ' + str(time.time()-t0) + 's.'
+    #     print ("CAP saved in %.2f s." % (time.time()-t0))
+
+    def save_CAPs_to_file(self):
 
         t0 = time.time()
 
-        DataOut = np.array(self.trec)
-        DataOut = np.column_stack( (DataOut, np.transpose(np.array(self.sum_CAP))))
+        for recMech in self.recordingMechanisms:
 
-        # maybe add the header later. Right now we assume that the simulation is defined by the bundle object that get
-        # always generated during the whole simulation. If files are opened independently from a bundle object, such a
-        # header would be useful.
-        # header = repr(parameters)
+            recMechName = recMech.__class__.__name__
 
-        filename = get_file_name("CAP", self.basePath)
-        print "Save location for CAP file: " + filename
+            DataOut = np.array(self.trec)
+            DataOut = np.column_stack( (DataOut, np.transpose(np.array(recMech.CAP))))
 
-        np.savetxt(filename, DataOut)
+            filename = get_file_name("CAP"+recMechName, self.basePath)
+            print "Save location for CAP file: " + filename
 
-        # now save the extracellular signals of every cell
-        DataOut = np.array(self.trec)
-        DataOut = np.column_stack((DataOut, np.transpose(self.AP_axonwise)))
+            np.savetxt(filename, DataOut)
 
-        filename = get_file_name("CAP1A", self.basePath)
-        print "Save location for single axon differentiated CAP file: " + filename
+            # now save the extracellular signals of every cell
+            DataOut = np.array(self.trec)
+            DataOut = np.column_stack((DataOut, np.transpose(recMech.CAP_axonwise)))
 
-        np.savetxt(filename, DataOut)
+            filename = get_file_name("CAP1A"+recMechName, self.basePath)
+            print "Save location for single axon differentiated CAP file: " + filename
+
+            np.savetxt(filename, DataOut)
 
         # print 'CAP saved in ' + str(time.time()-t0) + 's.'
         print ("CAP saved in %.2f s." % (time.time()-t0))
 
     def clear_CAP_vars(self):
-        self.AP_axonwise = None
-        self.CAP = None
+        for recMech in self.recordingMechanisms:
+            recMech.CAP_axonwise = None
+            recMech.CAP = None
 
     def save_voltage_to_file_axonwise(self, vreclist, axonIndex):
 
@@ -512,10 +507,28 @@ class Bundle(object):
         np.savetxt(filename, dataOut)
 
 
-    def get_CAP_from_file(self):
+    # def get_CAP_from_file(self):
+    #
+    #     # get the whole CAP, can be single electrode or multiple
+    #     directory = get_directory_name("CAP", self.basePath)
+    #     try:
+    #         newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+    #     except ValueError:
+    #         print 'No CAP calculation has been performed yet with this set of parameters.'
+    #         return
+    #
+    #     CAPraw = np.transpose(np.loadtxt(newestFile))
+    #     time = CAPraw[0,:]
+    #     CAP = CAPraw[1:,:]
+    #
+    #     return time, CAP
+
+    def get_CAP_from_file(self, recordingMechanismIndex=0):
+
+        recordingMechanismName = self.recordingMechanisms[recordingMechanismIndex].__class__.__name__
 
         # get the whole CAP, can be single electrode or multiple
-        directory = get_directory_name("CAP", self.basePath)
+        directory = get_directory_name("CAP"+recordingMechanismName, self.basePath)
         try:
             newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
@@ -575,85 +588,91 @@ class Bundle(object):
 
         return timeRec, voltageMatrices
 
-    def compute_CAP_fromfiles(self):
-        temp = time.time()
+    # def compute_CAP_fromfiles(self):
+    #     temp = time.time()
+    #
+    #     print '\nCalculating CAP by summing up single axon contributions.'
+    #
+    #     monopolar = len(self.recordingElecPos) == 1
+    #
+    #     # variable to save the sum over all axons
+    #     self.sum_CAP = np.zeros((self.numberElecs,len(self.trec)))
+    #
+    #     # variable to save the extracellular signal from each cell separately, at the last electrode position.
+    #     self.AP_axonwise = np.zeros((self.numberOfAxons, len(self.trec)))
+    #
+    #     # load the recordings for every axon one by one and add them.
+    #     for elecIndex in range(self.numberOfAxons):
+    #         electrodeData = self.load_one_electrode(elecIndex)
+    #
+    #     # The contactpoints that constitute one cuff electrode ring have to be recovered, summed up together per
+    #     # recording location along the axon
+    #         for i in range(self.numberElecs):
+    #             if monopolar:
+    #                 contactPointIndices = range(self.numberContactPoints*i, self.numberContactPoints*(1+i))
+    #                 sumOverContactPoints = np.mean(electrodeData[contactPointIndices, :], 0)
+    #                 # sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
+    #             else:
+    #                 contactPointIndicesPole1 = range(self.numberContactPoints*2*i, self.numberContactPoints*(1+2*i))
+    #                 contactPointIndicesPole2 = range(self.numberContactPoints*(2*i+1), self.numberContactPoints*(2*(i+1)))
+    #                 sumOverContactPoints = np.mean(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
+    #                 # sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
+    #
+    #             self.sum_CAP[i,:] = self.sum_CAP[i,:] +  sumOverContactPoints
+    #
+    #             if i == self.numberElecs-1:
+    #                 self.AP_axonwise[elecIndex,:] = sumOverContactPoints
+    #
+    #     elapsed = time.time()-temp
+    #
+    #     print ("Elapsed time to compute CAP %.2f \n" % elapsed)
 
-        print '\nCalculating CAP by summing up single axon contributions.'
+    def compute_CAPs_from_files(self):
 
-        monopolar = len(self.recordingElecPos) == 1
+        for recMech in self.recordingMechanisms:
 
-        # variable to save the sum over all axons
-        self.sum_CAP = np.zeros((self.numberElecs,len(self.trec)))
-
-        # variable to save the extracellular signal from each cell separately, at the last electrode position.
-        self.AP_axonwise = np.zeros((self.numberOfAxons, len(self.trec)))
-
-        # load the recordings for every axon one by one and add them.
-        for elecIndex in range(self.numberOfAxons):
-            electrodeData = self.load_one_electrode(elecIndex)
-
-        # The contactpoints that constitute one cuff electrode ring have to be recovered, summed up together per
-        # recording location along the axon
-            for i in range(self.numberElecs):
-                if monopolar:
-                    contactPointIndices = range(self.numberContactPoints*i, self.numberContactPoints*(1+i))
-                    sumOverContactPoints = np.mean(electrodeData[contactPointIndices, :], 0)
-                    # sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
-                else:
-                    contactPointIndicesPole1 = range(self.numberContactPoints*2*i, self.numberContactPoints*(1+2*i))
-                    contactPointIndicesPole2 = range(self.numberContactPoints*(2*i+1), self.numberContactPoints*(2*(i+1)))
-                    sumOverContactPoints = np.mean(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
-                    # sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
-
-                self.sum_CAP[i,:] = self.sum_CAP[i,:] +  sumOverContactPoints
-
-                if i == self.numberElecs-1:
-                    self.AP_axonwise[elecIndex,:] = sumOverContactPoints
-
-        elapsed = time.time()-temp
-
-        print ("Elapsed time to compute CAP %.2f \n" % elapsed)
+            recMech.compute_CAP_from_files()
 
 
-    def setup_recording_elec(self):
-
-        if True:
-            # calculte recording electrode positions for a 3D shaped bundle
-            electrodePositions = createGeometry.electrode_positions_bundle_guided(self.bundleCoords, self.radiusBundle,
-                                                                               self.numberElecs, self.numberContactPoints,
-                                                                               self.recordingElecPos)
-            X, Y, Z = electrodePositions[:,0], electrodePositions[:,1], electrodePositions[:,2]
-        else:
-
-            if (self.numberElecs == 1):
-                # if one recording site
-                if len(self.recordingElecPos) == 1:
-                    # if monopolar
-                    X = np.zeros(self.numberContactPoints)+self.recordingElecPos
-                elif len(self.recordingElecPos) == 2:
-                    # if bipolar
-                    X = np.repeat(self.recordingElecPos,self.numberContactPoints,axis=0)
-                elif len(self.recordingElecPos) > 2 or len(self.recordingElecPos) == 0:
-                    # if wrong number of poles entered
-                    raise TypeError("Only monopolar and bipolar recording are supported")
-            else:
-                if len(self.recordingElecPos) >1:
-                    raise TypeError("Please use only the monopolar configuration of 'recording_elec' to record along the bundle")
-                X1 = [np.linspace(0, self.recordingElecPos[0], self.numberElecs)]
-                X = np.repeat(X1,self.numberContactPoints, axis=0)
-                X = X.flatten()
-            angles = np.linspace(0,360, self.numberContactPoints, endpoint = False)
-            Y1 = np.round(self.radiusBundle*np.cos(angles*np.pi/180.0),2)
-            Z1 = np.round(self.radiusBundle*np.sin(angles*np.pi/180.0),2)
-            Y = np.tile(Y1,self.numberElecs*len(self.recordingElecPos))
-            Z = np.tile(Z1,self.numberElecs*len(self.recordingElecPos))
-            N = np.empty((self.numberContactPoints*self.numberElecs*len(self.recordingElecPos), 3))
-            for i in xrange(N.shape[0]):
-                N[i,] = [1, 0, 0] #normal vec. of contacts
-
-        self.electrodeCoords = np.transpose(np.row_stack((X,Y,Z)))
-
-        return [X,Y,Z]#,N]
+    # def setup_recording_elec(self):
+    #
+    #     if True:
+    #         # calculte recording electrode positions for a 3D shaped bundle
+    #         electrodePositions = createGeometry.electrode_positions_bundle_guided(self.bundleCoords, self.radiusBundle,
+    #                                                                            self.numberElecs, self.numberContactPoints,
+    #                                                                            self.recordingElecPos)
+    #         X, Y, Z = electrodePositions[:,0], electrodePositions[:,1], electrodePositions[:,2]
+    #     else:
+    #
+    #         if (self.numberElecs == 1):
+    #             # if one recording site
+    #             if len(self.recordingElecPos) == 1:
+    #                 # if monopolar
+    #                 X = np.zeros(self.numberContactPoints)+self.recordingElecPos
+    #             elif len(self.recordingElecPos) == 2:
+    #                 # if bipolar
+    #                 X = np.repeat(self.recordingElecPos,self.numberContactPoints,axis=0)
+    #             elif len(self.recordingElecPos) > 2 or len(self.recordingElecPos) == 0:
+    #                 # if wrong number of poles entered
+    #                 raise TypeError("Only monopolar and bipolar recording are supported")
+    #         else:
+    #             if len(self.recordingElecPos) >1:
+    #                 raise TypeError("Please use only the monopolar configuration of 'recording_elec' to record along the bundle")
+    #             X1 = [np.linspace(0, self.recordingElecPos[0], self.numberElecs)]
+    #             X = np.repeat(X1,self.numberContactPoints, axis=0)
+    #             X = X.flatten()
+    #         angles = np.linspace(0,360, self.numberContactPoints, endpoint = False)
+    #         Y1 = np.round(self.radiusBundle*np.cos(angles*np.pi/180.0),2)
+    #         Z1 = np.round(self.radiusBundle*np.sin(angles*np.pi/180.0),2)
+    #         Y = np.tile(Y1,self.numberElecs*len(self.recordingElecPos))
+    #         Z = np.tile(Z1,self.numberElecs*len(self.recordingElecPos))
+    #         N = np.empty((self.numberContactPoints*self.numberElecs*len(self.recordingElecPos), 3))
+    #         for i in xrange(N.shape[0]):
+    #             N[i,] = [1, 0, 0] #normal vec. of contacts
+    #
+    #     self.electrodeCoords = np.transpose(np.row_stack((X,Y,Z)))
+    #
+    #     return [X,Y,Z]#,N]
 
     
 

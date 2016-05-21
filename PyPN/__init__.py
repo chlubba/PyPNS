@@ -3,6 +3,7 @@ from PyPN.bundleClass import Bundle
 # excitation mechanisms
 from PyPN.upstreamSpikingClass import UpstreamSpiking
 from PyPN.stimulusClass import Stimulus, SimpleIClamp
+from PyPN.recordingMechanismClass import CuffElectrode2D
 
 # geometry
 import PyPN.createGeometry
