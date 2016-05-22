@@ -122,71 +122,7 @@ def length_from_coords(coords):
     # sum over all segments
     return sum(dL)
 
-# def electrode_positions_bundle_guided(bundleGuide, bundleRadius, numberOfElectrodes, numberOfContacts, recElectrodePositions):
-#
-#     electrodeRadius = bundleRadius*1.2 # allow 20% distance, not to intrude into nerve bundle
-#
-#     numberOfPoles = len(recElectrodePositions)
-#
-#     if numberOfPoles == 2:
-#         poleDistance = recElectrodePositions[1] - recElectrodePositions[0]
-#         bipolar = True
-#     elif numberOfPoles == 1:
-#         poleDistance = 0
-#         bipolar = False
-#     else:
-#         print 'Wrong number of recording poles.'
-#         return
-#
-#     positionLastElectrode = recElectrodePositions[0]
-#     bundleGuideSegmentLength = np.linalg.norm(bundleGuide[1,:] - bundleGuide[0,:]) # assume segments are of equal length
-#
-#     if numberOfElectrodes > 1:
-#         segmentIndices = np.linspace(1, positionLastElectrode/bundleGuideSegmentLength, numberOfElectrodes)
-#     else:
-#         segmentIndices = [positionLastElectrode/bundleGuideSegmentLength]
-#
-#
-#     for i in range(numberOfElectrodes):
-#         segmentNumber = int(segmentIndices[i])
-#         # segmentNumber = floor(np.shape(bundleGuide)[0]/numberOfElectrodes)*(i+1) - 1
-#
-#         segmentStartingPos = bundleGuide[segmentNumber - 1,:]
-#         segmentEndPos = bundleGuide[segmentNumber,:]
-#
-#         segmentMiddle = (segmentStartingPos + segmentEndPos)/2
-#         segmentOrientation = segmentEndPos - segmentStartingPos
-#         segmentOrientation = segmentOrientation/np.linalg.norm(segmentOrientation)
-#
-#         # get one random orthogonal vector
-#         orthogonalVector = random_perpendicular_vectors(segmentOrientation)[0,:]
-#
-#         for j in range(numberOfContacts):
-#             electrodePositionPole1 = np.dot(rotation_matrix(segmentOrientation, 2*pi/numberOfContacts*j),(orthogonalVector*electrodeRadius)) + segmentMiddle
-#             if bipolar:
-#                 electrodePositionPole2 = electrodePositionPole1 + segmentOrientation*poleDistance
-#
-#
-#             if j == 0: # how to get a truly empty array?!
-#                 electrodePositionsPole1 = electrodePositionPole1
-#                 if bipolar:
-#                     electrodePositionsPole2 = electrodePositionPole2
-#             else:
-#                 electrodePositionsPole1 = np.row_stack((electrodePositionsPole1, electrodePositionPole1))
-#                 if bipolar:
-#                     electrodePositionsPole2 = np.row_stack((electrodePositionsPole2, electrodePositionPole2))
-#         if bipolar:
-#             electrodePositionsAllPoles = np.row_stack((electrodePositionsPole1,electrodePositionsPole2))
-#         else:
-#             electrodePositionsAllPoles = electrodePositionsPole1
-#
-#         if i == 0:
-#             allElectrodePositions = electrodePositionsAllPoles
-#         else:
-#             allElectrodePositions = np.row_stack((allElectrodePositions,electrodePositionsAllPoles))
-#
-#
-#     return allElectrodePositions
+
 
 def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000):
 

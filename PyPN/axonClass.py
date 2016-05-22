@@ -219,7 +219,7 @@ class Axon(object):
         # Arguments:
         # ::
         #
-        #     electrode:  Either an LFPy.RecExtElectrode object or a list of such.
+        #     electrode:  Either an LFPy.RecExtElectrode object for a list of such.
         #                 If supplied, LFPs will be calculated at every time step
         #                 and accessible as electrode.LFP. If a list of objects
         #                 is given, accessible as electrode[0].LFP etc.

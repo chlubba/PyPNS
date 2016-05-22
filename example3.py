@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # import cPickle as pickle
 # import os
 
-calculationFlag = False # run simulation or load latest bundle with this parameters (not all taken into account for identification)
+calculationFlag = True # run simulation or load latest bundle with this parameters (not all taken into account for identification)
 
 upstreamSpikingOn = False
 electricalStimulusOn = True
@@ -76,7 +76,7 @@ bundleParameters = {    'radiusBundle': 150, #150, #um Radius of the bundle (typ
                         'bundleGuide' : bundleGuide,
                         'tStop' : tStop,
                         'timeRes' : timeRes,
-                        # 'randomDirectionComponent' : 0
+                        'randomDirectionComponent' : 0
 }
 
 # combine parameters for the bundle creation
@@ -94,6 +94,7 @@ if calculationFlag:
         # bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
 
     bundle.add_recording_mechanism(PyPN.CuffElectrode2D(**recordingParameters))
+    bundle.add_recording_mechanism(PyPN.CuffElectrode2D(radius=150, positionMax=0.5))
 
     # PyPN.plot.geometry_definition(bundle)
     # plt.show()
@@ -112,8 +113,9 @@ else:
 # # plot geometry, intra and extracellular recording, axon diameters
 # print '\nStarting to plot'
 # PyPN.plot.geometry(bundle)
-# PyPN.plot.CAP1D_singleAxon(bundle, 10)
+PyPN.plot.CAP1D_singleAxon(bundle, 10)
 PyPN.plot.CAP1D(bundle)
+PyPN.plot.CAP1D(bundle,recMechIndex=1)
 PyPN.plot.voltage(bundle)
 # PyPN.plot.voltage_one_myelinated_axon(bundle)
 # PyPN.plot.diameterHistogram(bundle)

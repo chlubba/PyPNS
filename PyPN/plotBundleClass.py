@@ -98,10 +98,11 @@ def geometry_definition(bundle, axis_equal=True):
 
     plt.savefig(os.path.join(bundle.basePath, 'geometry_definition.png'))
     
-def CAP1D_singleAxon(bundle, maxNumberOfAxons):
+def CAP1D_singleAxon(bundle, maxNumberOfAxons, recMechIndex=0):
 
     # get the whole CAP, can be single electrode or multiple
-    directory = get_directory_name("CAP1A", bundle.basePath)
+    recMechName = bundle.recordingMechanisms[recMechIndex].__class__.__name__
+    directory = get_directory_name('CAP1A_'+recMechName+'_recMech'+str(recMechIndex), bundle.basePath)
     try:
         newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
     except ValueError:
@@ -179,7 +180,8 @@ def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0):
             electrodeIndex = eletrodeSelection[i]
 
             CAPSingleElectrode =  CAP[electrodeIndex,:]
-            distanceFromOrigin = bundle.bundleLength/numberOfRecordingSites*electrodeIndex
+            # distanceFromOrigin = bundle.bundleLength/numberOfRecordingSites*electrodeIndex
+            distanceFromOrigin = bundle.recordingMechanisms[recMechIndex].electrodeDistances[int(electrodeIndex)]
 
             axarr[i].plot(time, CAPSingleElectrode)
             axarr[i].set_title('distance ' + str(distanceFromOrigin) + ' [um]')
@@ -190,7 +192,8 @@ def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0):
     else:
         fig = plt.figure()
         CAPSingleElectrode =  CAP[numberOfRecordingSites-1,:]
-        distanceFromOrigin = bundle.recordingMechanisms[recMechIndex].positionMax*bundle.bundleLength
+        # distanceFromOrigin = bundle.recordingMechanisms[recMechIndex].positionMax*bundle.bundleLength
+        distanceFromOrigin = bundle.recordingMechanisms[recMechIndex].electrodeDistances[0]
 
         plt.plot(time, CAPSingleElectrode)
         plt.title('distance ' + str(distanceFromOrigin) + ' [um]')

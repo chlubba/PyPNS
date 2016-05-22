@@ -1,6 +1,6 @@
 # from abc import ABCMeta, abstractmethod
 import numpy as np
-from createGeometry import random_perpendicular_vectors, rotation_matrix
+from createGeometry import random_perpendicular_vectors, rotation_matrix, length_from_coords
 from nameSetters import get_directory_name
 import os
 import shutil
@@ -18,12 +18,14 @@ class RecordingMechanism(object):
         self.method = method
         self.electrodeParameters = []
 
+        self.electrodeDistances = []
         self.CAP = 0
         self.CAP_axonwise = 0
         self.savePath = "" # where are the recordings stored?
 
 
-    def setup_recording_elec(self, bundleGuide):
+
+    def setup_recording_elec(self, bundleGuide, bundleLength):
         pass
 
     def load_one_axon(self, axonIndex):
@@ -97,14 +99,26 @@ class CuffElectrode2D(RecordingMechanism):
 
         super(CuffElectrode2D,self).__init__(numberOfPoints, numberOfPoles, numberOfElectrodes, method)
 
-    def setup_recording_elec(self, bundleGuide):
+    def setup_recording_elec(self, bundleGuide, bundleLength):
 
-        lastRecordedSegmentIndex = (np.shape(bundleGuide)[0]-1)*self.positionMax
+        # first find the bundle guide segment index that corresponds to the intendet bundle length (overlap for
+        # myelinated axons gives longer bundle than specified by user
+        bundleLengthIndex = np.shape(bundleGuide)[0]-1
+        bundleLengthTemp = length_from_coords(bundleGuide)
+        while bundleLengthTemp > bundleLength:
+            bundleLengthIndex -= 1
+            bundleLengthTemp = length_from_coords(bundleGuide[:bundleLengthIndex])
+
+        # lastRecordedSegmentIndex = (np.shape(bundleGuide)[0]-1)*self.positionMax
+        lastRecordedSegmentIndex = bundleLengthIndex*self.positionMax
 
         if self.numberOfElectrodes > 1:
-            segmentIndices = np.linspace(1, lastRecordedSegmentIndex, self.numberOfElectrodes)
+            segmentIndices = np.linspace(lastRecordedSegmentIndex/self.numberOfElectrodes, lastRecordedSegmentIndex, self.numberOfElectrodes)
         else:
             segmentIndices = [lastRecordedSegmentIndex]
+
+        for i in range(self.numberOfElectrodes):
+            self.electrodeDistances.append(np.floor(length_from_coords(bundleGuide[:segmentIndices[i]])))
 
         electrodePositions = np.array([]).reshape(0,3)
 
