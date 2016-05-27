@@ -10,6 +10,15 @@ from nameSetters import *
 
 def geometry(bundle):
 
+    '''
+    Plots the geometry as retrieved from NEURON
+    Args:
+        bundle: PyPN.bundle
+
+    Returns: nothing
+
+    '''
+
     if len(bundle.axons[0].xmid) == 0:
         print 'Bundle has not been run yet. No geometry information was generated in NEURON.'
         return
@@ -30,23 +39,34 @@ def geometry(bundle):
     #plt.legend()
     plt.title('Axons in space')
 
-    elecCoords = bundle.electrodeCoords
-    ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
-
-    elecPoles = len(bundle.recordingElecPos)
-    for i in range(bundle.numberElecs):
-        for j in range(elecPoles):
-            # selectionIndices = range(i+j*bundle.numberContactPoints, bundle.numberContactPoints*bundle.numberElecs + j*bundle.numberContactPoints, bundle.numberElecs)
-            selectionIndices = range((i*elecPoles+j)*bundle.numberContactPoints, bundle.numberContactPoints*(i*elecPoles+j+1))
-
-            ringCoords = elecCoords[selectionIndices,:]
-            ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
-            ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
+    # elecCoords = bundle.electrodeCoords
+    # ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
+    #
+    # elecPoles = len(bundle.recordingElecPos)
+    # for i in range(bundle.numberElecs):
+    #     for j in range(elecPoles):
+    #         # selectionIndices = range(i+j*bundle.numberContactPoints, bundle.numberContactPoints*bundle.numberElecs + j*bundle.numberContactPoints, bundle.numberElecs)
+    #         selectionIndices = range((i*elecPoles+j)*bundle.numberContactPoints, bundle.numberContactPoints*(i*elecPoles+j+1))
+    #
+    #         ringCoords = elecCoords[selectionIndices,:]
+    #         ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
+    #         ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
             
     
     plt.savefig(os.path.join(bundle.basePath, 'geometry.png'))
 
 def geometry_definition(bundle, axis_equal=True):
+
+    '''
+    Plots the geometry of the bundle including recording mechanisms.
+
+    Args:
+        bundle: PyPN.Bundle object
+        axis_equal: if True all axis equal, if False each axis scaled individually (default True)
+
+    Returns: nothing
+
+    '''
 
     # if len(bundle.axons[0].xmid) == 0:
     #     print 'Bundle has not been run yet. No geometry information was generated in NEURON.'
@@ -68,18 +88,40 @@ def geometry_definition(bundle, axis_equal=True):
     #plt.legend()
     plt.title('Axons in space')
 
-    elecCoords = bundle.electrodeCoords
-    ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
+    # create recording mechanism-specific color
+    numRecMechs = len(bundle.recordingMechanisms)
+    colorMap = plt.get_cmap('gist_rainbow')
+    cNorm = colors.Normalize(vmin=0, vmax=numRecMechs)#len(diameters_m)-1)#
+    scalarMap = cm.ScalarMappable(norm=cNorm, cmap=colorMap)
 
-    elecPoles = len(bundle.recordingElecPos)
-    for i in range(bundle.numberElecs):
-        for j in range(elecPoles):
-            # selectionIndices = range(i+j*bundle.numberContactPoints, bundle.numberContactPoints*bundle.numberElecs + j*bundle.numberContactPoints, bundle.numberElecs)
-            selectionIndices = range((i*elecPoles+j)*bundle.numberContactPoints, bundle.numberContactPoints*(i*elecPoles+j+1))
+    recMechColors = np.array(scalarMap.to_rgba(range(numRecMechs)))
 
-            ringCoords = elecCoords[selectionIndices,:]
-            ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
-            ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.2,0,0], linewidth=2.0)
+    recMechIndex = 0
+    for recMech in bundle.recordingMechanisms:
+
+        labelString=recMech.__class__.__name__ + str(recMechIndex)
+
+        refelecParamDict = recMech.electrodeParameters
+        X = refelecParamDict['x']
+        Y = refelecParamDict['y']
+        Z = refelecParamDict['z']
+
+        ax.scatter(X, Y, Z, label=labelString, color=recMechColors[recMechIndex,:])
+
+        recMechIndex += 1
+
+    # elecCoords = bundle.electrodeCoords
+    # ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
+    #
+    # elecPoles = len(bundle.recordingElecPos)
+    # for i in range(bundle.numberElecs):
+    #     for j in range(elecPoles):
+    #         # selectionIndices = range(i+j*bundle.numberContactPoints, bundle.numberContactPoints*bundle.numberElecs + j*bundle.numberContactPoints, bundle.numberElecs)
+    #         selectionIndices = range((i*elecPoles+j)*bundle.numberContactPoints, bundle.numberContactPoints*(i*elecPoles+j+1))
+    #
+    #         ringCoords = elecCoords[selectionIndices,:]
+    #         ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
+    #         ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.2,0,0], linewidth=2.0)
 
 
     if axis_equal:
@@ -98,7 +140,20 @@ def geometry_definition(bundle, axis_equal=True):
 
     plt.savefig(os.path.join(bundle.basePath, 'geometry_definition.png'))
     
-def CAP1D_singleAxon(bundle, maxNumberOfAxons, recMechIndex=0):
+def CAP1D_singleAxon(bundle, maxNumberOfAxons=10, recMechIndex=0):
+
+    '''
+    plots the action potential of one fiber of the specified recording mechanism. It always takes the last electrode
+    in case multiple electrode sites have been specified
+
+    Args:
+        bundle: PyPN.Bundle object
+        maxNumberOfAxons: if more than maxNumberOfAxons have been simulated, plot a random selection of maxNumberOfAxons axons
+        recMechIndex: recording mechanism to take
+
+    Returns:
+
+    '''
 
     # get the whole CAP, can be single electrode or multiple
     recMechName = bundle.recordingMechanisms[recMechIndex].__class__.__name__
@@ -153,6 +208,17 @@ def CAP1D_singleAxon(bundle, maxNumberOfAxons, recMechIndex=0):
 
 def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0):
 
+    '''
+    CAP1D plots the compound action potential of the recording mechanism recMechIndex of bundle. If multiple recording
+    sites have been specified along the bundle for one mechanism, up to 10 subplots are generated
+    Args:
+        bundle: PyPN.Bundle
+        maxNumberOfSubplots: maximum number of subplots in case of multiple electrode positions (default 10)
+        recMechIndex: index of the recording mechanism (default 0)
+
+    Returns: nothing
+    '''
+
     # first load the desired data from file
     time, CAP = bundle.get_CAP_from_file(recMechIndex)
 
@@ -205,6 +271,18 @@ def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0):
 
 def CAP2D(bundle):
 
+    '''
+    This function makes sense to use if a high number of electrode sites has been used (>50). Then a two-dimensional
+    image-plot with the distance from origin in one dimension and the time as a second dimension will be plotted. Color
+    indicates intensity.
+
+    Args:
+        bundle: PyPN.Bundle object
+
+    Returns: none
+
+    '''
+
     # first load the desired data from file
     time, CAP = bundle.get_CAP_from_file()
 
@@ -242,6 +320,17 @@ def CAP2D(bundle):
     plt.savefig(os.path.join(bundle.basePath, 'CAP2D.png'))
 
 def voltage(bundle, maxNumberOfSubplots=10):
+
+    '''
+    Plot of the membrane voltage against time for axon-segments.
+
+    Args:
+        bundle: PyPN.Bundle object
+        maxNumberOfSubplots: If more than maxNumberOfSubplots axons recorded, select maxNumberOfSubplots randomly.
+
+    Returns:
+
+    '''
 
     timeRec, voltageMatrices = bundle.get_voltage_from_file()
 

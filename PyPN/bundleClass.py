@@ -32,46 +32,38 @@ from nameSetters import *
 class Bundle(object):
     # radiusBundle: Radius of the bundle (typically 0.5-1.5mm)
     # numberOfAxons: Number of axons in the bundle
-    # p_A: Percentage of myelinated fiber type A
-    # p_C: Percentage of unmyelinated fiber type C
+    # pMyel: Percentage of myelinated fiber type A
+    # pUnmyel: Percentage of unmyelinated fiber type C
     #
-    # numberContactPoints: Number of points on the circle constituing the cuff electrode
-    # recording_elec: Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
     #
-    # stim_type: Stimulation type either "INTRA" or "EXTRA" for INTRA/EXTRA_cellular stimulation
-    # amplitude: pulse amplitude (nA)
-    # freq: frequency of the sin pulse (kHz)
-    # duty_cycle: Percentage stimulus is ON for one cycl
-    # stim_dur : stimulus duration (ms)
-    # dur: simulation duration (ms)
-    # waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-    # number_of_elecs: number of electrodes along the bundle
-    # recording_type: "BIPOLAR" or "MONOPOLAR"
-    #
-    # myelinated_A: parameters for fiber type A
+    # myelinated: parameters for fiber type A, B
     # umyelinated:  parameters for fiber type C
 
-    def __init__(self, radiusBundle, lengthOfBundle, bundleGuide, numberOfAxons, p_A, p_C, myelinated_A, unmyelinated,
+    def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=False,
                  segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300):
 
-        self.myelinated_A =  myelinated_A
-        self.unmyelinated =  unmyelinated
+        self.paramsMyel =  paramsMyel
+        self.paramsUnmyel =  paramsUnmyel
 
-        self.bundleLength = lengthOfBundle
+        self.length = length
         self.randomDirectionComponent = randomDirectionComponent
         self.segmentLengthAxon = segmentLengthAxon
-        self.bundleCoords = bundleGuide
+
+        if not bundleGuide:
+            self.bundleCoords = createGeometry.get_bundle_guide_straight(length, segmentLengthAxon)
+        else:
+            self.bundleCoords = bundleGuide
 
         self.excitationMechanisms = []
         self.recordingMechanisms = []
 
-        self.p_A = float(p_A)/(p_A+p_C)
-        self.p_C = float(p_C)/(p_A+p_C)
+        self.pMyel = float(pMyel)/(pMyel+pUnmyel)
+        self.pUnmyel = float(pUnmyel)/(pMyel+pUnmyel)
 
         self.numberOfAxons = numberOfAxons
         self.axons = []
         self.axonColors = np.zeros([self.numberOfAxons,4])
-        self.radiusBundle = radiusBundle # um
+        self.radiusBundle = radius # um
 
         # self.voltages = []
 
@@ -81,9 +73,9 @@ class Bundle(object):
 
         self.build_disk(self.numberOfAxons,self.radiusBundle)
 
-        self.saveParams={'timeRes': timeRes, 'tStop': tStop, 'p_A': self.p_A,
-                    'myelinated_A': myelinated_A, 'unmyelinated': unmyelinated,
-                    'lengthOfBundle': lengthOfBundle, 'numberOfAxons' : numberOfAxons}
+        self.saveParams={'timeRes': timeRes, 'tStop': tStop, 'pMyel': self.pMyel,
+                    'paramsMyel': paramsMyel, 'paramsUnmyel': paramsUnmyel,
+                    'length': length, 'numberOfAxons' : numberOfAxons}
         self.numberOfSavedSegments = numberOfSavedSegments
 
         self.basePath = get_bundle_directory(self.saveParams, new = True)
@@ -120,7 +112,7 @@ class Bundle(object):
     def create_axon(self, axonPosition):
 
         # first decide by chance whether myelinated or unmyelinated
-        axonTypeIndex = np.random.choice(2,1,p = [self.p_A, self.p_C])
+        axonTypeIndex = np.random.choice(2,1,p = [self.pMyel, self.pUnmyel])
         axonTypes = ['m', 'u']
         axonType = axonTypes[axonTypeIndex]
 
@@ -137,7 +129,7 @@ class Bundle(object):
             axonCoords = np.column_stack(axonPosition, np.concatenate(([axonPosition[0] + self.bundleLength], axonPosition[1:2])))
 
         if axonTypeIndex == 1:
-            unmyel = copy.copy(self.unmyelinated)
+            unmyel = copy.copy(self.paramsUnmyel)
             unmyel['fiberD'] = axonDiameter
             unmyel['tStop'] = self.tStop
             unmyel['timeRes'] = self.timeRes
@@ -148,7 +140,7 @@ class Bundle(object):
 
 
         elif axonTypeIndex == 0:
-            myel = copy.copy(self.myelinated_A)
+            myel = copy.copy(self.paramsMyel)
             myel['fiberD'] = axonDiameter
             myel['tStop'] = self.tStop
             myel['timeRes'] = self.timeRes
@@ -199,7 +191,7 @@ class Bundle(object):
 
         if axonType == 'm':
 
-            fiberDef = self.myelinated_A['fiberD']
+            fiberDef = self.paramsMyel['fiberD']
 
             if isinstance(fiberDef, dict):
 
@@ -210,8 +202,7 @@ class Bundle(object):
             elif isinstance(fiberDef, float) or isinstance(fiberDef, int):
                 drawnDiam = fiberDef
             else:
-                print 'Fiber diameter definition for myelinated axons not valid.'
-                quit()
+                raise Exception('Fiber diameter definition for myelinated axons not valid.')
 
             # # choose the closest from existing axonD
             # fiberD_choices = [5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0]
@@ -219,11 +210,11 @@ class Bundle(object):
             #
             # diam = fiberD_choices[np.argmin(diff_axonD)]
 
-            diam = drawnDiam
+            diam = max(0.2, drawnDiam)
 
         elif axonType == 'u':
 
-            fiberDef = self.unmyelinated['fiberD']
+            fiberDef = self.paramsUnmyel['fiberD']
 
             if isinstance(fiberDef, dict):
 
@@ -239,30 +230,31 @@ class Bundle(object):
             elif isinstance(fiberDef, float) or isinstance(fiberDef, int):
                 diam = fiberDef
             else:
-                print 'Fiber diameter definition for unmyelinated axons not valid.'
-                quit()
+                raise Exception('Fiber diameter definition for unmyelinated axons not valid.')
+
+            diam = max(0.1, diam)
         else:
-            print 'Invalid axon type given to getDiam function.'
-            quit()
+            raise Exception('Invalid axon type given to getDiam function.')
 
         return round(diam,1)
 
 
-
     def add_recording_mechanism(self, mechanism):
         self.recordingMechanisms.append(mechanism)
+        mechanism.setup_recording_elec(self.bundleCoords, self.length)
+
     
     def add_excitation_mechanism(self, mechanism):
         self.excitationMechanisms.append(mechanism)
 
-    def setup_recording_mechanisms(self):
-        for recMech in self.recordingMechanisms:
-            recMech.setup_recording_elec(self.bundleCoords, self.bundleLength)
+    # def setup_recording_mechanisms(self):
+    #     for recMech in self.recordingMechanisms:
+    #         recMech.setup_recording_elec(self.bundleCoords, self.bundleLength)
     
     def simulate(self):
 
-        # once calculate the positions of electrodes etc. for each recording mechanism
-        self.setup_recording_mechanisms()
+        # # once calculate the positions of electrodes etc. for each recording mechanism
+        # self.setup_recording_mechanisms()
 
         self.simulate_axons()
 
@@ -324,6 +316,7 @@ class Bundle(object):
             t0 = time.time()
 
             recMechIndex = 0
+            elapsedSaveLFP = 0
             for recMech in self.recordingMechanisms:
 
                 # get the locations of electrodes, method of LFPy calculation and specific resistance
@@ -346,6 +339,12 @@ class Bundle(object):
                 # self.save_extra_recordings(electrodes, axonIndex)
                 elapsedSaveLFP = time.time()-t0
                 print('%.2f s' % elapsedSaveLFP)
+
+                # what should happen is to directly calculate the CAP here from the local electrode file and then save
+                # the SFAP in either the bundle object or write it to file.
+
+                # 1. calculate the CAP
+
 
                 recMechIndex += 1
 
@@ -384,11 +383,13 @@ class Bundle(object):
 
         filename = "electrode_"+str(axonIndex)+".dat"
 
-        DataOut = np.array(electrodes.LFP[0])#,1:-1
-        for j in range(1,len(electrodes.LFP)):
-            DataOut = np.column_stack((DataOut, np.array(electrodes.LFP[j])))#,1:-1
+        # DataOut = np.array(electrodes.LFP[0])#,1:-1
+        # for j in range(1,len(electrodes.LFP)):
+        #     DataOut = np.column_stack((DataOut, np.array(electrodes.LFP[j])))#,1:-1
 
-        np.savetxt(os.path.join(directory,filename), DataOut)
+        DataOut = np.transpose(np.array(electrodes.LFP))  # ,1:-1
+
+        np.savetxt(os.path.join(directory, filename), DataOut)
 
 
     def load_one_electrode(self, elecIndex):
@@ -433,7 +434,7 @@ class Bundle(object):
             recMechIndex += 1
 
         # print 'CAP saved in ' + str(time.time()-t0) + 's.'
-        print ("CAP saved in %.2f s." % (time.time()-t0))
+        print "CAP saved in %.2f s." % (time.time() - t0)
 
     def clear_CAP_vars(self):
         for recMech in self.recordingMechanisms:

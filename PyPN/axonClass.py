@@ -342,7 +342,8 @@ class Axon(object):
                         sum_r = 0
                         for j in range(stimulation_mode):
                             sum_r += 1/r[j]
-                        seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/sum_r)*0.01
+                        # seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/sum_r)*0.01
+                        seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*sum_r*0.01
 
 
 class Unmyelinated(Axon):

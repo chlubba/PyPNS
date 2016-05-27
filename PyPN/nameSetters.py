@@ -2,27 +2,27 @@ import os
 import glob
 import cPickle as pickle
 
-def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop = 0, p_A=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
+def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop = 0, pMyel=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
 
     # define here the root of the PyPN file system
-    homeDirectory="/media/carl/4ECC-1C44/PyPN/"#""#"results"#
+    homeDirectory= '/media/carl/4ECC-1C44/PyPN/' # '/home/carl/PNPy/Results/' #  ""#"results"#
 
     # read out dictionary of parameters (more elegant methon possible?)
     # elecCount = len(paramDict['recordingElecPos'])
     dt=paramDict['timeRes']
     tStop = paramDict['tStop']
-    p_A = paramDict['p_A']
-    L = paramDict['lengthOfBundle']
+    pMyel = paramDict['pMyel']
+    L = paramDict['length']
     numberOfAxons = paramDict['numberOfAxons']
 
-    myelinated_A = paramDict['myelinated_A']
-    unmyelinated = paramDict['unmyelinated']
+    paramsMyel = paramDict['paramsMyel']
+    paramsUnmyel = paramDict['paramsUnmyel']
 
-    unmyelinatedDiam = unmyelinated['fiberD']
-    myelinatedDiam = myelinated_A['fiberD']
+    myelinatedDiam = paramsMyel['fiberD']
+    unmyelinatedDiam = paramsUnmyel['fiberD']
 
     # further process save parameters
-    p_C = 1 - p_A
+    pUnmyel = 1 - pMyel
 
     # if stimType in ["EXTRA", "INTRA", "NONE"]:
     #     stimulusPathString = "stimType="+stimType+" stimWaveform="+stimWaveform+" stimDutyCycle="+str(stimDutyCycle)+" stimAmplitude="+str(stimAmplitude)+"/"
@@ -46,7 +46,7 @@ def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop 
     #     quit()
 
     #concatenate strings
-    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" p_A="+str(p_A)+" p_C="+str(p_C)+" L="+str(L)+' nAxons='+str(numberOfAxons)#+' '+poleString
+    pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" pMyel="+str(pMyel)+" pUnmyel="+str(pUnmyel)+" L="+str(L)+' nAxons='+str(numberOfAxons)#+' '+poleString
     pathString = os.path.join(homeDirectory, pathStringNoStim) # +stimulusPathString
 
     # find bundle index
