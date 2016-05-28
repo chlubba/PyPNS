@@ -73,21 +73,18 @@ def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop 
 
 
 def get_directory_name(keyword, basePath):
-    # retrieve directory name based on the purpose defined by keyword and the bundleParameters
-    # 4 possible keywords:
-    # elec -> temporary electrode folder
-    # draw -> distrbution folder
-    # CAP -> compound action potential folder
-    # V -> voltage folder
 
-    # suffix = {
-    #     'elec': "electrodes",
-    #     'draw': "draws",
-    #     'CAP': "CAP",
-    #     'CAP1A': "CAPSingleAxons",
-    #     'V': "Voltage",
-    #     'bundle' : ""
-    # }.get(keyword,-1)
+    """
+    retrieve directory name based on the purpose defined by keyword and the bundleParameters
+
+    Args:
+        keyword: prefix of the file name
+        basePath: bundle basepath
+
+    Returns:
+
+    """
+
 
     if keyword=='bundle':
         suffix=''

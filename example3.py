@@ -5,7 +5,7 @@ import numpy as np
 # import cPickle as pickle
 # import os
 
-calculationFlag = True # run simulation or load latest bundle with this parameters (not all taken into account for identification)
+calculationFlag = False # run simulation or load latest bundle with this parameters (not all taken into account for identification)
 
 upstreamSpikingOn = False
 electricalStimulusOn = True
@@ -15,7 +15,7 @@ tStop=20
 timeRes=0.0025#0.0025
 
 # set length of bundle and number of axons
-lengthOfBundle = 200000 # 400000
+lengthOfBundle = 400000 # 400000
 numberOfAxons = 1
 
 # create a guide the axons will follow
@@ -141,8 +141,8 @@ if calculationFlag:
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.5, sigma=1., width=40000))
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.35, sigma=1., width=120000))
 
-    # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.35, sigma=1., width=120000))
-    bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.35, sigma=1., width=120000))
+    bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.2, sigma=1., width=120000))
+    # bundle.add_recording_mechanism(PyPN.RecCuff3D(1000, numberOfElectrodes=2, positionMax=0.8, sigma=1., width=1000))
 
 
     # PyPN.plot.geometry_definition(bundle)
@@ -156,37 +156,41 @@ if calculationFlag:
 else:
 
     # try to open a bundle with the parameters set above
-    bundle = PyPN.open_recent_bundle(Parameters)
-    # bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=20 pMyel=1.0 pUnmyel=0.0 L=400000 nAxons=1/bundle00001')
+    # bundle = PyPN.open_recent_bundle(Parameters)
+    bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=20 pMyel=1.0 pUnmyel=0.0 L=400000 nAxons=1/bundle00001')
+    # bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=20 pMyel=1.0 pUnmyel=0.0 L=400000 nAxons=1/bundle00004')
 
 # # plot geometry, intra and extracellular recording, axon diameters
 # print '\nStarting to plot'
 # PyPN.plot.geometry(bundle)
 # PyPN.plot.CAP1D_singleAxon(bundle, 10)
-for i in range(len(bundle.recordingMechanisms)):
-    PyPN.plot.CAP1D(bundle,recMechIndex=i)
 
-# # f, (ax1, ax2) = plt.subplots(2,1, sharex=True)
-# meanCAP = 0
-# CAPs = []
 # for i in range(len(bundle.recordingMechanisms)):
-#     time, CAP = bundle.get_CAP_from_file(i)
-#
-#     # print 'mean amplitude = ' + str(np.mean(CAP[0,:]))
-#
-#     CAPs.append(CAP)
-#
-#     plt.plot(time, CAP[0,:], label='CAP'+str(i))
-#     meanCAP +=CAP[0,:]
-#
-# # plt.plot(CAPs[0][0,:], label='CAP0')
-# # plt.plot(CAPs[1][0,:], label='CAP1')
-# meanCAP = meanCAP/len(bundle.recordingMechanisms)
-# plt.plot(time, meanCAP, label='mean CAP')
-# plt.legend()
+#     PyPN.plot.CAP1D(bundle,recMechIndex=i)
 
+# f, (ax1, ax2) = plt.subplots(2,1, sharex=True)
+meanCAP = 0
+CAPs = []
+for i in range(len(bundle.recordingMechanisms)):
+    time, CAP = bundle.get_CAP_from_file(i)
+
+    # print 'mean amplitude = ' + str(np.mean(CAP[0,:]))
+
+    CAPs.append(CAP)
+
+    # plt.plot(time, CAP[0,:], label='CAP'+str(i))
+    meanCAP +=CAP[0,:]
+
+# plt.plot(CAPs[0][0,:], label='CAP0')
+# plt.plot(CAPs[1][0,:], label='CAP1')
+meanCAP = meanCAP/len(bundle.recordingMechanisms)
+plt.plot(time, meanCAP, label='mean CAP')
+plt.legend()
+#
+PyPN.plot.geometry_definition(bundle)
+
+# PyPN.plot.CAP1D(bundle,recMechIndex=0)
 # PyPN.plot.CAP1D(bundle,recMechIndex=1)
-# PyPN.plot.CAP1D(bundle,recMechIndex=2)
 # PyPN.plot.CAP1D(bundle,recMechIndex=3)
 
 

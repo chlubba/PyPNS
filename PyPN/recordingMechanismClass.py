@@ -83,48 +83,82 @@ class RecordingMechanism(object):
 
             axonIndex += 1
 
-    # def compute_CAP_one_axon(self, electrodeData, axonIndex):
-    #
-    #     monopolar = self.numberOfPoles == 1
-    #
-    #     # how long was the recording?
-    #     length_t = np.shape(electrodeData)[1]
-    #
-    #     # variable to save the sum over all axons
-    #     self.CAP = np.zeros((self.numberOfElectrodes, length_t))
-    #
-    #     # load the recordings for every axon one by one and add them.
-    #     axonIndex = 0
-    #     while True:
-    #         try:
-    #             electrodeData = self.load_one_axon(axonIndex)
-    #         except:
-    #             break
-    #
-    #         # The contactpoints that constitute one cuff electrode ring have to be recovered, summed up together per
-    #         # recording location along the axon
-    #         for i in range(self.numberOfElectrodes):
-    #             if monopolar:
-    #                 contactPointIndices = range(self.numberOfPoints * i, self.numberOfPoints * (1 + i))
-    #                 sumOverContactPoints = np.mean(electrodeData[contactPointIndices, :], 0)
-    #                 # sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
-    #             else:
-    #                 contactPointIndicesPole1 = range(self.numberOfPoints * 2 * i, self.numberOfPoints * (1 + 2 * i))
-    #                 contactPointIndicesPole2 = range(self.numberOfPoints * (2 * i + 1),
-    #                                                  self.numberOfPoints * (2 * (i + 1)))
-    #                 sumOverContactPoints = np.mean(
-    #                     electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
-    #                 # sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
-    #
-    #             self.CAP[i, :] = self.CAP[i, :] + sumOverContactPoints
-    #
-    #             if i == self.numberOfElectrodes - 1:
-    #                 # self.AP_axonwise[axonIndex,:] = sumOverContactPoints
-    #                 self.CAP_axonwise = np.vstack([self.CAP_axonwise, sumOverContactPoints])
-    #
-    #         axonIndex += 1
+    def compute_CAP_one_axon(self, electrodeData, axonIndex):
+
+        monopolar = self.numberOfPoles == 1
+
+        LFP = electrodeData.LFP
+
+        # how long was the recording?
+        length_t = np.shape(LFP)[1]
+
+        # for every axon we have numberOfElectrodes electrodes
+        CAP_axonwise = np.zeros((self.numberOfElectrodes, length_t))
+
+        # The contactpoints that constitute one electrode contact (e.g. a cuff electrode ring) have to be recovered,
+        # summed up together per recording location along the axon
+        for i in range(self.numberOfElectrodes):
+            if monopolar:
+                contactPointIndices = range(self.numberOfPoints * i, self.numberOfPoints * (1 + i))
+                meanOverContactPoints = np.mean(LFP[contactPointIndices, :], 0)
+            else:
+                contactPointIndicesPole1 = range(self.numberOfPoints * 2 * i, self.numberOfPoints * (1 + 2 * i))
+                contactPointIndicesPole2 = range(self.numberOfPoints * (2 * i + 1),
+                                                 self.numberOfPoints * (2 * (i + 1)))
+                meanOverContactPoints = np.mean(
+                    LFP[contactPointIndicesPole1, :] - LFP[contactPointIndicesPole2, :], 0)
+                # sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
+
+            CAP_axonwise[i, :] = meanOverContactPoints
+
+            if i == self.numberOfElectrodes - 1:
+                self.CAP_axonwise.append(CAP_axonwise)
+
+    def compute_overall_CAP(self):
+
+        # how long was the recording?
+        # electrodeData = self.load_one_axon(0)
+        # length_t = np.shape(self.CAP_axonwise[0])[1]
+
+        arrayd_axonwise_CAPs = np.array(self.CAP_axonwise)
+        self.CAP = np.sum(arrayd_axonwise_CAPs, axis=0)
+
+        # # variable to save the sum over all axons
+        # self.CAP = np.zeros((self.numberOfElectrodes, length_t))
 
 
+
+
+        # # load the recordings for every axon one by one and add them.
+        # axonIndex = 0
+        # while True:
+        #     try:
+        #         electrodeData = self.load_one_axon(axonIndex)
+        #     except:
+        #         break
+        #
+        #     # The contactpoints that constitute one cuff electrode ring have to be recovered, summed up together per
+        #     # recording location along the axon
+        #     for i in range(self.numberOfElectrodes):
+        #         if monopolar:
+        #             contactPointIndices = range(self.numberOfPoints * i, self.numberOfPoints * (1 + i))
+        #             sumOverContactPoints = np.mean(electrodeData[contactPointIndices, :], 0)
+        #             # sumOverContactPoints = np.sum(electrodeData[contactPointIndices, :], 0)
+        #         else:
+        #             contactPointIndicesPole1 = range(self.numberOfPoints * 2 * i, self.numberOfPoints * (1 + 2 * i))
+        #             contactPointIndicesPole2 = range(self.numberOfPoints * (2 * i + 1),
+        #                                              self.numberOfPoints * (2 * (i + 1)))
+        #             sumOverContactPoints = np.mean(
+        #                 electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
+        #             # sumOverContactPoints = np.sum(electrodeData[contactPointIndicesPole1, :] - electrodeData[contactPointIndicesPole2, :], 0)
+        #
+        #         self.CAP[i, :] = self.CAP[i, :] + sumOverContactPoints
+        #
+        #         if i == self.numberOfElectrodes - 1:
+        #             # self.AP_axonwise[axonIndex,:] = sumOverContactPoints
+        #             self.CAP_axonwise = np.vstack([self.CAP_axonwise, sumOverContactPoints])
+        #
+        #     axonIndex += 1
 
 
 class RecCuff2D(RecordingMechanism):
@@ -262,7 +296,7 @@ class RecCuff3D(RecordingMechanism):
         # self.numberOfPointRings = max(1, np.floor(pointsPerMicroMeter*width))
         self.pointsPerPointRing =  pointsPerRing
         self.distanceOfRings = distanceOfRings
-        self.numberOfPointRings = max(1, np.floor(width/distanceOfRings)*pointsPerRing)
+        self.numberOfPointRings = max(1, np.floor(width/distanceOfRings))
 
         # numberOfPoints = np.floor(pointsPerMicroMeter*width)*np.floor(pointsPerMicroMeter*2*np.pi) # how many monopolar electrodes are used to approximate the electrode
         numberOfPoints = int(self.pointsPerPointRing*self.numberOfPointRings)

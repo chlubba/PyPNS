@@ -259,7 +259,8 @@ class Bundle(object):
         self.simulate_axons()
 
         # compute the compound action potential by summing all axon contributions up
-        self.compute_CAPs_from_files()
+        self.compute_CAPs()
+        # save the compound action potential and the action potentials of each axon to disk
         self.save_CAPs_to_file()
         self.clear_CAP_vars()
 
@@ -332,19 +333,19 @@ class Bundle(object):
                 elapsedLFP = time.time()-t0
                 print('%.2f s' % elapsedLFP)
 
-                print 'Saving extracellular recordings to disk...',
-                # take time for saving process
-                t0 = time.time()
-                self.save_extra_recording(electrodes, axonIndex, recMechIndex)
-                # self.save_extra_recordings(electrodes, axonIndex)
-                elapsedSaveLFP = time.time()-t0
-                print('%.2f s' % elapsedSaveLFP)
+                # print 'Saving extracellular recordings to disk...',
+                # # take time for saving process
+                # t0 = time.time()
+                # self.save_extra_recording(electrodes, axonIndex, recMechIndex)
+                # # self.save_extra_recordings(electrodes, axonIndex)
+                # elapsedSaveLFP = time.time()-t0
+                # print('%.2f s' % elapsedSaveLFP)
 
                 # what should happen is to directly calculate the CAP here from the local electrode file and then save
                 # the SFAP in either the bundle object or write it to file.
-
+                #
                 # 1. calculate the CAP
-
+                recMech.compute_CAP_one_axon(electrodes, axonIndex)
 
                 recMechIndex += 1
 
@@ -368,12 +369,35 @@ class Bundle(object):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
 
 
-    def save_extra_recording(self, electrodes, axonIndex, recMechIndex):
+    # def save_extra_recording(self, electrodes, axonIndex, recMechIndex):
+    #
+    #     directory = get_directory_name("elec"+str(recMechIndex), self.basePath)
+    #
+    #     # if this is the first axon to save the extracellular recording to, create the directory
+    #     if axonIndex==0:
+    #         self.recordingMechanisms[recMechIndex].savePath = directory
+    #         if not os.path.exists(directory):
+    #             os.makedirs(directory)
+    #         else:
+    #             shutil.rmtree(directory)
+    #             os.makedirs(directory)
+    #
+    #     filename = "electrode_"+str(axonIndex)+".dat"
+    #
+    #     # DataOut = np.array(electrodes.LFP[0])#,1:-1
+    #     # for j in range(1,len(electrodes.LFP)):
+    #     #     DataOut = np.column_stack((DataOut, np.array(electrodes.LFP[j])))#,1:-1
+    #
+    #     DataOut = np.transpose(np.array(electrodes.LFP))  # ,1:-1
+    #
+    #     np.savetxt(os.path.join(directory, filename), DataOut)
 
-        directory = get_directory_name("elec"+str(recMechIndex), self.basePath)
+    def save_extra_rec_one_axon_one_recmech(self, axonIndex, recMechIndex):
+
+        directory = get_directory_name("elec" + str(recMechIndex), self.basePath)
 
         # if this is the first axon to save the extracellular recording to, create the directory
-        if axonIndex==0:
+        if axonIndex == 0:
             self.recordingMechanisms[recMechIndex].savePath = directory
             if not os.path.exists(directory):
                 os.makedirs(directory)
@@ -381,13 +405,14 @@ class Bundle(object):
                 shutil.rmtree(directory)
                 os.makedirs(directory)
 
-        filename = "electrode_"+str(axonIndex)+".dat"
+        filename = "electrode_" + str(axonIndex) + ".dat"
 
         # DataOut = np.array(electrodes.LFP[0])#,1:-1
         # for j in range(1,len(electrodes.LFP)):
         #     DataOut = np.column_stack((DataOut, np.array(electrodes.LFP[j])))#,1:-1
 
-        DataOut = np.transpose(np.array(electrodes.LFP))  # ,1:-1
+        # DataOut = np.transpose(np.array(electrodes.LFP))  # ,1:-1
+        DataOut = self.recordingMechanisms[recMechIndex].CAP_axonwise[axonIndex]
 
         np.savetxt(os.path.join(directory, filename), DataOut)
 
@@ -424,7 +449,7 @@ class Bundle(object):
 
             # now save the extracellular signals of every cell
             DataOut = np.array(self.trec)
-            DataOut = np.column_stack((DataOut, np.transpose(recMech.CAP_axonwise)))
+            DataOut = np.column_stack((DataOut, np.transpose(np.array(recMech.CAP_axonwise)[:,-1,:])))
 
             filename = get_file_name('CAP1A_'+recMechName+'_recMech'+str(recMechIndex), self.basePath)
             print "Save location for single axon differentiated CAP file: " + filename
@@ -520,6 +545,11 @@ class Bundle(object):
         for recMech in self.recordingMechanisms:
 
             recMech.compute_CAP_from_files()
+
+    def compute_CAPs(self):
+
+        for recMech in self.recordingMechanisms:
+            recMech.compute_overall_CAP()
 
 
 
