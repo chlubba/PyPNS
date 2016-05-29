@@ -261,8 +261,16 @@ def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0):
         # distanceFromOrigin = bundle.recordingMechanisms[recMechIndex].positionMax*bundle.bundleLength
         distanceFromOrigin = bundle.recordingMechanisms[recMechIndex].electrodeDistances[0]
 
+        recMech = bundle.recordingMechanisms[recMechIndex]
+        radius = recMech.radius
+        poles = recMech.numberOfPoles
+        poleDistance = recMech.poleDistance
+
+        titleString = 'Radius %i, %i Poles, Poledistance %i, Distance from Origin %i' % (radius, poles, poleDistance, distanceFromOrigin)
+
         plt.plot(time, CAPSingleElectrode)
-        plt.title('distance ' + str(distanceFromOrigin) + ' [um]')
+        # plt.title('distance ' + str(distanceFromOrigin) + ' [um]')
+        plt.title(titleString)
         plt.ylabel('CAP [mV]')
         plt.xlabel('time [ms]')
 
@@ -333,6 +341,8 @@ def voltage(bundle, maxNumberOfSubplots=10):
     '''
 
     timeRec, voltageMatrices = bundle.get_voltage_from_file()
+    if timeRec == None:
+        return
 
     # now plot
     numberOfAxons = np.shape(voltageMatrices)[0]

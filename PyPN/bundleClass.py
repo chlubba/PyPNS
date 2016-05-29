@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
+from takeTime import *
 import silencer
 
 from scipy.signal import argrelextrema
@@ -40,7 +41,10 @@ class Bundle(object):
     # umyelinated:  parameters for fiber type C
 
     def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=False,
-                 segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300):
+                 segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False):
+
+        self.saveI = saveI
+        self.saveV = saveV
 
         self.paramsMyel =  paramsMyel
         self.paramsUnmyel =  paramsUnmyel
@@ -247,40 +251,74 @@ class Bundle(object):
     def add_excitation_mechanism(self, mechanism):
         self.excitationMechanisms.append(mechanism)
 
-    # def setup_recording_mechanisms(self):
-    #     for recMech in self.recordingMechanisms:
-    #         recMech.setup_recording_elec(self.bundleCoords, self.bundleLength)
-    
+
     def simulate(self):
 
-        # # once calculate the positions of electrodes etc. for each recording mechanism
-        # self.setup_recording_mechanisms()
-
+        # exectue the NEURON and LFPy calculations of all axons
         self.simulate_axons()
+        print '\nAll axons simulated.'
 
-        # compute the compound action potential by summing all axon contributions up
-        self.compute_CAPs()
-        # save the compound action potential and the action potentials of each axon to disk
-        self.save_CAPs_to_file()
-        self.clear_CAP_vars()
-
-        # get rid of the all Neuron objects to be able to pickle the bundle-class.
+        # once simulation is over get rid of the all Neuron objects to be able to pickle the bundle-class.
         h('forall delete_section()')
-        self.trec = None
-        # self.voltages = None
+        # self.trec = None
         for excitationMechanism in self.excitationMechanisms:
             excitationMechanism.delete_neuron_objects()
 
-    def simulate_axons(self):
+        # compute the compound action potential by summing all axon contributions up, save it, delete variables
+        with takeTime('compute CAP from single axon contributions'):
+            self.compute_CAPs()
+        with takeTime('save CAP data'):
+            self.save_CAPs_to_file()
+        self.clear_CAP_vars()
 
-        # where are the electrodes
-        # [X,Y,Z,N] = self.setup_recording_elec()
-        # [X,Y,Z] = self.setup_recording_elec()
+    def compute_CAPs_from_imem_files(self, recMecIndices=-1):
+        """
+        if simulation has already been run, this function calculates the CAP from the saved membrane current
+        """
+        if recMecIndices == -1:
+            recMecIndices = range(len(self.recordingMechanisms))
+        elif not np.all([i in range(len(self.recordingMechanisms)) for i in recMecIndices]):
+            print 'selected recording mechanism indices not valid. Set to all recording mechanisms.'
+            recMecIndices = range(len(self.recordingMechanisms))
+
+        for axonIndex in range(len(self.axons)):
+            axon = self.axons[axonIndex]
+
+            print ''
+            with takeTime('load current of axon ' + str(axonIndex)):
+                axon.imem = self.get_imem_from_file_axonwise(axonIndex)
+
+            if len(self.recordingMechanisms) > 0:
+                with takeTime("calculate extracellular potential"):
+                    recMechIndex = 0
+                    for recMech in self.recordingMechanisms:
+
+                        # see if recording has already been performed
+                        _, CAP = self.get_CAP_from_file(recMechIndex)
+                        recMechIndex += 1
+                        if not CAP == None:
+                            continue
+
+                        recMech.compute_single_axon_CAP(axon)
+
+            else:
+                print 'Nothing to do here, no recording mechanisms have been added to the bundle.'
+
+            axon.imem = None
+
+        # compute the compound action potential by summing all axon contributions up, save it, delete variables
+        with takeTime('compute CAP from single axon contributions'):
+            self.compute_CAPs()
+        with takeTime('save CAP data'):
+            self.save_CAPs_to_file()
+        self.clear_CAP_vars()
+
+
+    def simulate_axons(self):
 
         for axonIndex in range(self.numberOfAxons):
 
             print "\nStarting simulation of axon " + str(axonIndex)
-
             tStart = time.time()
 
             axon = self.axons[axonIndex]
@@ -292,89 +330,55 @@ class Bundle(object):
             for excitationMechanism in self.excitationMechanisms:
                 excitationMechanism.connect_axon(axon)
 
+            # setup recorder for time
             if axonIndex == 0:
-            # record time variable
+                # record time variable
                 self.trec = h.Vector()
                 self.trec.record(h._ref_t)
-
-            # take time of simulation
-            t0 = time.time()
 
             # here we correct the conductance of the slow potassium channel from 0.08 S/cm2 to 0.12 S/cm2 to prevent
             # multiple action potentials for thin fibers
             h('forall for (x,0) if (ismembrane("axnode")) gkbar_axnode(x) = 0.12') # .16
 
+            with takeTime("calculate voltage and membrane current"):
+                axon.simulate()
 
-            print 'Calculating voltage and membrane current...',
-            # actually start simulation of selected axon
-            axon.simulate()
+            if len(self.recordingMechanisms) > 0:
+                with takeTime("calculate extracellular potential"):
+                    recMechIndex = 0
+                    for recMech in self.recordingMechanisms:
+                        recMech.compute_single_axon_CAP(axon)
+                        recMechIndex += 1
+            else:
+                print 'No recording mechanisms added. No CAP will be recorded.'
 
-            elapsedVI = time.time()-t0
-            print('%.2f s' % elapsedVI)
+            if self.saveV:
+                with takeTime("save membrane potential to disk"):
+                    self.save_voltage_to_file_axonwise(axonIndex)
 
-            print 'Calculating extracellular potential...',
-            # take time for LFPy calculation
-            t0 = time.time()
-
-            recMechIndex = 0
-            elapsedSaveLFP = 0
-            for recMech in self.recordingMechanisms:
-
-                # get the locations of electrodes, method of LFPy calculation and specific resistance
-                electrodeParameters = recMech.electrodeParameters
-
-                # shut down the output, always errors at the end because membrane current too high
-                with silencer.nostdout():
-                    electrodes = LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters)
-
-                    # calculate LFP by LFPy from membrane current
-                    electrodes.calc_lfp()
-
-                elapsedLFP = time.time()-t0
-                print('%.2f s' % elapsedLFP)
-
-                # print 'Saving extracellular recordings to disk...',
-                # # take time for saving process
-                # t0 = time.time()
-                # self.save_extra_recording(electrodes, axonIndex, recMechIndex)
-                # # self.save_extra_recordings(electrodes, axonIndex)
-                # elapsedSaveLFP = time.time()-t0
-                # print('%.2f s' % elapsedSaveLFP)
-
-                # what should happen is to directly calculate the CAP here from the local electrode file and then save
-                # the SFAP in either the bundle object or write it to file.
-                #
-                # 1. calculate the CAP
-                recMech.compute_CAP_one_axon(electrodes, axonIndex)
-
-                recMechIndex += 1
-
-            print 'Saving membrane potential recordings to disk...',
-            # save voltage to file and take time
-            t0 = time.time()
-            self.save_voltage_to_file_axonwise(axon.vreclist, axonIndex)
-            elapsedSaveV = time.time()-t0
-            print('%.2f s' % elapsedSaveV)
-
+            if self.saveI:
+                with takeTime('save membrane current to disk'):
+                    self.save_imem_to_file_axonwise(axonIndex)
 
             # delete the object
             axon.delete_neuron_object()
 
-            elapsedAxon = time.time()-tStart
-
-            print ("Overall processing of axon %i took %.2f s. ( %.2f %% saving.)" % (axonIndex, elapsedAxon, (elapsedSaveV + elapsedSaveLFP)/elapsedAxon*100))
+            elapsedAxon = time.time() - tStart
+            # print ("Overall processing of axon %i took %.2f s. ( %.2f %% saving.)" % (axonIndex, elapsedAxon, (elapsedSaveV + elapsedSaveLFP)/elapsedAxon*100))
+            print "Overall processing of axon %i took %.2f s." % (axonIndex, elapsedAxon)
 
 
     def store_geometry(self):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
 
 
-    # def save_extra_recording(self, electrodes, axonIndex, recMechIndex):
+
+    # def save_extra_rec_one_axon_one_recmech(self, axonIndex, recMechIndex):
     #
-    #     directory = get_directory_name("elec"+str(recMechIndex), self.basePath)
+    #     directory = get_directory_name("elec" + str(recMechIndex), self.basePath)
     #
     #     # if this is the first axon to save the extracellular recording to, create the directory
-    #     if axonIndex==0:
+    #     if axonIndex == 0:
     #         self.recordingMechanisms[recMechIndex].savePath = directory
     #         if not os.path.exists(directory):
     #             os.makedirs(directory)
@@ -382,60 +386,43 @@ class Bundle(object):
     #             shutil.rmtree(directory)
     #             os.makedirs(directory)
     #
-    #     filename = "electrode_"+str(axonIndex)+".dat"
+    #     filename = "electrode_" + str(axonIndex) + ".dat"
     #
     #     # DataOut = np.array(electrodes.LFP[0])#,1:-1
     #     # for j in range(1,len(electrodes.LFP)):
     #     #     DataOut = np.column_stack((DataOut, np.array(electrodes.LFP[j])))#,1:-1
     #
-    #     DataOut = np.transpose(np.array(electrodes.LFP))  # ,1:-1
+    #     # DataOut = np.transpose(np.array(electrodes.LFP))  # ,1:-1
+    #     DataOut = self.recordingMechanisms[recMechIndex].CAP_axonwise[axonIndex]
     #
     #     np.savetxt(os.path.join(directory, filename), DataOut)
 
-    def save_extra_rec_one_axon_one_recmech(self, axonIndex, recMechIndex):
 
-        directory = get_directory_name("elec" + str(recMechIndex), self.basePath)
-
-        # if this is the first axon to save the extracellular recording to, create the directory
-        if axonIndex == 0:
-            self.recordingMechanisms[recMechIndex].savePath = directory
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            else:
-                shutil.rmtree(directory)
-                os.makedirs(directory)
-
-        filename = "electrode_" + str(axonIndex) + ".dat"
-
-        # DataOut = np.array(electrodes.LFP[0])#,1:-1
-        # for j in range(1,len(electrodes.LFP)):
-        #     DataOut = np.column_stack((DataOut, np.array(electrodes.LFP[j])))#,1:-1
-
-        # DataOut = np.transpose(np.array(electrodes.LFP))  # ,1:-1
-        DataOut = self.recordingMechanisms[recMechIndex].CAP_axonwise[axonIndex]
-
-        np.savetxt(os.path.join(directory, filename), DataOut)
-
-
-    def load_one_electrode(self, elecIndex):
-
-        directory = get_directory_name("elec", self.basePath)
-        filename = "electrode_"+str(elecIndex)+".dat"
-
-        t0 = time.time()
-        electrodeData = np.loadtxt(os.path.join(directory, filename), unpack=True)
-        print ("Loaded electrode %i in %.2f s." % (elecIndex, time.time()-t0))
-
-        return electrodeData
+    # def load_one_electrode(self, elecIndex):
+    #
+    #     directory = get_directory_name("elec", self.basePath)
+    #     filename = "electrode_"+str(elecIndex)+".dat"
+    #
+    #     t0 = time.time()
+    #     electrodeData = np.loadtxt(os.path.join(directory, filename), unpack=True)
+    #     print ("Loaded electrode %i in %.2f s." % (elecIndex, time.time()-t0))
+    #
+    #     return electrodeData
 
 
 
     def save_CAPs_to_file(self):
 
-        t0 = time.time()
+        # t0 = time.time()
 
-        recMechIndex = 0
-        for recMech in self.recordingMechanisms:
+        for recMechIndex in range(len(self.recordingMechanisms)):
+
+            recMech = self.recordingMechanisms[recMechIndex]
+
+            # see if recording has already been performed, then do not overwirte it (with potentially empty array)
+            _, CAP = self.get_CAP_from_file(recMechIndex)
+            if not CAP == None:
+                continue
 
             recMechName = recMech.__class__.__name__
 
@@ -443,7 +430,7 @@ class Bundle(object):
             DataOut = np.column_stack( (DataOut, np.transpose(np.array(recMech.CAP))))
 
             filename = get_file_name("CAP_"+recMechName+'_recMech'+str(recMechIndex), self.basePath)
-            print "Save location for CAP file: " + filename
+            # print "Save location for CAP file: " + filename
 
             np.savetxt(filename, DataOut)
 
@@ -452,27 +439,41 @@ class Bundle(object):
             DataOut = np.column_stack((DataOut, np.transpose(np.array(recMech.CAP_axonwise)[:,-1,:])))
 
             filename = get_file_name('CAP1A_'+recMechName+'_recMech'+str(recMechIndex), self.basePath)
-            print "Save location for single axon differentiated CAP file: " + filename
+            # print "Save location for single axon differentiated CAP file: " + filename
 
             np.savetxt(filename, DataOut)
 
-            recMechIndex += 1
+    def clear_all_CAP_files(self):
 
-        # print 'CAP saved in ' + str(time.time()-t0) + 's.'
-        print "CAP saved in %.2f s." % (time.time() - t0)
+        for recMechIndex in range(len(self.recordingMechanisms)):
+
+            recMech = self.recordingMechanisms[recMechIndex]
+
+            recMechName = recMech.__class__.__name__
+
+            # filename = get_file_name("CAP_" + recMechName + '_recMech' + str(recMechIndex), self.basePath)
+            directory = get_directory_name("CAP_" + recMechName + '_recMech' + str(recMechIndex), self.basePath)
+            shutil.rmtree(directory)
+
+            directory = get_directory_name('CAP1A_' + recMechName + '_recMech' + str(recMechIndex), self.basePath)
+            shutil.rmtree(directory)
+
+    def clear_all_recording_mechanisms(self):
+        self.clear_all_CAP_files()
+        self.recordingMechanisms = []
 
     def clear_CAP_vars(self):
         for recMech in self.recordingMechanisms:
-            recMech.CAP_axonwise = None
-            recMech.CAP = None
+            recMech.CAP_axonwise = []
+            recMech.CAP = 0
 
-    def save_voltage_to_file_axonwise(self, vreclist, axonIndex):
+    def save_voltage_to_file_axonwise(self, axonIndex):
 
         # generate axon specific file name (a little clumsy, directory
         filename = get_file_name("V"+str(axonIndex), self.basePath, directoryType='V')
 
         # transform NEURON voltage vector to numpy array
-        voltageSingleAxon = np.transpose(np.array(vreclist))
+        voltageSingleAxon = np.transpose(np.array(self.axons[axonIndex].vreclist))
 
         # append the sectionlength in the first column for later processing
         # in fact this is not needed now anymore because we have single files for each axon
@@ -486,6 +487,25 @@ class Bundle(object):
         dataOut = np.row_stack((firstLine, voltageSingleAxonFormatted))
         np.savetxt(filename, dataOut)
 
+    def save_imem_to_file_axonwise(self, axonIndex):
+
+        # generate axon specific file name (a little clumsy, directory
+        filename = get_file_name("I" + str(axonIndex), self.basePath, directoryType='I')
+
+        np.savetxt(filename, self.axons[axonIndex].imem)
+
+    def get_imem_from_file_axonwise(self, axonIndex):
+
+        # generate axon specific file name (a little clumsy, directory
+        filename = get_file_name("I" + str(axonIndex), self.basePath, directoryType='I', newFile=False)
+
+        try:
+            imem = np.loadtxt(filename)
+            return imem
+        except:
+            raise Exception('imem-file not found for axon ' + str(axonIndex))
+
+
 
     def get_CAP_from_file(self, recordingMechanismIndex=0):
 
@@ -496,8 +516,8 @@ class Bundle(object):
         try:
             newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
-            print 'No CAP calculation has been performed yet with this set of parameters.'
-            return
+            # print 'No CAP calculation has been performed yet with this set of parameters.'
+            return None, None
 
         CAPraw = np.transpose(np.loadtxt(newestFile))
         time = CAPraw[0,:]
@@ -515,7 +535,7 @@ class Bundle(object):
             newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
         except ValueError:
             print 'No voltage calculation has been performed yet with this set of parameters.'
-            return
+            return None, None
 
         # load the all voltage files
         timeStart = time.time()

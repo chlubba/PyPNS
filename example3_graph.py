@@ -2,22 +2,25 @@ import PyPN
 import matplotlib.pyplot as plt
 from PyPN.takeTime import *
 import numpy as np
+from pycallgraph import PyCallGraph
+from pycallgraph.output import GraphvizOutput
+
 
 # import cPickle as pickle
 # import os
 
-calculationFlag = True # run simulation or load latest bundle with this parameters (not all taken into account for identification)
+calculationFlag = True# run simulation or load latest bundle with this parameters (not all taken into account for identification)
 
 upstreamSpikingOn = False
 electricalStimulusOn = True
 
-# set simulation params
+# set simulation paramse
 tStop=20
 timeRes=0.0025#0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 4000 # 400000
-numberOfAxons = 1
+numberOfAxons = 2
 
 # create a guide the axons will follow
 # segmentLengthAxon = 10
@@ -29,8 +32,8 @@ numberOfAxons = 1
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
 # 5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.
-myelinatedDiam =  1.5 # {'distName' : 'uniform', 'params' : (1.5, 4)} # .2 #
-unmyelinatedDiam = .1 # {'distName' : 'uniform', 'params' : (0.1, 2)} # .2 #
+myelinatedDiam =  {'distName' : 'uniform', 'params' : (1.5, 4)} # .2 #
+unmyelinatedDiam = {'distName' : 'uniform', 'params' : (0.1, 2)} # .2 #
 
 
 
@@ -65,7 +68,7 @@ cuffParameters = {      'amplitude': 1., # 0.005, # 0.016,#0.2,# .0001,#1.5, #0.
                         'invert': True
 }
 
-intraParameters = {     'amplitude': 3., # 0.005, # 0.016,#0.2,# .0001,#1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (mA)
+intraParameters = {     'amplitude': 2., # 0.005, # 0.016,#0.2,# .0001,#1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (mA)
                         'frequency': 20., # Frequency of the pulse (kHz)
                         'dutyCycle': .5, # 0.05, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                         'stimDur' : 0.05, # Stimulus duration (ms)
@@ -115,8 +118,8 @@ bundleParameters = {    'radius': 150, #150, #um Radius of the bundle (typically
                         'tStop' : tStop,
                         'timeRes' : timeRes,
 
-                        # 'saveI':True,
-                        # 'saveV':False
+                        'saveI':True,
+                        'saveV':False
 }
 
 # combine parameters for the bundle creation
@@ -145,15 +148,17 @@ if calculationFlag:
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.5, sigma=1., width=40000))
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.35, sigma=1., width=120000))
 
-    # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.2, sigma=1., width=2000))
+    bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.2, sigma=1., width=2000))
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(1000, numberOfElectrodes=2, positionMax=0.8, sigma=1., width=1000))
 
 
     # PyPN.plot.geometry_definition(bundle)
     # plt.show()
 
-    # run the simulation
-    bundle.simulate()
+
+    with PyCallGraph(output=GraphvizOutput()):
+        # run the simulation
+        bundle.simulate()
 
     # save the bundle to disk
     PyPN.save_bundle(bundle)
@@ -166,63 +171,63 @@ else:
     # bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=20 pMyel=1.0 pUnmyel=0.0 L=400000 nAxons=1/bundle00005')
     bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=20 pMyel=1.0 pUnmyel=0.0 L=4000 nAxons=2/bundle00010')
 
-# bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.2, sigma=1., width=2000))
+# # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.2, sigma=1., width=2000))
+# #
+# # bundle.compute_CAPs_from_imem_files()
 #
-# bundle.compute_CAPs_from_imem_files()
+# # # save the bundle to disk
+# # PyPN.save_bundle(bundle)
 #
-# # save the bundle to disk
-# PyPN.save_bundle(bundle)
-
-# for axonIndex in range(len(bundle.axons)):
-#     with takeTime('load axon ' + str(axonIndex)):
-#         bundle.get_imem_from_file_axonwise(axonIndex)
-
-
-# # plot geometry, intra and extracellular recording, axon diameters
-# print '\nStarting to plot'
-# PyPN.plot.geometry(bundle)
-# PyPN.plot.CAP1D_singleAxon(bundle, 10)
-
+# # for axonIndex in range(len(bundle.axons)):
+# #     with takeTime('load axon ' + str(axonIndex)):
+# #         bundle.get_imem_from_file_axonwise(axonIndex)
+#
+#
+# # # plot geometry, intra and extracellular recording, axon diameters
+# # print '\nStarting to plot'
+# # PyPN.plot.geometry(bundle)
+# # PyPN.plot.CAP1D_singleAxon(bundle, 10)
+#
 # for i in range(len(bundle.recordingMechanisms)):
 #     PyPN.plot.CAP1D(bundle, recMechIndex=i)
-
-# # f, (ax1, ax2) = plt.subplots(2,1, sharex=True)
-# meanCAP = 0
-# CAPs = []
-# for i in range(len(bundle.recordingMechanisms)):
-#     time, CAP = bundle.get_CAP_from_file(i)
 #
-#     # print 'mean amplitude = ' + str(np.mean(CAP[0,:]))
-#
-#     CAPs.append(CAP)
-#
-#     # plt.plot(time, CAP[0,:], label='CAP'+str(i))
-#     meanCAP +=CAP[0,:]
-#
-# # plt.plot(CAPs[0][0,:], label='CAP0')
-# # plt.plot(CAPs[1][0,:], label='CAP1')
-# meanCAP = meanCAP/len(bundle.recordingMechanisms)
-# plt.plot(time, meanCAP, label='mean CAP')
-# plt.legend()
-#
+# # # f, (ax1, ax2) = plt.subplots(2,1, sharex=True)
+# # meanCAP = 0
+# # CAPs = []
+# # for i in range(len(bundle.recordingMechanisms)):
+# #     time, CAP = bundle.get_CAP_from_file(i)
+# #
+# #     # print 'mean amplitude = ' + str(np.mean(CAP[0,:]))
+# #
+# #     CAPs.append(CAP)
+# #
+# #     # plt.plot(time, CAP[0,:], label='CAP'+str(i))
+# #     meanCAP +=CAP[0,:]
+# #
+# # # plt.plot(CAPs[0][0,:], label='CAP0')
+# # # plt.plot(CAPs[1][0,:], label='CAP1')
+# # meanCAP = meanCAP/len(bundle.recordingMechanisms)
+# # plt.plot(time, meanCAP, label='mean CAP')
+# # plt.legend()
+# #
 # PyPN.plot.geometry_definition(bundle)
-
-# PyPN.plot.CAP1D(bundle,recMechIndex=0)
-# PyPN.plot.CAP1D(bundle,recMechIndex=1)
-# PyPN.plot.CAP1D(bundle,recMechIndex=3)
-
-
-PyPN.plot.voltage(bundle)
-# PyPN.plot.voltage_one_myelinated_axon(bundle)
-# PyPN.plot.diameterHistogram(bundle)
-
-# conVelDict = bundle.conduction_velocities(saveToFile=True) # (plot=False)
-# pickle.dump(conVelDict,open( os.path.join(bundle.basePath, 'conductionVelocities.dict'), "wb" ))
-
-
-# import matplotlib2tikz as mtz
-# mtz.save('CAP.tex')
-
-plt.show()
+#
+# # PyPN.plot.CAP1D(bundle,recMechIndex=0)
+# # PyPN.plot.CAP1D(bundle,recMechIndex=1)
+# # PyPN.plot.CAP1D(bundle,recMechIndex=3)
+#
+#
+# # PyPN.plot.voltage(bundle)
+# # PyPN.plot.voltage_one_myelinated_axon(bundle)
+# # PyPN.plot.diameterHistogram(bundle)
+#
+# # conVelDict = bundle.conduction_velocities(saveToFile=True) # (plot=False)
+# # pickle.dump(conVelDict,open( os.path.join(bundle.basePath, 'conductionVelocities.dict'), "wb" ))
+#
+#
+# # import matplotlib2tikz as mtz
+# # mtz.save('CAP.tex')
+#
+# plt.show()
 
 bundle = None
