@@ -12,7 +12,7 @@ upstreamSpikingOn = False
 electricalStimulusOn = True
 
 # set simulation params
-tStop=40
+tStop=20
 timeRes=0.0025#0.0025
 
 # set length of bundle and number of axons
@@ -25,8 +25,12 @@ numberOfAxons = 10 # 1000
 myelinatedDiam =  2.75 # {'distName' : 'normal', 'params' : (2.0, 0.7)}
 unmyelinatedDiam = 1. # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
-for unmyelinatedDiam in np.arange(0.2, 2.5, 0.3):
 
+myelinatedDiams = np.arange(0.2, 4, 0.3)
+
+vppsMono = []
+
+for myelinatedDiam in myelinatedDiams:
 
     intraParameters = {     'amplitude': 4., # 0.005, # 0.016,#0.2,# .0001,#1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (mA)
                             'frequency': 20., # Frequency of the pulse (kHz)
@@ -53,8 +57,8 @@ for unmyelinatedDiam in np.arange(0.2, 2.5, 0.3):
                             'randomDirectionComponent' : 0,
 
                             'numberOfAxons': numberOfAxons, # Number of axons in the bundle
-                            'pMyel': 0.,#0.01, # Percentage of myelinated fiber type A
-                            'pUnmyel': 1., #.99, #Percentage of unmyelinated fiber type C
+                            'pMyel': 1.,#0.01, # Percentage of myelinated fiber type A
+                            'pUnmyel': 0., #.99, #Percentage of unmyelinated fiber type C
                             'paramsMyel': myelinatedParameters, #parameters for fiber type A
                             'paramsUnmyel': unmyelinatedParameters, #parameters for fiber type C
 
@@ -86,10 +90,13 @@ for unmyelinatedDiam in np.arange(0.2, 2.5, 0.3):
         # bundle.add_recording_mechanism(PyPN.RecCuff2D(radius=500, positionMax=0.2, sigma=5.))
 
         for poleDistance in np.arange(10, 1000, 20):
-            bundle.add_recording_mechanism(PyPN.RecCuff2D(radius=200, numberOfPoles=2, poleDistance=poleDistance, positionMax=0.2, sigma=1.))
+            bundle.add_recording_mechanism(PyPN.RecCuff2D(radius=200, numberOfPoles=2, poleDistance=poleDistance, positionMax=0.9, sigma=1.))
 
         # run the simulation
         bundle.simulate()
+
+        # PyPN.plot.voltage(bundle)
+        # plt.show()
 
         # save the bundle to disk
         PyPN.save_bundle(bundle)
@@ -110,21 +117,21 @@ for unmyelinatedDiam in np.arange(0.2, 2.5, 0.3):
     # # save the bundle to disk
     # PyPN.save_bundle(bundle)
 
-    recMechIndex  = 0
     vpps = []
     distances = []
-    for recMech in bundle.recordingMechanisms:
+    for recMechIndex in range(len(bundle.recordingMechanisms)-1):
+
+        recMech = bundle.add_recording_mechanism(recMechIndex)
 
         poleDistance = recMech.poleDistance
         distances.append(poleDistance)
 
         time, CAP = bundle.get_CAP_from_file(recordingMechanismIndex=recMechIndex)
-        afterStim = CAP[:,time > 6]
+        afterStim = CAP[:,time > 5.2]
 
         vpp = np.max(afterStim) - np.min(afterStim)
         vpps.append(vpp)
 
-        recMechIndex += 1
 
     titleString = 'Radius Bundle %i um, radius 2D electrode %i um,\n%i straight unmyelinated axons of diameter %.3f um' % (bundle.radiusBundle, bundle.recordingMechanisms[0].radius, numberOfAxons, unmyelinatedDiam)
     plt.title(titleString)
@@ -132,30 +139,33 @@ for unmyelinatedDiam in np.arange(0.2, 2.5, 0.3):
     plt.xlabel('pole distance [um]')
     plt.ylabel('Vpp [mV]')
 
-    saveString = 'Radius Bundle %i um, radius 2D electrode %i um, %i straight unmyelinated axons of diameter %.3f um' % (
-    bundle.radiusBundle, bundle.recordingMechanisms[0].radius, numberOfAxons, unmyelinatedDiam)
+    saveString = 'Radius Bundle %i um, radius 2D electrode %i um, %i straight myelinated axons of diameter %.3f um' % (
+    bundle.radiusBundle, bundle.recordingMechanisms[0].radius, numberOfAxons, myelinatedDiam)
 
     np.savetxt(os.path.join('/media/carl/4ECC-1C44/PyPN/poleDistanceAgainstVpp/Data', saveString+'_vpp.txt'), vpps)
     np.savetxt(os.path.join('/media/carl/4ECC-1C44/PyPN/poleDistanceAgainstVpp/Data', saveString + '_distances.txt'), distances)
 
     plt.savefig(os.path.join('/media/carl/4ECC-1C44/PyPN/poleDistanceAgainstVpp/Fig', saveString+'.png'))
 
-# # for i in range(len(bundle.recordingMechanisms)):
-# for i in range(len(bundle.recordingMechanisms)): # -10,len(bundle.recordingMechanisms)):
-#     PyPN.plot.CAP1D(bundle, recMechIndex=i)
-#     # PyPN.plot.CAP1D_singleAxon(bundle, recMechIndex=i)
-#
-# #
-# PyPN.plot.geometry_definition(bundle)
-# PyPN.plot.voltage(bundle)
-# PyPN.plot.voltage_one_myelinated_axon(bundle)
-# PyPN.plot.diameterHistogram(bundle)
-# conVelDict = bundle.conduction_velocities(saveToFile=True) # (plot=False)
-# pickle.dump(conVelDict,open( os.path.join(bundle.basePath, 'conductionVelocities.dict'), "wb" ))
+    time, CAP = bundle.get_CAP_from_file(recordingMechanismIndex=len(bundle.recordingMechanisms)-1)
+    afterStim = CAP[:, time > 5.2]
 
+    vpp = np.max(afterStim) - np.min(afterStim)
 
-# import matplotlib2tikz as mtz
-# mtz.save('CAP.tex')
+    vppsMono.append(vpp)
+
+plt.figure()
+# titleString = 'Radius Bundle %i um, radius 2D electrode %i um,\n%i straight unmyelinated axons of diameter %.3f um' % (bundle.radiusBundle, bundle.recordingMechanisms[0].radius, numberOfAxons, unmyelinatedDiam)
+plt.title('peak to peak voltage against diameter')
+plt.semilogy(myelinatedDiams, vpps)
+plt.xlabel('Diameter [um]')
+plt.ylabel('Vpp [mV]')
+
+filename = 'vpp_against_diameter_mono_myelinated'
+
+np.savetxt(os.path.join('/media/carl/4ECC-1C44/PyPN/poleDistanceAgainstVpp/Data', filename+'.txt'), vppsMono)
+
+plt.savefig(os.path.join('/media/carl/4ECC-1C44/PyPN/poleDistanceAgainstVpp/Fig', filename+'.png'))
 
 plt.show()
 
