@@ -17,11 +17,12 @@ timeRes=0.0025#0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 4000 # 400000
-numberOfAxons = 1
+numberOfAxons = 10
 
 # create a guide the axons will follow
-# segmentLengthAxon = 10
+segmentLengthAxon = 10
 # bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segmentLengthAxon)
+bundleGuide = PyPN.createGeometry.get_bundle_guide_straight_2radii(lengthOfBundle, segmentLengthAxon, radii=(1000, 100))
 # bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
 # bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
 # bundleGuide = PyPN.createGeometry.get_bundle_guide_random(lengthOfBundle, segmentLength=200)
@@ -103,7 +104,7 @@ unmyelinatedParameters = {'fiberD': unmyelinatedDiam, # um Axon diameter
 # set all properties of the bundle
 bundleParameters = {    'radius': 150, #150, #um Radius of the bundle (typically 0.5-1.5mm)
                         'length': lengthOfBundle, # um Axon length
-                        # 'bundleGuide' : bundleGuide,
+                        'bundleGuide' : bundleGuide,
                         # 'randomDirectionComponent' : 0,
 
                         'numberOfAxons': numberOfAxons, # Number of axons in the bundle
@@ -149,8 +150,8 @@ if calculationFlag:
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(1000, numberOfElectrodes=2, positionMax=0.8, sigma=1., width=1000))
 
 
-    # PyPN.plot.geometry_definition(bundle)
-    # plt.show()
+    PyPN.plot.geometry_definition(bundle)
+    plt.show()
 
     # run the simulation
     bundle.simulate()

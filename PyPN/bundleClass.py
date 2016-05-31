@@ -40,7 +40,7 @@ class Bundle(object):
     # myelinated: parameters for fiber type A, B
     # umyelinated:  parameters for fiber type C
 
-    def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=False,
+    def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=None,
                  segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False):
 
         self.saveI = saveI
@@ -53,10 +53,15 @@ class Bundle(object):
         self.randomDirectionComponent = randomDirectionComponent
         self.segmentLengthAxon = segmentLengthAxon
 
-        if not bundleGuide:
-            self.bundleCoords = createGeometry.get_bundle_guide_straight(length, segmentLengthAxon)
-        else:
+        if bundleGuide == None:
+            self.bundleCoords = createGeometry.get_bundle_guide_straight_radius(length, segmentLengthAxon, radius=radius)
+        elif bundleGuide.shape[1] == 3:
+            numCoords = bundleGuide.shape[0]
+            self.bundleCoords = np.hstack([bundleGuide, np.ones([numCoords,1])*radius])
+        elif bundleGuide.shape[1] == 4:
             self.bundleCoords = bundleGuide
+        else:
+            raise Exception('Bundle guide not valid.')
 
         self.excitationMechanisms = []
         self.recordingMechanisms = []
@@ -75,7 +80,7 @@ class Bundle(object):
         self.tStop = tStop # set simulation duration (ms)
         self.timeRes = timeRes # set time step (ms)
 
-        self.build_disk(self.numberOfAxons,self.radiusBundle)
+        self.build_disk(self.numberOfAxons,self.bundleCoords[0,-1])
 
         self.saveParams={'timeRes': timeRes, 'tStop': tStop, 'pMyel': self.pMyel,
                     'paramsMyel': paramsMyel, 'paramsUnmyel': paramsUnmyel,
@@ -127,7 +132,7 @@ class Bundle(object):
 
         if True:
             # calculate the random axon coordinates
-            axonCoords = createGeometry.create_random_axon(self.bundleCoords, self.radiusBundle, axonPosition,
+            axonCoords = createGeometry.create_random_axon(self.bundleCoords, axonPosition,
                                                            self.segmentLengthAxon, randomDirectionComponent=self.randomDirectionComponent)
         else:
             axonCoords = np.column_stack(axonPosition, np.concatenate(([axonPosition[0] + self.bundleLength], axonPosition[1:2])))

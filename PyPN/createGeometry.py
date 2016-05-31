@@ -40,7 +40,9 @@ def rotation_matrix(axis, theta):
                      [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
-def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon, maximumAngle = pi/10, randomDirectionComponent=0.1):
+def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAngle = pi/10, randomDirectionComponent=0.1):
+
+    bundleCoords = bundleCoords4D[:,:3]
 
     pos1 = np.concatenate(([bundleCoords[0,0]], axonCoords+bundleCoords[0,1:3]))
     pos2 = np.concatenate(([bundleCoords[1,0]], axonCoords+bundleCoords[1,1:3]))
@@ -80,6 +82,7 @@ def create_random_axon(bundleCoords, bundleRadius, axonCoords, segmentLengthAxon
 
         # assure axon stays within bundle. If too far away -> next direction
         # equals bundle direction
+        bundleRadius = bundleCoords4D[currentBundleSegment, 3]
         factorBundleDirection = min((max(0,distance/bundleRadius-0.7))*6,2.5)
         
         correctionVector = radiusVectorNorm + 0.1*bundleDirectionNorm
@@ -173,5 +176,33 @@ def get_bundle_guide_straight(bundleLength, segmentLengthAxon, overlapLength=100
 
     bundleCoords = np.zeros([numBundleGuideSteps, 3])
     bundleCoords[:,0] = range(0, numBundleGuideSteps*segmentLengthBundle, segmentLengthBundle)
+
+    return bundleCoords
+
+def get_bundle_guide_straight_radius(bundleLength, segmentLengthAxon, overlapLength=1000, radius=150):
+
+    #length after bundle end. necessary for myelinated axons
+    bundleLength = bundleLength + overlapLength
+
+    segmentLengthBundle = segmentLengthAxon*3
+    numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
+
+    bundleCoords = np.zeros([numBundleGuideSteps, 4])
+    bundleCoords[:,0] = range(0, numBundleGuideSteps*segmentLengthBundle, segmentLengthBundle)
+    bundleCoords[:,-1] = np.ones(numBundleGuideSteps)*radius
+
+    return bundleCoords
+
+def get_bundle_guide_straight_2radii(bundleLength, segmentLengthAxon, overlapLength=1000, radii=(150, 150)):
+
+    #length after bundle end. necessary for myelinated axons
+    bundleLength = bundleLength + overlapLength
+
+    segmentLengthBundle = segmentLengthAxon*3
+    numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
+
+    bundleCoords = np.zeros([numBundleGuideSteps, 4])
+    bundleCoords[:,0] = range(0, numBundleGuideSteps*segmentLengthBundle, segmentLengthBundle)
+    bundleCoords[:,-1] = np.linspace(radii[0], radii[1], numBundleGuideSteps)
 
     return bundleCoords
