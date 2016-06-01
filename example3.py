@@ -12,12 +12,12 @@ upstreamSpikingOn = False
 electricalStimulusOn = True
 
 # set simulation params
-tStop=20
+tStop=100
 timeRes=0.0025#0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 4000 # 400000
-numberOfAxons = 10
+numberOfAxons = 1
 
 # create a guide the axons will follow
 segmentLengthAxon = 10
@@ -135,10 +135,16 @@ if calculationFlag:
         # plt.title('stimulus signal without delay')
         # plt.show()
         # bundle.add_excitation_mechanism(PyPN.StimCuff(**cuffParameters))
-        bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
         # bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
 
-    # bundle.add_recording_mechanism(PyPN.CuffElectrode2D(**recordingParameters))
+        bundle.add_excitation_mechanism(PyPN.StimTripolarPoint(radius=1000, poleDistance=100, stimDur=1, amplitude=10.5, frequency=1, dutyCycle=0.5, waveform='BIPHASIC', timeRes=timeRes, delay=5))
+        # bundle.add_excitation_mechanism(PyPN.StimCuff(radius=1000, stimDur=1, amplitude=10.5, frequency=1, dutyCycle=0.5, waveform='BIPHASIC', timeRes=timeRes, delay=5))
+
+        # bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
+
+
+
+    bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParameters))
     # for position in np.arange(0.2, 0.5, 0.001):
     #     bundle.add_recording_mechanism(PyPN.RecCuff2D(radius=1000, positionMax=position, sigma=1.))
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.5, sigma=1., width=10000))
@@ -148,6 +154,8 @@ if calculationFlag:
 
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(radius=1000, positionMax=0.2, sigma=1., width=2000))
     # bundle.add_recording_mechanism(PyPN.RecCuff3D(1000, numberOfElectrodes=2, positionMax=0.8, sigma=1., width=1000))
+
+    # bundle.add_recording_mechanism(PyPN.RecBipolarPoint(radius=200, numberOfElectrodes=1, sigma=1., poleDistance=100))
 
 
     PyPN.plot.geometry_definition(bundle)
@@ -208,7 +216,7 @@ else:
 #
 # PyPN.plot.geometry_definition(bundle)
 
-# PyPN.plot.CAP1D(bundle,recMechIndex=0)
+PyPN.plot.CAP1D(bundle,recMechIndex=0)
 # PyPN.plot.CAP1D(bundle,recMechIndex=1)
 # PyPN.plot.CAP1D(bundle,recMechIndex=3)
 

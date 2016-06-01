@@ -2,10 +2,10 @@ from PyPN.bundleClass import Bundle
 
 # excitation mechanisms
 from PyPN.upstreamSpikingClass import UpstreamSpiking
-from PyPN.stimulusClass import StimCuff, StimIntra, SimpleIClamp
+from PyPN.stimulusClass import *
 
 # recording mechanisms
-from PyPN.recordingMechanismClass import RecCuff2D, RecCuff3D
+from PyPN.recordingMechanismClass import *
 
 # geometry
 import PyPN.createGeometry

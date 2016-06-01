@@ -276,49 +276,6 @@ class Bundle(object):
             self.save_CAPs_to_file()
         self.clear_CAP_vars()
 
-    def compute_CAPs_from_imem_files(self, recMecIndices=-1):
-        """
-        if simulation has already been run, this function calculates the CAP from the saved membrane current
-        """
-        if recMecIndices == -1:
-            recMecIndices = range(len(self.recordingMechanisms))
-        elif not np.all([i in range(len(self.recordingMechanisms)) for i in recMecIndices]):
-            print 'selected recording mechanism indices not valid. Set to all recording mechanisms.'
-            recMecIndices = range(len(self.recordingMechanisms))
-
-        for axonIndex in range(len(self.axons)):
-            axon = self.axons[axonIndex]
-
-            print ''
-            with takeTime('load current of axon ' + str(axonIndex)):
-                axon.imem = self.get_imem_from_file_axonwise(axonIndex)
-
-            if len(self.recordingMechanisms) > 0:
-                with takeTime("calculate extracellular potential"):
-                    recMechIndex = 0
-                    for recMech in self.recordingMechanisms:
-
-                        # see if recording has already been performed
-                        _, CAP = self.get_CAP_from_file(recMechIndex)
-                        recMechIndex += 1
-                        if not CAP == None:
-                            continue
-
-                        recMech.compute_single_axon_CAP(axon)
-
-            else:
-                print 'Nothing to do here, no recording mechanisms have been added to the bundle.'
-
-            axon.imem = None
-
-        # compute the compound action potential by summing all axon contributions up, save it, delete variables
-        with takeTime('compute CAP from single axon contributions'):
-            self.compute_CAPs()
-        with takeTime('save CAP data'):
-            self.save_CAPs_to_file()
-        self.clear_CAP_vars()
-
-
     def simulate_axons(self):
 
         for axonIndex in range(self.numberOfAxons):
@@ -510,7 +467,47 @@ class Bundle(object):
         except:
             raise Exception('imem-file not found for axon ' + str(axonIndex))
 
+    def compute_CAPs_from_imem_files(self, recMecIndices=-1):
+        """
+        if simulation has already been run, this function calculates the CAP from the saved membrane current
+        """
+        if recMecIndices == -1:
+            recMecIndices = range(len(self.recordingMechanisms))
+        elif not np.all([i in range(len(self.recordingMechanisms)) for i in recMecIndices]):
+            print 'selected recording mechanism indices not valid. Set to all recording mechanisms.'
+            recMecIndices = range(len(self.recordingMechanisms))
 
+        for axonIndex in range(len(self.axons)):
+            axon = self.axons[axonIndex]
+
+            print ''
+            with takeTime('load current of axon ' + str(axonIndex)):
+                axon.imem = self.get_imem_from_file_axonwise(axonIndex)
+
+            if len(self.recordingMechanisms) > 0:
+                with takeTime("calculate extracellular potential"):
+                    recMechIndex = 0
+                    for recMech in self.recordingMechanisms:
+
+                        # see if recording has already been performed
+                        _, CAP = self.get_CAP_from_file(recMechIndex)
+                        recMechIndex += 1
+                        if not CAP == None:
+                            continue
+
+                        recMech.compute_single_axon_CAP(axon)
+
+            else:
+                print 'Nothing to do here, no recording mechanisms have been added to the bundle.'
+
+            axon.imem = None
+
+        # compute the compound action potential by summing all axon contributions up, save it, delete variables
+        with takeTime('compute CAP from single axon contributions'):
+            self.compute_CAPs()
+        with takeTime('save CAP data'):
+            self.save_CAPs_to_file()
+        self.clear_CAP_vars()
 
     def get_CAP_from_file(self, recordingMechanismIndex=0):
 

@@ -307,43 +307,86 @@ class Axon(object):
                     sec(xr).y_xtra = yint.x[ii]
                     sec(xr).z_xtra = zint.x[ii]
 
-    def setrx(self,stim_elec, axon_pos):
-        stimulation_mode = len(stim_elec) #1: monopolar,2: bipolar,3: tripolar, above just considered as multiple monopolar
-        r = np.zeros(stimulation_mode)
+    def setrx(self, stim_elec, axon_pos, bipolar = False):
+
+        numPoints = stim_elec.shape[0]
+
+        r = np.zeros(len(stim_elec))
+
         # now expects xyc coords as arguments
 
         for sec in h.allsec():
 
-            if h.ismembrane('xtra',sec=sec):
+            if h.ismembrane('xtra', sec=sec):
 
                 for seg in sec:
 
-                    for j in range(stimulation_mode):
+                    for j in range(numPoints):
 
-                        [xe,ye,ze] = stim_elec[j]
+                        [xe, ye, ze] = stim_elec[j,:]
 
-                        #avoid nodes at 0 and 1 ends, so as not to override values at internal nodes
-                        r[j] = math.sqrt(math.pow(seg.x_xtra - xe,2) + math.pow(seg.y_xtra-axon_pos[0] - ye,2) + math.pow(seg.z_xtra-axon_pos[1] - ze,2))
+                        # avoid nodes at 0 and 1 ends, so as not to override values at internal nodes
+                        r[j] = math.sqrt(
+                            math.pow(seg.x_xtra - xe, 2) + math.pow(seg.y_xtra - axon_pos[0] - ye, 2) + math.pow(
+                                seg.z_xtra - axon_pos[1] - ze, 2))
 
                         # 0.01 converts rho's cm to um and ohm to megohm
                         # if electrode is exactly at a node, r will be 0
                         # this would be meaningless since the location would be inside the cell
                         # so force r to be at least as big as local radius
 
-                        if (r[j]==0):
-                            r[j] = seg.diam/2.0
-                    if stimulation_mode == 1:
-                        seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r)*0.01
-                    elif stimulation_mode == 2:
-                        seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r[0]-1/r[1])*0.01
-                    elif stimulation_mode == 3:
-                        seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r[0]-1/r[1]+1/r[2])*0.01
-                    else:
-                        sum_r = 0
-                        for j in range(stimulation_mode):
-                            sum_r += 1/r[j]
-                        # seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/sum_r)*0.01
-                        seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*sum_r*0.01
+                        if (r[j] == 0):
+                            r[j] = seg.diam / 2.0
+
+                    sum_r = 0
+                    pointIndex = 0
+                    while pointIndex < numPoints:
+                        if bipolar:
+                            sign = (-1)**pointIndex
+                        else:
+                            sign = 1
+                        sum_r += sign / r[pointIndex]
+                        pointIndex += 1
+
+                    seg.xtra.rx = (sec.Ra / 4.0 / math.pi) * sum_r * 0.01
+
+    # def setrx(self,stim_elec, axon_pos):
+    #     stimulation_mode = len(stim_elec) #1: monopolar,2: bipolar,3: tripolar, above just considered as multiple monopolar
+    #     r = np.zeros(stimulation_mode)
+    #     # now expects xyc coords as arguments
+    #
+    #     for sec in h.allsec():
+    #
+    #         if h.ismembrane('xtra',sec=sec):
+    #
+    #             for seg in sec:
+    #
+    #                 for j in range(stimulation_mode):
+    #
+    #                     [xe,ye,ze] = stim_elec[j]
+    #
+    #                     #avoid nodes at 0 and 1 ends, so as not to override values at internal nodes
+    #                     r[j] = math.sqrt(math.pow(seg.x_xtra - xe,2) + math.pow(seg.y_xtra-axon_pos[0] - ye,2) + math.pow(seg.z_xtra-axon_pos[1] - ze,2))
+    #
+    #                     # 0.01 converts rho's cm to um and ohm to megohm
+    #                     # if electrode is exactly at a node, r will be 0
+    #                     # this would be meaningless since the location would be inside the cell
+    #                     # so force r to be at least as big as local radius
+    #
+    #                     if (r[j]==0):
+    #                         r[j] = seg.diam/2.0
+    #                 if stimulation_mode == 1:
+    #                     seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r)*0.01
+    #                 elif stimulation_mode == 2:
+    #                     seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r[0]-1/r[1])*0.01
+    #                 elif stimulation_mode == 3:
+    #                     seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r[0]-1/r[1]+1/r[2])*0.01
+    #                 else:
+    #                     sum_r = 0
+    #                     for j in range(stimulation_mode):
+    #                         sum_r += 1/r[j]
+    #                     # seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/sum_r)*0.01
+    #                     seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*sum_r*0.01
 
 
 class Unmyelinated(Axon):
@@ -745,7 +788,7 @@ class Myelinated(Axon):
     def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=37, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
         super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments)
 
-        self.v_init = -80
+        self.v_init = -81
 
         self.endOverlap = 7 # number of axon segments after last node
 

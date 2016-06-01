@@ -157,3 +157,69 @@ class SimpleIClamp(ExcitationMechanism):
 
     def delete_neuron_objects(self):
         pass
+
+def rectangularStimulusSignal(stimDur, amplitude, frequency, dutyCycle, waveform, timeRes, delay=0, invert=False):
+
+    t = np.arange(0, stimDur, timeRes)
+
+    if waveform == 'MONOPHASIC':
+        stimulusSignal = amplitude * 0.5 * signal.square(2 * np.pi * frequency * t, duty=dutyCycle) + amplitude * 0.5
+    elif waveform == 'BIPHASIC':
+        stimulusSignal = amplitude * signal.square(2 * np.pi * frequency * t, duty=dutyCycle)
+    else:
+        print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
+        stimulusSignal = amplitude * 0.5 * signal.square(2 * np.pi * frequency * t, duty=dutyCycle) + amplitude * 0.5
+
+    if invert:
+        stimulusSignal = -stimulusSignal
+
+    return t, stimulusSignal
+
+
+class StimTripolarPoint(ExcitationMechanism):
+    """
+    axon: axon object on which the stimulation is applied
+    pos: position of the stimulus
+    sect: section being stimulated
+    delay: pulse delay (ms)
+    stimDur: pulse duration (ms)
+    amp: pulse amplitude (nA)
+    freq: frequency of the sin pulse (Hz)
+    duty_cycle: Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+    stim_coord=[xe,ye,ze]: spatial coordinates  of the stimulating electrode
+    waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+    """
+    def __init__(self, radius, poleDistance, stimDur, amplitude, frequency, dutyCycle, waveform, timeRes, delay=0, invert=False):
+
+        self.waveform = waveform
+
+        self.stim_coord = np.column_stack((np.array([0,1,2,1])*poleDistance, radius*np.ones(4), np.zeros(4)))
+
+        self.stimDur = stimDur
+        self.frequency = frequency
+        self.amplitude = amplitude
+        self.dutyCycle = dutyCycle
+        self.delay = delay
+        self.radius = radius
+
+        self.timeRes = timeRes
+
+        self.t, self.stimulusSignal = rectangularStimulusSignal(stimDur, amplitude, frequency, dutyCycle, waveform,
+                                                                timeRes, delay, invert)
+
+        # add delay
+        self.stimulusSignalDelayed = np.concatenate((np.zeros(self.delay/timeRes), self.stimulusSignal))
+
+        # end with a zero, otherwise final value is valid for the rest of the simulation...
+        self.stimulusSignalDelayed = np.concatenate((self.stimulusSignalDelayed, [0]))
+
+        self.svec = h.Vector(self.stimulusSignalDelayed)
+
+    def connect_axon(self, axon):
+
+        axon.setrx(self.stim_coord, axon.axonPosition, bipolar = True)
+        self.svec.play(h._ref_is_xtra, self.timeRes)
+
+
+    def delete_neuron_objects(self):
+        self.svec = None

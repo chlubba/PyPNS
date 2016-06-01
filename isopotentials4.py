@@ -57,18 +57,18 @@ def voltageAllElectrodes(x, y, electrodePositions, Ra=1., I=1, bipolar=False):
 # angles = 2*np.pi/numberOfPoints*np.arange(numberOfPoints)
 # positions = np.column_stack((np.cos(angles), np.sin(angles))) # np.zeros(numberOfPoints),
 
-# numberOfPoints = 20
-# angles = np.pi/numberOfPoints*np.arange(numberOfPoints)
-# positions = np.array([]).reshape(0,2)
-# radius = 500
-# for angle in angles:
-#     positions = np.vstack([positions, [np.cos(angle)*radius, np.sin(angle)*radius], [np.cos(angle)*radius, -np.sin(angle)*radius]])
-#     # positions = np.column_stack((np.cos(angles), np.sin(angles))) # np.zeros(numberOfPoints),
+numberOfPoints = 20
+angles = np.pi/numberOfPoints*np.arange(numberOfPoints)
+positions = np.array([]).reshape(0,2)
+radius = 500
+for angle in angles:
+    positions = np.vstack([positions, [np.cos(angle)*radius, np.sin(angle)*radius], [np.cos(angle)*radius, -np.sin(angle)*radius]])
+    # positions = np.column_stack((np.cos(angles), np.sin(angles))) # np.zeros(numberOfPoints),
 
 # plt.plot(positions[:,0], positions[:,1])
 # plt.show()
 
-positions = np.column_stack((np.zeros(4), np.array([-500,0,500,0])))
+# positions = np.column_stack((np.zeros(4), np.array([-500,0,500,0])))
 
 
 x = np.linspace(-xLimit, xLimit, numGrid)
@@ -81,7 +81,7 @@ xx, yy = np.meshgrid(x, y)#, sparse=True)
 z = voltageAllElectrodes(xx, yy, positions, Ra=12500, I=I, bipolar=True)
 # h = plt.contourf(x,y,z)
 
-limit = 0.1
+limit = 1
 
 zTrunc = np.clip(z, -limit, limit)
 
