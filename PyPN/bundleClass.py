@@ -41,10 +41,11 @@ class Bundle(object):
     # umyelinated:  parameters for fiber type C
 
     def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=None,
-                 segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False):
+                 segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False, downsamplingFactor=1):
 
         self.saveI = saveI
         self.saveV = saveV
+        self.downsamplingFactor = downsamplingFactor
 
         self.paramsMyel =  paramsMyel
         self.paramsUnmyel =  paramsUnmyel
@@ -117,6 +118,32 @@ class Bundle(object):
         self.axons_pos[:,0] = np.cos(theta)
         self.axons_pos[:,1] = np.sin(theta)
         self.axons_pos *= radius.reshape((n, 1))
+
+
+    def approx_num_segs(self):
+
+        # def lambda_f(freq, diam, Ra, cm):
+        #     return 1e5 * np.sqrt(diam / (4 * np.pi *freq * Ra * cm))
+        #
+        # def approx_nseg_d_lambda(unmyelinatedAxon):
+        #     return int((unmyelinatedAxon.L / (unmyelinatedAxon.d_lambda * lambda_f(unmyelinatedAxon.lambda_f,
+        #                                                                            unmyelinatedAxon.fiberD,
+        #                                                                            unmyelinatedAxon.Ra,
+        #                                                                            unmyelinatedAxon.cm)) + 0.9) / 2) * 2 + 1
+
+        nsegs_tot = 0
+        nsegs_axonwise = []
+        for axon in self.axons:
+            if isinstance(axon, Myelinated):
+                nsegTemp = axon.axontotal
+            else:
+                nsegTemp = axon.approx_nseg_d_lambda()
+            nsegs_tot += nsegTemp
+
+            nsegs_axonwise.append(nsegTemp)
+
+        return nsegs_tot, nsegs_axonwise
+
 
     def create_axon(self, axonPosition):
 
@@ -436,6 +463,8 @@ class Bundle(object):
 
         # transform NEURON voltage vector to numpy array
         voltageSingleAxon = np.transpose(np.array(self.axons[axonIndex].vreclist))
+
+        voltageSingleAxonDownsampled = voltageSingleAxon[range(0,voltageSingleAxon.shape[0], self.downsamplingFactor), :]
 
         # append the sectionlength in the first column for later processing
         # in fact this is not needed now anymore because we have single files for each axon

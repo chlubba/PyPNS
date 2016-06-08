@@ -307,7 +307,7 @@ class Axon(object):
                     sec(xr).y_xtra = yint.x[ii]
                     sec(xr).z_xtra = zint.x[ii]
 
-    def setrx(self, stim_elec, axon_pos, bipolar = False):
+    def setrx(self, stim_elec, axon_pos, rho=500, bipolar = False):
 
         numPoints = stim_elec.shape[0]
 
@@ -348,7 +348,9 @@ class Axon(object):
                         sum_r += sign / r[pointIndex]
                         pointIndex += 1
 
-                    seg.xtra.rx = (sec.Ra / 4.0 / math.pi) * sum_r * 0.01
+                    # seg.xtra.rx = (sec.Ra / 4.0 / math.pi) * sum_r * 0.01
+                    seg.xtra.rx = (rho / 4.0 / math.pi) * sum_r * 0.01
+
 
     # def setrx(self,stim_elec, axon_pos):
     #     stimulation_mode = len(stim_elec) #1: monopolar,2: bipolar,3: tripolar, above just considered as multiple monopolar
@@ -421,6 +423,18 @@ class Unmyelinated(Axon):
 
         print "Unmyelinated axon diameter: " + str(self.fiberD)
 
+        print 'Number of segments for unmyelinated axon: %i' % self.get_number_of_segs()
+
+    def get_number_of_segs(self):
+
+        def lambda_f(freq, diam, Ra, cm):
+            return 1e5 * np.sqrt(diam / (4 * np.pi * freq * Ra * cm))
+
+        def approx_nseg_d_lambda(axon):
+            return int((axon.L / (axon.d_lambda * lambda_f(axon.lambda_f, axon.fiberD, axon.Ra, axon.cm)) + 0.9) / 2) * 2 + 1
+
+        return approx_nseg_d_lambda(self)
+
     def create_neuron_object(self):
         self.axon = h.Section(name = str(self.name))
         self.allseclist = h.SectionList()
@@ -454,6 +468,7 @@ class Unmyelinated(Axon):
         self.collect_geometry()
         self.calc_midpoints()
         self.channel_init() # default values of hh channel are used
+
 
     def delete_neuron_object(self):
 
@@ -556,7 +571,7 @@ class Unmyelinated(Axon):
             sec.nseg = int((sec.L / (d_lambda*h.lambda_f(frequency,
                                                            sec=sec)) + .9)
                 / 2 )*2 + 1
-            print "Number of segments for unmyelinated axon via d_lambda: "+ str(sec.nseg)
+            # print "Number of segments for unmyelinated axon via d_lambda: "+ str(sec.nseg)
         if self.verbose:
             print(("set nsegs using lambda-rule with frequency %i." % frequency))
 
@@ -849,6 +864,8 @@ class Myelinated(Axon):
         self.axoninter= 6*(self.axonnodes-1)
         # self.axontotal= self.axonnodes+self.paranodes1+self.paranodes2+self.axoninter
         self.axontotal= self.axonnodes+self.paranodes1+self.paranodes2+self.axoninter + self.endOverlap
+
+        print 'Number of segments for myelinated axon: %i' % self.axontotal
 
     def createSingleNode(self, nodeType):
 

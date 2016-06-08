@@ -15,3 +15,6 @@ import PyPN.plotBundleClass as plot
 
 # paths and open/ save
 from PyPN.nameSetters import get_bundle_directory, save_bundle, open_recent_bundle, open_bundle_from_location
+
+# misc
+from PyPN.samplingRates import *
