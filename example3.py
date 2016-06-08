@@ -17,14 +17,7 @@ timeRes=0.0025#0.0025
 
 # set length of bundle and number of axons
 lengthOfBundle = 4000 # 400000
-numberOfAxons = 1
-
-# create a guide the axons will follow
-# segmentLengthAxon = 10
-# bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segmentLengthAxon)
-# bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
-# bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
-# bundleGuide = PyPN.createGeometry.get_bundle_guide_random(lengthOfBundle, segmentLength=200)
+numberOfAxons = 2
 
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -133,8 +126,8 @@ if calculationFlag:
         # plt.plot(stimulusInstance.t, stimulusInstance.stimulusSignal)
         # plt.title('stimulus signal without delay')
         # plt.show()
-        # bundle.add_excitation_mechanism(PyPN.StimCuff(**cuffParameters))
-        bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
+        bundle.add_excitation_mechanism(PyPN.StimCuff(**cuffParameters))
+        # bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
         # bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
 
     # bundle.add_recording_mechanism(PyPN.CuffElectrode2D(**recordingParameters))
@@ -152,8 +145,16 @@ if calculationFlag:
     # PyPN.plot.geometry_definition(bundle)
     # plt.show()
 
+    for axonIndex in range(len(bundle.axons)):
+        axon = bundle.axons[axonIndex]
+        print "Axon %i at position %2.3f, %2.3f" % (axonIndex, bundle.axons_pos[axonIndex,0], bundle.axons_pos[axonIndex,1])
+
+
     # run the simulation
     bundle.simulate()
+
+    timeRec, voltageMatrices = bundle.get_voltage_from_file()
+
 
     # save the bundle to disk
     PyPN.save_bundle(bundle)

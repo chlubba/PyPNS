@@ -5,7 +5,7 @@ import cPickle as pickle
 def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop = 0, pMyel=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
 
     # define here the root of the PyPN file system
-    homeDirectory= '/media/carl/4ECC-1C44/PyPN/' # '/home/carl/PNPy/Results/' #  ""#"results"#
+    homeDirectory= 'results' # '/media/carl/4ECC-1C44/PyPN/' # '/home/carl/PNPy/Results/' #  ""#"results"#
 
     # read out dictionary of parameters (more elegant methon possible?)
     # elecCount = len(paramDict['recordingElecPos'])

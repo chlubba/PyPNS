@@ -5,7 +5,11 @@
     <bookmark url="file://$PROJECT_DIR$/inactiveCode/randomPeripheralNerveGeometryDifferentConfinement.py" line="111" mnemonic="0" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="745af9be-a393-4a53-a80a-86bfbe7bad8d" name="Default" comment="- spike train generation" />
+    <list default="true" id="745af9be-a393-4a53-a80a-86bfbe7bad8d" name="Default" comment="- spike train generation">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PyPN/nameSetters.py" afterPath="$PROJECT_DIR$/PyPN/nameSetters.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example3.py" afterPath="$PROJECT_DIR$/example3.py" />
+    </list>
     <ignored path="PNPyGit.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -25,11 +29,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="example1.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/example1.py">
+      <file leaf-file-name="example3.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/example3.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.21159874">
-              <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="128" column="70" selection-start-line="128" selection-start-column="56" selection-end-line="128" selection-end-column="70" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -37,21 +41,43 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="bundleClass.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/PyPN/bundleClass.py">
+      <file leaf-file-name="nameSetters.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PyPN/nameSetters.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="283" column="0" selection-start-line="283" selection-start-column="0" selection-end-line="283" selection-end-column="0" />
+              <caret line="7" column="31" selection-start-line="7" selection-start-column="31" selection-end-line="7" selection-end-column="31" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="plotBundleClass.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PyPN/plotBundleClass.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="342" column="61" selection-start-line="342" selection-start-column="4" selection-end-line="342" selection-end-column="61" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="axonClass.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="bundleClass.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PyPN/bundleClass.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="28.777779">
+              <caret line="118" column="47" selection-start-line="118" selection-start-column="47" selection-end-line="118" selection-end-column="47" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="axonClass.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/PyPN/axonClass.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="237" column="0" selection-start-line="237" selection-start-column="0" selection-end-line="237" selection-end-column="0" />
+            <state vertical-scroll-proportion="-1.3831775">
+              <caret line="987" column="72" selection-start-line="987" selection-start-column="72" selection-end-line="987" selection-end-column="72" />
               <folding />
             </state>
           </provider>
@@ -61,8 +87,10 @@
         <entry file="file://$PROJECT_DIR$/PyPN/stimulusClass.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="64" column="40" selection-start-line="64" selection-start-column="40" selection-end-line="64" selection-end-column="40" />
-              <folding />
+              <caret line="85" column="8" selection-start-line="85" selection-start-column="8" selection-end-line="85" selection-end-column="8" />
+              <folding>
+                <element signature="e#0#20#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -81,14 +109,13 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="master" />
+        <entry key="$PROJECT_DIR$" value="CuffAndIntraSeparate" />
       </map>
     </option>
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/bundle_paper2.py" />
         <option value="$PROJECT_DIR$/bundle_general_1.py" />
         <option value="$PROJECT_DIR$/bundle_CAP_paper.py" />
         <option value="$PROJECT_DIR$/classes_plot.py" />
@@ -125,7 +152,6 @@
         <option value="$PROJECT_DIR$/plotBundleClass.py" />
         <option value="$PROJECT_DIR$/bundleClass.py" />
         <option value="$PROJECT_DIR$/setup.py" />
-        <option value="$PROJECT_DIR$/PyPN/nameSetters.py" />
         <option value="$PROJECT_DIR$/PyPN/bundle_general_3.py" />
         <option value="$PROJECT_DIR$/PyPN/upstreamSpikingClass.py" />
         <option value="$PROJECT_DIR$/PyPN/silencer.py" />
@@ -139,6 +165,8 @@
         <option value="$PROJECT_DIR$/PyPN/bundleClass.py" />
         <option value="$PROJECT_DIR$/example1.py" />
         <option value="$PROJECT_DIR$/PyPN/stimulusClass.py" />
+        <option value="$PROJECT_DIR$/PyPN/nameSetters.py" />
+        <option value="$PROJECT_DIR$/example3.py" />
       </list>
     </option>
   </component>
@@ -173,7 +201,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -188,7 +216,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="PNPyGit" />
+              <option name="myItemId" value="PyPN" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -198,7 +226,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="PNPyGit" />
+              <option name="myItemId" value="PyPN" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -208,7 +236,7 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -246,7 +274,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.example1">
+  <component name="RunManager" selected="Python.example3">
     <configuration default="false" name="bundle_general_3" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -260,23 +288,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="PNPyGit" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bundle_general_3.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="testWritingToTextFile" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="PNPyGit" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inactiveCode/testWritingToTextFile.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -333,6 +344,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="PNPyGit" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example1.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="example3" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="PNPyGit" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/example3.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -479,18 +507,18 @@
     <list size="6">
       <item index="0" class="java.lang.String" itemvalue="Python.bundle_general_2_plotting" />
       <item index="1" class="java.lang.String" itemvalue="Python.bundle_general_3" />
-      <item index="2" class="java.lang.String" itemvalue="Python.testWritingToTextFile" />
-      <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in setup" />
-      <item index="4" class="java.lang.String" itemvalue="Python.bundle_general_3 (1)" />
-      <item index="5" class="java.lang.String" itemvalue="Python.example1" />
+      <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests in setup" />
+      <item index="3" class="java.lang.String" itemvalue="Python.bundle_general_3 (1)" />
+      <item index="4" class="java.lang.String" itemvalue="Python.example1" />
+      <item index="5" class="java.lang.String" itemvalue="Python.example3" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.example1" />
-        <item index="1" class="java.lang.String" itemvalue="Python.bundle_general_3" />
-        <item index="2" class="java.lang.String" itemvalue="Python.bundle_general_3 (1)" />
-        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in setup" />
-        <item index="4" class="java.lang.String" itemvalue="Python.testWritingToTextFile" />
+        <item index="0" class="java.lang.String" itemvalue="Python.example3" />
+        <item index="1" class="java.lang.String" itemvalue="Python.example1" />
+        <item index="2" class="java.lang.String" itemvalue="Python.bundle_general_3" />
+        <item index="3" class="java.lang.String" itemvalue="Python.bundle_general_3 (1)" />
+        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests in setup" />
       </list>
     </recent_temporary>
   </component>
@@ -833,7 +861,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.15902965" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.18814017" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.38367346" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3867347" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31836733" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -969,8 +997,18 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="python-line">
           <url>file://$PROJECT_DIR$/PyPN/bundleClass.py</url>
-          <line>271</line>
+          <line>224</line>
           <option name="timeStamp" value="529" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/example3.py</url>
+          <line>159</line>
+          <option name="timeStamp" value="530" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/example3.py</url>
+          <line>153</line>
+          <option name="timeStamp" value="531" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
@@ -983,18 +1021,41 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="530" />
+      <option name="time" value="532" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/bundle_general_3.py">
+    <entry file="file://$PROJECT_DIR$/example1.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#13#0" expanded="false" />
+            <element signature="e#0#11#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyPN/bundleClass.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="283" column="0" selection-start-line="283" selection-start-column="0" selection-end-line="283" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyPN/axonClass.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="237" column="0" selection-start-line="237" selection-start-column="0" selection-end-line="237" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bundle_general_3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1170,20 +1231,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/local/lib/python2.7/dist-packages/LFPy/recextelectrode.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="57" column="12" selection-start-line="57" selection-start-column="12" selection-end-line="57" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/lib/python2.7/dist-packages/LFPy/run_simulation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-45.0">
-          <caret line="153" column="12" selection-start-line="153" selection-start-column="4" selection-end-line="153" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/inactiveCode/bundle_CAP_paper.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.51724136">
@@ -1205,43 +1252,88 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.7288401">
           <caret line="31" column="34" selection-start-line="31" selection-start-column="34" selection-end-line="31" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example3_.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#13#0" expanded="false" />
+            <element signature="e#0#11#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PyPN/axonClass.py">
+    <entry file="file://$PROJECT_DIR$/example1.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="237" column="0" selection-start-line="237" selection-start-column="0" selection-end-line="237" selection-end-column="0" />
+          <caret line="44" column="40" selection-start-line="44" selection-start-column="40" selection-end-line="44" selection-end-column="40" />
+          <folding>
+            <element signature="e#0#11#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyPN/excitationMechanismClass.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PyPN/bundleClass.py">
+    <entry file="file://$PROJECT_DIR$/PyPN/plotBundleClass.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="283" column="0" selection-start-line="283" selection-start-column="0" selection-end-line="283" selection-end-column="0" />
+          <caret line="342" column="61" selection-start-line="342" selection-start-column="4" selection-end-line="342" selection-end-column="61" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyPN/nameSetters.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="7" column="31" selection-start-line="7" selection-start-column="31" selection-end-line="7" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/PyPN/stimulusClass.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="64" column="40" selection-start-line="64" selection-start-column="40" selection-end-line="64" selection-end-column="40" />
+          <caret line="85" column="8" selection-start-line="85" selection-start-column="8" selection-end-line="85" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#20#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="128" column="70" selection-start-line="128" selection-start-column="56" selection-end-line="128" selection-end-column="70" />
+          <folding>
+            <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PyPN/bundleClass.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="28.777779">
+          <caret line="118" column="47" selection-start-line="118" selection-start-column="47" selection-end-line="118" selection-end-column="47" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example1.py">
+    <entry file="file://$PROJECT_DIR$/PyPN/axonClass.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.21159874">
-          <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="-1.3831775">
+          <caret line="987" column="72" selection-start-line="987" selection-start-column="72" selection-end-line="987" selection-end-column="72" />
+          <folding />
         </state>
       </provider>
     </entry>
