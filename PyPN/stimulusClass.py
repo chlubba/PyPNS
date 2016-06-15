@@ -6,6 +6,8 @@ from excitationMechanismClass import *
 from psutil import virtual_memory
 import os
 
+from signalGeneration import *
+from samplingRates import *
 from nameSetters import *
 
 
@@ -35,27 +37,30 @@ class StimIntra(ExcitationMechanism):
 
         self.timeRes = timeRes
 
-        self.t = np.arange(0, self.stimDur, timeRes)
+        # self.t = np.arange(0, self.stimDur, timeRes)
+        #
+        # if self.waveform == 'MONOPHASIC':
+        #     self.stimulusSignal = self.amplitude * 0.5 * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle) + self.amplitude * 0.5
+        # elif self.waveform == 'BIPHASIC':
+        #     self.stimulusSignal = self.amplitude * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle)
+        # else:
+        #     print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
+        #     self.stimulusSignal = self.amplitude * 0.5 * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle) + self.amplitude * 0.5
+        #
+        # if invert:
+        #     self.stimulusSignal = -self.stimulusSignal
+        #
+        #
+        # # add delay
+        # self.stimulusSignalDelayed = np.concatenate((np.zeros(self.delay/timeRes), self.stimulusSignal))
+        #
+        # # end with a zero, otherwise final value is valid for the rest of the simulation...
+        # self.stimulusSignalDelayed = np.concatenate((self.stimulusSignalDelayed, [0]))
 
-        if self.waveform == 'MONOPHASIC':
-            self.stimulusSignal = self.amplitude * 0.5 * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle) + self.amplitude * 0.5
-        elif self.waveform == 'BIPHASIC':
-            self.stimulusSignal = self.amplitude * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle)
-        else:
-            print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
-            self.stimulusSignal = self.amplitude * 0.5 * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle) + self.amplitude * 0.5
+        self.t, self.stimulusSignal = rectangular(stimDur, amplitude, frequency, dutyCycle, waveform,
+                                                                timeRes, delay, invert)
 
-        if invert:
-            self.stimulusSignal = -self.stimulusSignal
-
-
-        # add delay
-        self.stimulusSignalDelayed = np.concatenate((np.zeros(self.delay/timeRes), self.stimulusSignal))
-
-        # end with a zero, otherwise final value is valid for the rest of the simulation...
-        self.stimulusSignalDelayed = np.concatenate((self.stimulusSignalDelayed, [0]))
-
-        self.svec = h.Vector(self.stimulusSignalDelayed)
+        self.svec = h.Vector(self.stimulusSignal)
 
     def connect_axon(self, axon):
 
@@ -63,7 +68,7 @@ class StimIntra(ExcitationMechanism):
         # In unmyelinated axon case allseclist is directly the unique axon section
 
         stim = h.IClamp(0, axon.allseclist)
-        stim.dur = self.stimDur + self.delay
+        stim.dur = len(self.stimulusSignal)*self.timeRes
         self.svec.play(stim._ref_amp, self.timeRes)
 
         excitationMechanismVars = [stim]
@@ -105,31 +110,17 @@ class StimCuff(ExcitationMechanism):
 
         self.timeRes = timeRes
 
-        # # self.t = np.linspace(0, self.stimDur, (tStop+2*timeRes)/timeRes, endpoint=True)
-        # self.t = np.arange(0, self.stimDur, timeRes)
-        #
-        # if self.waveform == 'MONOPHASIC':
-        #     self.stimulusSignal = self.amplitude * 0.5 * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle) + self.amplitude * 0.5
-        # elif self.waveform == 'BIPHASIC':
-        #     self.stimulusSignal = self.amplitude * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle)
-        # else:
-        #     print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
-        #     self.stimulusSignal = self.amplitude * 0.5 * signal.square(2 * np.pi * self.frequency * self.t, duty=dutyCycle) + self.amplitude * 0.5
-        #
-        # if invert:
-        #     self.stimulusSignal = -self.stimulusSignal
-
-        self.t, self.stimulusSignal = rectangularStimulusSignal(stimDur, amplitude, frequency, dutyCycle, waveform,
+        self.t, self.stimulusSignal = rectangular(stimDur, amplitude, frequency, dutyCycle, waveform,
                                                                 timeRes, delay, invert)
 
 
-        # add delay
-        self.stimulusSignalDelayed = np.concatenate((np.zeros(self.delay/timeRes), self.stimulusSignal))
+        # # add delay
+        # self.stimulusSignalDelayed = np.concatenate((np.zeros(self.delay/timeRes), self.stimulusSignal))
+        #
+        # # end with a zero, otherwise final value is valid for the rest of the simulation...
+        # self.stimulusSignalDelayed = np.concatenate((self.stimulusSignalDelayed, [0]))
 
-        # end with a zero, otherwise final value is valid for the rest of the simulation...
-        self.stimulusSignalDelayed = np.concatenate((self.stimulusSignalDelayed, [0]))
-
-        self.svec = h.Vector(self.stimulusSignalDelayed)
+        self.svec = h.Vector(self.stimulusSignal)
 
     def connect_axon(self, axon):
 
@@ -165,22 +156,8 @@ class SimpleIClamp(ExcitationMechanism):
     def delete_neuron_objects(self):
         pass
 
-def rectangularStimulusSignal(stimDur, amplitude, frequency, dutyCycle, waveform, timeRes, delay=0, invert=False):
+# TODO: input signal as a parameter, separate signal generation from stimulation modality
 
-    t = np.arange(0, stimDur, timeRes)
-
-    if waveform == 'MONOPHASIC':
-        stimulusSignal = amplitude * 0.5 * signal.square(2 * np.pi * frequency * t, duty=dutyCycle) + amplitude * 0.5
-    elif waveform == 'BIPHASIC':
-        stimulusSignal = amplitude * signal.square(2 * np.pi * frequency * t, duty=dutyCycle)
-    else:
-        print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
-        stimulusSignal = amplitude * 0.5 * signal.square(2 * np.pi * frequency * t, duty=dutyCycle) + amplitude * 0.5
-
-    if invert:
-        stimulusSignal = -stimulusSignal
-
-    return t, stimulusSignal
 
 
 class StimTripolarPoint(ExcitationMechanism):
@@ -213,7 +190,7 @@ class StimTripolarPoint(ExcitationMechanism):
 
         self.timeRes = timeRes
 
-        self.t, self.stimulusSignal = rectangularStimulusSignal(stimDur, amplitude, frequency, dutyCycle, waveform,
+        self.t, self.stimulusSignal = rectangular(stimDur, amplitude, frequency, dutyCycle, waveform,
                                                                 timeRes, delay, invert)
 
         # add delay
@@ -255,6 +232,9 @@ class StimField(ExcitationMechanism):
             origin: point where the field's (0,0,0) will be put in the bundle-space
             interpolMethod: interpolation between points of the input field.
         """
+
+
+        # TODO: Check if bundle is within field coordinates, warn if not.
 
 
         # get file names
@@ -357,6 +337,7 @@ class StimField(ExcitationMechanism):
 
                     # interpolate
                     potentials = interpolator(x, y, z)
+                    potentials = potentials.nan_to_num()
 
                     # save in big matrix (#current axons x #time steps x #segments (axon-dependent)
                     segmentPotentials[axonIndex-currentAxonIndices[0]][timeIndex] = potentials
@@ -373,13 +354,17 @@ class StimField(ExcitationMechanism):
                 # get the potential for one axon (all segments, all timesteps)
                 potentials = segmentPotentials[localIndex]
 
+                # time vector
+                tField = np.arange(0,stimTime, timeRes)
+
                 # TODO: adjust sampling rate in memory-efficient way
+                potentialsResampled = change_samplingrate(potentials, tField, timeRes/bundle.timeRes)
 
                 # save in the same manner as recordings
                 saveFilename = get_file_name('', bundle.basePath)
 
                 # save the potentals to disk
-                np.savetxt(saveFilename, potentials)
+                np.savetxt(saveFilename, potentialsResampled)
 
 
             # delete worked axons from list

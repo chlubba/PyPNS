@@ -206,7 +206,7 @@ def CAP1D_singleAxon(bundle, maxNumberOfAxons=10, recMechIndex=0):
 
 
 
-def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0):
+def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0, startTime=0):
 
     '''
     CAP1D plots the compound action potential of the recording mechanism recMechIndex of bundle. If multiple recording
@@ -218,6 +218,8 @@ def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0):
 
     Returns: nothing
     '''
+
+    # TODO: implement start time (helpful to eliminate stimulus artefact)
 
     # first load the desired data from file
     time, CAP = bundle.get_CAP_from_file(recMechIndex)

@@ -83,7 +83,7 @@ class Bundle(object):
 
         self.build_disk(self.numberOfAxons,self.bundleCoords[0,-1])
 
-        self.saveParams={'timeRes': timeRes, 'tStop': tStop, 'pMyel': self.pMyel,
+        self.saveParams={'timeRes': timeRes, 'tStop': tStop, 'pMyel': pMyel,
                     'paramsMyel': paramsMyel, 'paramsUnmyel': paramsUnmyel,
                     'length': length, 'numberOfAxons' : numberOfAxons}
         self.numberOfSavedSegments = numberOfSavedSegments
@@ -137,7 +137,7 @@ class Bundle(object):
             if isinstance(axon, Myelinated):
                 nsegTemp = axon.axontotal
             else:
-                nsegTemp = axon.approx_nseg_d_lambda()
+                nsegTemp = axon.get_number_of_segs()
             nsegs_tot += nsegTemp
 
             nsegs_axonwise.append(nsegTemp)
@@ -170,6 +170,7 @@ class Bundle(object):
             unmyel['tStop'] = self.tStop
             unmyel['timeRes'] = self.timeRes
             unmyel['numberOfSavedSegments'] = self.numberOfSavedSegments
+            unmyel['rec_v'] = self.saveV
             axonParameters = dict( {'coord': axonCoords},**unmyel)
             #axonParameters = dict( {'coord': axonPosition},**unmyel)
             self.axons.append(Unmyelinated(**axonParameters))
@@ -181,6 +182,7 @@ class Bundle(object):
             myel['tStop'] = self.tStop
             myel['timeRes'] = self.timeRes
             myel['numberOfSavedSegments'] = self.numberOfSavedSegments
+            myel['rec_v'] = self.saveV
             axonParameters = dict( {'coord':axonCoords},**myel)
             # axonParameters = dict( {'coord':axonPosition},**myel)
             self.axons.append(Myelinated(**axonParameters))

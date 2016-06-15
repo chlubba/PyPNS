@@ -13,31 +13,31 @@ STIDiam = FLUTDiam
 
 diamArray = np.arange(0.1, 20, 0.1)
 
-f, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2,3)
+f, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2,3, sharex=True)#, figsize=(20,10))
 
-ax1.scatter(diams, nodeNodeSep, label='Node Separation')
-ax1.set_title('Node Separation')
+ax3.scatter(diams, nodeNodeSep, label='Node Separation')
+ax3.set_title('Node separation')
 z1 = np.polyfit(diams, nodeNodeSep, 1)
 p1 = np.poly1d(z1)
-ax1.plot(diamArray, p1(diamArray))
+ax3.plot(diamArray, p1(diamArray))
 
-ax2.scatter(diams, noLamella, label='Number of Lamella')
-ax2.set_title('Number of lamella')
+ax6.scatter(diams, noLamella, label='Number of Lamella')
+ax6.set_title('Number of lamella')
 z2 = np.polyfit(diams, noLamella, 1)
 p2 = np.poly1d(z2)
-ax2.plot(diamArray, p2(diamArray))
+ax6.plot(diamArray, p2(diamArray))
 
-ax3.scatter(diams, nodeDiam, label='Node and MYSA Diam')
-ax3.set_title('Node and MYSA Diameter')
+ax1.scatter(diams, nodeDiam, label='Node and MYSA Diam')
+ax1.set_title('Node and MYSA diameter')
 z3 = np.polyfit(diams, nodeDiam, 2)
 p3 = np.poly1d(z3)
-ax3.plot(diamArray, p3(diamArray))
+ax1.plot(diamArray, p3(diamArray))
 
-ax4.scatter(diams, FLUTLen, label='FLUT length')
-ax4.set_title('FLUT length')
+ax2.scatter(diams, FLUTLen, label='FLUT length')
+ax2.set_title('FLUT length')
 z4 = np.polyfit(diams, FLUTLen, 1)
 p4 = np.poly1d(z4)
-ax4.plot(diamArray, p4(diamArray))
+ax2.plot(diamArray, p4(diamArray))
 
 ax5.scatter(diams, STINLen, label='STIN length')
 ax5.set_title('STIN length')
@@ -45,14 +45,18 @@ z5 = np.polyfit(diams, STINLen, 1)
 p5 = np.poly1d(z5)
 ax5.plot(diamArray, p5(diamArray))
 
-ax6.scatter(diams, FLUTDiam, label='FLUT and STIN diameter')
-ax6.set_title('FLUT and STIN diameter')
+ax4.scatter(diams, FLUTDiam, label='FLUT and STIN diameter')
+ax4.set_title('FLUT and STIN diameter')
 z6 = np.polyfit(diams, FLUTDiam, 2)
 p6 = np.poly1d(z6)
-ax6.plot(diamArray, p6(diamArray))
+ax4.plot(diamArray, p6(diamArray))
 
-plt.legend()
+# plt.legend()
+plt.tight_layout()
+
+import matplotlib2tikz as mtz
+mtz.save('extrapolateMcIntyre3.tex', figureheight = '\\figureheight',
+           figurewidth = '\\figurewidth')
+
 plt.show()
 
-# import matplotlib2tikz as mtz
-# mtz.save('CAP.tex')

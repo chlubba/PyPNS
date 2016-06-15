@@ -18,3 +18,4 @@ from PyPN.nameSetters import get_bundle_directory, save_bundle, open_recent_bund
 
 # misc
 from PyPN.samplingRates import *
+import PyPN.signalGeneration

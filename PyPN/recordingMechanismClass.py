@@ -348,7 +348,7 @@ class RecBipolarPoint(RecordingMechanism):
             electrodePositionsElectrode2 = (orthogonalVector * self.radius) + \
                                              (segmentMiddle + segmentOrientation * self.poleDistance / 2)
 
-            electrodePositions = np.vstack([electrodePositionsElectrode1, electrodePositionsElectrode2])
+            electrodePositions = np.vstack([electrodePositions, electrodePositionsElectrode1, electrodePositionsElectrode2])
 
         electrodeParameters = {
             'sigma': self.sigma,
@@ -362,6 +362,78 @@ class RecBipolarPoint(RecordingMechanism):
         }
 
         self.electrodeParameters = electrodeParameters
+
+# TODO: Enable uni-/bipolar recording based on coordinate values for electrode positions
+# class RecCoordinates(RecordingMechanism):
+#
+    # def __init__(self, radius, numberOfElectrodes=1, poleDistance=5000, positionMax=1, sigma=0.3, method='pointsource'):
+    #
+    #     self.radius = radius  # radius of the electrode ring (um)
+    #     self.poleDistance = poleDistance  # distance between two poles of the same bipolar electrode (um)
+    #     self.positionMax = positionMax
+    #
+    #     super(RecCoordinates, self).__init__(numberOfPoints=1, numberOfPoles=2, numberOfElectrodes=numberOfElectrodes,
+    #                                           method=method, sigma=sigma)
+    #
+    # def setup_recording_elec(self, bundleGuide, bundleLength):
+    #
+    #     bundleGuide = bundleGuide[:, 0:3]
+    #
+    #     # first find the bundle guide segment index that corresponds to the intended bundle length (overlap for
+    #     # myelinated axons gives longer bundle than specified by user
+    #     bundleLengthIndex = np.shape(bundleGuide)[0] - 1
+    #     bundleLengthTemp = length_from_coords(bundleGuide)
+    #     while bundleLengthTemp > bundleLength:
+    #         bundleLengthIndex -= 1
+    #         bundleLengthTemp = length_from_coords(bundleGuide[:bundleLengthIndex])
+    #
+    #     # lastRecordedSegmentIndex = (np.shape(bundleGuide)[0]-1)*self.positionMax
+    #     lastRecordedSegmentIndex = bundleLengthIndex * self.positionMax
+    #
+    #     if self.numberOfElectrodes > 1:
+    #         segmentIndices = np.linspace(lastRecordedSegmentIndex / self.numberOfElectrodes,
+    #                                      lastRecordedSegmentIndex, self.numberOfElectrodes)
+    #     else:
+    #         segmentIndices = [lastRecordedSegmentIndex]
+    #
+    #     for i in range(self.numberOfElectrodes):
+    #         self.electrodeDistances.append(np.floor(length_from_coords(bundleGuide[:segmentIndices[i]])))
+    #
+    #     electrodePositions = np.array([]).reshape(0, 3)
+    #
+    #     for i in range(self.numberOfElectrodes):
+    #         segmentNumber = int(segmentIndices[i])
+    #         # segmentNumber = floor(np.shape(bundleGuide)[0]/numberOfElectrodes)*(i+1) - 1
+    #
+    #         segmentStartingPos = bundleGuide[segmentNumber - 1, :]
+    #         segmentEndPos = bundleGuide[segmentNumber, :]
+    #
+    #         segmentMiddle = (segmentStartingPos + segmentEndPos) / 2
+    #         segmentOrientation = segmentEndPos - segmentStartingPos
+    #         segmentOrientation = segmentOrientation / np.linalg.norm(segmentOrientation)
+    #
+    #         # get one random orthogonal vector
+    #         orthogonalVector = random_perpendicular_vectors(segmentOrientation)[0, :]
+    #
+    #         electrodePositionsElectrode1 = (orthogonalVector * self.radius) + \
+    #                                        (segmentMiddle - segmentOrientation * self.poleDistance / 2)
+    #         electrodePositionsElectrode2 = (orthogonalVector * self.radius) + \
+    #                                        (segmentMiddle + segmentOrientation * self.poleDistance / 2)
+    #
+    #         electrodePositions = np.vstack([electrodePositionsElectrode1, electrodePositionsElectrode2])
+    #
+    #     electrodeParameters = {
+    #         'sigma': self.sigma,
+    #         'x': electrodePositions[:, 0],  # Coordinates of electrode contacts
+    #         'y': electrodePositions[:, 1],
+    #         'z': electrodePositions[:, 2],
+    #         # 'n' : 20,
+    #         # 'r' : 10,
+    #         # 'N' : N,
+    #         'method': self.method,  # or "linesource"
+    #     }
+    #
+    #     self.electrodeParameters = electrodeParameters
 
 
 # class CuffElectrode3D(RecordingMechanism):

@@ -84,26 +84,26 @@ if calculationFlag:
     # create the bundle with all properties of axons and recording setup
     bundle = PyPN.Bundle(**bundleParameters)
 
-    # # spiking through a single electrical stimulation
-    # if electricalStimulusOn:
-    #     # stimulusInstance = PyPN.Stimulus(**stimulusParameters)
-    #     # plt.plot(stimulusInstance.t, stimulusInstance.stimulusSignal)
-    #     # plt.title('stimulus signal without delay')
-    #     # plt.show()
-    #     # bundle.add_excitation_mechanism(PyPN.StimCuff(**cuffParameters))
-    #     # bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
-    #
-    #     # bundle.add_excitation_mechanism(PyPN.StimTripolarPoint(radius=1000, poleDistance=100, stimDur=1, amplitude=10.5, frequency=1, dutyCycle=0.5, waveform='BIPHASIC', timeRes=timeRes, delay=5))
-    #     # bundle.add_excitation_mechanism(PyPN.StimCuff(radius=1000, stimDur=1, amplitude=10.5, frequency=1, dutyCycle=0.5, waveform='BIPHASIC', timeRes=timeRes, delay=5))
-    #
-    #     # bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
-    #
-    #     bundle.add_excitation_mechanism(
-    #         PyPN.StimField('/media/carl/4ECC-1C44/PyPN/voltageFieldDummy2', 30, 0.1, bundle))
+    # spiking through a single electrical stimulation
+    if electricalStimulusOn:
+        # stimulusInstance = PyPN.Stimulus(**stimulusParameters)
+        # plt.plot(stimulusInstance.t, stimulusInstance.stimulusSignal)
+        # plt.title('stimulus signal without delay')
+        # plt.show()
+        # bundle.add_excitation_mechanism(PyPN.StimCuff(**cuffParameters))
+        # bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
+
+        # bundle.add_excitation_mechanism(PyPN.StimTripolarPoint(radius=1000, poleDistance=100, stimDur=1, amplitude=10.5, frequency=1, dutyCycle=0.5, waveform='BIPHASIC', timeRes=timeRes, delay=5))
+        # bundle.add_excitation_mechanism(PyPN.StimCuff(radius=1000, stimDur=1, amplitude=10.5, frequency=1, dutyCycle=0.5, waveform='BIPHASIC', timeRes=timeRes, delay=5))
+
+        # bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
+
+        bundle.add_excitation_mechanism(
+            PyPN.StimField('/media/carl/4ECC-1C44/PyPN/voltageFieldDummy2', 30, 0.1, bundle))
 
 
 
-    print bundle.approx_num_segs()
+    # print bundle.approx_num_segs()
 
     bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParameters))
 
