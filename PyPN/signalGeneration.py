@@ -1,12 +1,12 @@
 import numpy as np
 from scipy import signal
 
-def biphasic_decaying(tRes, tDelay=0, tC=1, aC=1, tExp=1, cExp=-5, tD=2, aD=-0.2):
+def biphasic_decaying(timeRes, tDelay=0, tC=1, aC=0.05, tExp=1, cExp=-5, tD=2, aD=-0.01):
     """
     Defines stimulus signal shape as in <name paper>
 
     Args:
-        tRes: time resolution of the simulation
+        timeRes: time resolution of the simulation
         tDelay: length of first zero phase [ms]
         tC: length of up phase [ms]
         aC: amplitude of up phase [mA]
@@ -22,20 +22,20 @@ def biphasic_decaying(tRes, tDelay=0, tC=1, aC=1, tExp=1, cExp=-5, tD=2, aD=-0.2
     """
 
 
-    signal0 = np.zeros(int(tDelay / tRes))
-    signal1 = np.ones(int(tC / tRes)) * aC
-    tTempExp = np.arange(0, tExp, tRes)
+    signal0 = np.zeros(int(tDelay / timeRes))
+    signal1 = np.ones(int(tC / timeRes)) * aC
+    tTempExp = np.arange(0, tExp, timeRes)
     signal2 = np.exp(tTempExp * cExp) * aC
-    signal3 = np.ones(int(tD / tRes)) * aD
+    signal3 = np.ones(int(tD / timeRes)) * aD
 
     overallSignal = np.concatenate((signal0, signal1, signal2, signal3))
 
     # finalize signal with a zero
     overallSignal = np.concatenate((overallSignal, [0]))
 
-    t = np.arange(len(overallSignal)) * tRes
+    # t = np.arange(len(overallSignal)) * tRes
 
-    return t, overallSignal
+    return overallSignal
 
 def rectangular(stimDur, amplitude, frequency, dutyCycle, waveform, timeRes, delay=0, invert=False):
 
@@ -57,7 +57,7 @@ def rectangular(stimDur, amplitude, frequency, dutyCycle, waveform, timeRes, del
 
     # add delay
     stimulusSignalDelayed = np.concatenate((np.zeros(delay / timeRes), stimulusSignal))
-    t = np.arange(len(stimulusSignalDelayed))*timeRes
+    # t = np.arange(len(stimulusSignalDelayed))*timeRes
 
-    return t, stimulusSignalDelayed
+    return stimulusSignalDelayed
 

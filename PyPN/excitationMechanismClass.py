@@ -1,7 +1,10 @@
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod # ABCMeta,
 
 class ExcitationMechanism(object):
-    __metaclass__ = ABCMeta
+    # __metaclass__ = ABCMeta
+
+    def __init__(self):
+        self.timeRes = 0
 
     @abstractmethod
     def connect_axon(self, axon):

@@ -283,6 +283,7 @@ class Bundle(object):
 
     
     def add_excitation_mechanism(self, mechanism):
+        mechanism.timeRes = self.timeRes
         self.excitationMechanisms.append(mechanism)
 
 

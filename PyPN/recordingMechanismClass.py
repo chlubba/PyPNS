@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 import numpy as np
 from createGeometry import random_perpendicular_vectors, rotation_matrix, length_from_coords
 from nameSetters import get_directory_name
@@ -9,7 +9,6 @@ import LFPy
 import time
 
 class RecordingMechanism(object):
-    # __metaclass__ = ABCMeta
 
     def __init__(self, numberOfPoints, numberOfPoles, numberOfElectrodes, method='pointsource', sigma=0.3):
 

@@ -13,10 +13,10 @@ electricalStimulusOn = True
 
 # set simulation params
 tStop=100
-timeRes=0.0025#0.0025
+timeRes=0.0025
 
 # set length of bundle and number of axons
-lengthOfBundle = 1000 # 4000 # 400000
+lengthOfBundle = 1000
 numberOfAxons = 1
 
 # create a guide the axons will follow
@@ -33,27 +33,6 @@ bundleGuide = PyPN.createGeometry.get_bundle_guide_straight_2radii(lengthOfBundl
 myelinatedDiam =  0.2 # 1.5 # {'distName' : 'uniform', 'params' : (1.5, 4)} # .2 #
 unmyelinatedDiam = .1 # {'distName' : 'uniform', 'params' : (0.1, 2)} # .2 #
 
-
-
-# # definition of the stimulation type of the axon
-# stimulusParameters = {  'stimType': "EXTRA", #Stimulation type either "INTRA" or "EXTRA"
-#                         'amplitude': 0.015, # 0.005, # 0.016,#0.2,# .0001,#1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (mA)
-#                         'frequency': 20., # Frequency of the pulse (kHz)
-#                         'dutyCycle': .5, # 0.05, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-#                         'stimDur' : 0.05, # Stimulus duration (ms)
-#                         'waveform': 'BIPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-#                         'radiusBundle' : 50, #um
-#                         # 'tStop' : tStop,
-#                         'timeRes' : timeRes,
-#                         'delay': 5, # ms
-#                         # 'invert': True
-# }
-#
-# # MONO, inv: 0.005
-# # BI, inv: 0.015
-# # MONO, non-inv: 0.025
-# # BI, non-inv: 0.015
-
 rectangularSignalParams = { 'amplitude':    0.05,       # Pulse amplitude (mA)
                             'frequency':    20.,        # Frequency of the pulse (kHz)
                             'dutyCycle':    0.5,        # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
@@ -61,46 +40,31 @@ rectangularSignalParams = { 'amplitude':    0.05,       # Pulse amplitude (mA)
                             'waveform':     'MONOPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
                             'timeRes':      timeRes,
                             'delay':        5,          # ms
-                            'invert':       True}
+                            'invert':       True
+                            }
 
-t, recStimSignal = PyPN.signalGeneration.rectangular(**rectangularSignalParams)
+asymmetricSignalParams = {# 'tDelay': 0, # ms
+                          # 'tC':     1,  # ms
+                          # 'aC':     1, #mA
+                          # 'tExp':   1,  # ms
+                          # 'cExp':   -5, # ms
+                          # 'tD':     2,  # ms
+                          # 'aD':     -0.2, #mA
+                          'timeRes': timeRes
+                          }
 
-plt.plot(t, recStimSignal)
-plt.show()
 
 # definition of the stimulation type of the axon
-cuffParameters = {      'amplitude': .05, # 0.005, # 0.016,#0.2,# .0001,#1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (mA)
-                        'frequency': 20., # Frequency of the pulse (kHz)
-                        'dutyCycle': .5, # 0.05, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-                        'stimDur' : 0.05, # Stimulus duration (ms)
-                        'waveform': 'MONOPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-                        'radius' : 50, #um
-                        'timeRes' : timeRes,
-                        'delay': 5, # ms
-                        'invert': True
+stimCuffParameters = {'stimulusSignal' : PyPN.signalGeneration.rectangular(**rectangularSignalParams),
+                      'radius' : 50, #um
 }
+intraParameters = { 'stimulusSignal': PyPN.signalGeneration.biphasic_decaying(**asymmetricSignalParams)}
 
-intraParameters = {     'amplitude': 3., # 0.005, # 0.016,#0.2,# .0001,#1.5, #0.2, # 0.004, # 10., #  # Pulse amplitude (mA)
-                        'frequency': 20., # Frequency of the pulse (kHz)
-                        'dutyCycle': .5, # 0.05, # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-                        'stimDur' : 0.05, # Stimulus duration (ms)
-                        'waveform': 'MONOPHASIC', # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-                        'timeRes' : timeRes,
-                        'delay': 5, # ms
-                        # 'invert': True
-}
+# s = PyPN.signalGeneration.biphasic_decaying(**asymmetricSignalParams)
+# plt.plot(s)
+# plt.show()
 
-# # definition of the stimulation type of the axon
-# stimulusParameters = {  'delay': 5, # delay (ms)
-#                         'stimDur': 0.05, # Stimulus duration (ms)
-#                         'amplitude': 1.5 # 0.15 # Pulse amplitude (nA)
-# }
-
-# recording parameters of the cuff electrodes
-# recordingParameters = { 'numberContactPoints': 8, # Number of points on the circle constituing the cuff electrode
-#                         'recordingElecPos': [lengthOfBundle, lengthOfBundle + 50], #um Position of the recording electrode along axon in um, in "BIPOLAR" case the position along axons should be given as a couple [x1,x2]
-#                         'numberElecs': 3, # number of electrodes along the bundle
-# }
+# recording parameters
 recordingParameters = { 'radius': 200,
                         'numberOfElectrodes': 2,
                         'positionMax': 1.,
@@ -131,7 +95,7 @@ bundleParameters = {    'radius': 150, #150, #um Radius of the bundle (typically
                         'timeRes' : timeRes,
 
                         # 'saveI':True,
-                        'saveV':False
+                        # 'saveV':False
 }
 
 # combine parameters for the bundle creation
@@ -144,21 +108,8 @@ if calculationFlag:
 
     # spiking through a single electrical stimulation
     if electricalStimulusOn:
-        # stimulusInstance = PyPN.Stimulus(**stimulusParameters)
-        # plt.plot(stimulusInstance.t, stimulusInstance.stimulusSignal)
-        # plt.title('stimulus signal without delay')
-        # plt.show()
 
-        # bundle.add_excitation_mechanism(PyPN.StimCuff(**cuffParameters))
-
-        # bundle.add_excitation_mechanism(PyPN.SimpleIClamp(**stimulusParameters))
-
-        # bundle.add_excitation_mechanism(PyPN.StimTripolarPoint(radius=1000, poleDistance=100, stimDur=1, amplitude=10.5, frequency=1, dutyCycle=0.5, waveform='BIPHASIC', timeRes=timeRes, delay=5))
-        # bundle.add_excitation_mechanism(PyPN.StimCuff(radius=1000, stimDur=1, amplitude=10.5, frequency=1, dutyCycle=0.5, waveform='BIPHASIC', timeRes=timeRes, delay=5))
-
-        intraMech = PyPN.StimIntra(**intraParameters)
-        plt.plot(intraMech.t, intraMech.stimulusSignal)
-        plt.show()
+        # bundle.add_excitation_mechanism(PyPN.StimCuff(**stimCuffParameters))
         bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
 
 
