@@ -7,28 +7,30 @@ folder = '/media/carl/4ECC-1C44/ComsolData/thickerEndoneurium'
 filename1 = 'xP_0.txt'
 filename2 = 'xP_180.txt'
 
-fields = [[] for i in range(2)]
+field1 = np.loadtxt(os.path.join(folder, filename1))
+# field2 = np.loadtxt(os.path.join(folder, filename2))
 
-fields[0] = np.loadtxt(os.path.join(folder, filename1))
-fields[1] = np.loadtxt(os.path.join(folder, filename2))
 
-axonXs = [0,180]
-axonXSteps = 2
+# print np.shape(field2)
+# print field2.nbytes
 
-x = fields[0][:,0]
-y = fields[0][:,1]
-z = fields[0][:,2]
+x = field1[:,0]
+y = field1[:,1]
+z = field1[:,2]
+v = field1[:,3]
 
-voltages = []
-
-for i in range(axonXSteps):
-    voltages.append(fields[i][:,3])
+# transform into
+rho = np.sqrt(x**2 + y**2)
+phi = np.arctan2(y,x)
 
 # sort by coordinate values, x changing fastest, z slowest
-orderIndices = np.lexsort((z,y,x))
-x=x[orderIndices]
-y=y[orderIndices]
+orderIndices = np.lexsort((z,phi,rho))
+rho=rho[orderIndices]
+phi=phi[orderIndices]
 z=z[orderIndices]
+v=v[orderIndices]
+
+# transform data to 3D-field with integer indices replacing actual coordinate values
 
 # get values
 xValues = np.unique(x)
@@ -39,24 +41,23 @@ zValues = np.unique(z)
 xSteps = len(xValues)
 ySteps = len(yValues)
 zSteps = len(zValues)
+# print xSteps, ySteps, zSteps
 
-# transform data to 3D-field with integer indices replacing actual coordinate values
-fieldImage = np.zeros([xSteps, ySteps, zSteps, axonXSteps])
-for axonXInd in range(axonXSteps):
-    for xInd in range(xSteps):
-        for yInd in range(ySteps):
-            for zInd in range(zSteps):
-                vIndex = xInd + xSteps*(yInd + zInd*ySteps)
-                fieldImage[xInd, yInd, zInd, axonXInd] = voltages[axonXInd][vIndex]
+# translate to 3D-array
+fieldImage = np.zeros([xSteps, ySteps, zSteps])
+for xInd in range(xSteps):
+    for yInd in range(ySteps):
+        for zInd in range(zSteps):
+            vIndex = xInd + xSteps*(yInd + zInd*ySteps)
+            fieldImage[xInd, yInd, zInd] = v[vIndex]
 
 fieldDict = {'fieldImage': fieldImage,
              'x': xValues,
              'y': yValues,
-             'z': yValues,
-             'axonX': axonXs}
+             'z': yValues,}
 
 # print fieldImage.shape
-def getImageCoords(xValues, yValues, zValues, axonXValues, points):
+def getImageCoords(xValues, yValues, zValues, points):
 
     # assume equidistant original points
 
@@ -72,10 +73,6 @@ def getImageCoords(xValues, yValues, zValues, axonXValues, points):
     zMax = max(zValues)
     zNum = len(zValues)
 
-    axonXMin = min(axonXValues)
-    axonXMax = max(axonXValues)
-    axonXNum = len(axonXValues)
-
     points = np.array(points)
 
     if min(points.shape)>1:
@@ -84,22 +81,20 @@ def getImageCoords(xValues, yValues, zValues, axonXValues, points):
         xCoords = np.add(points[:, 0], -xMin) / (xMax - xMin) * xNum
         yCoords = np.add(points[:, 1], -yMin)/ (yMax - yMin) * yNum
         zCoords = np.add(points[:, 2], -zMin) / (zMax - zMin) * zNum
-        xAxonCoords = np.add(points[:, 3], -axonXMin) / (axonXMax - axonXMin) * axonXNum
     else:
         xCoords = (points[0] - xMin) / (xMax - xMin) * xNum
         yCoords = (points[1] - yMin) / (yMax - yMin) * yNum
         zCoords = (points[2] - zMin) / (zMax - zMin) * zNum
-        xAxonCoords = (points[3] - axonXMin) / (axonXMax - axonXMin) * axonXNum
 
-    return np.vstack([xCoords, yCoords, zCoords, xAxonCoords])
+    return np.vstack([xCoords, yCoords, zCoords])
 
 def interpolateFromImage(fieldDict, points):
 
     # first transform coordinates in points into position coordinates
-    imageCoords = getImageCoords(fieldDict['x'], fieldDict['y'], fieldDict['z'], fieldDict['axonX'], points)
+    imageCoords = getImageCoords(fieldDict['x'], fieldDict['y'], fieldDict['z'], points)
 
     # then with new coords to the interpolation
-    return  ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=1)
+    return  ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=3)
 
 # print getImageCoords(xValues, yValues, zValues, np.array([[1,2,3], [1,2,3], [1,2,3]]))
 #
@@ -110,13 +105,11 @@ def interpolateFromImage(fieldDict, points):
 # print ndimage.map_coordinates(a, [[0.5], [0.5]], order=3)
 
 xPlot = np.linspace(-0.005, 0.005, 100)
-xAxonPlot = np.linspace(0, 180, 100)
 
-# points = np.array([np.zeros(100), np.zeros(100), np.zeros(100), xAxonPlot])
-points = np.array([xPlot, np.zeros(100), np.zeros(100), np.zeros(100)])
+points = np.array([xPlot, np.zeros(100), np.zeros(100)])
 values = interpolateFromImage(fieldDict, points)
 
-plt.plot(xAxonPlot, values)
+plt.plot(xPlot, values)
 plt.show()
 
 
