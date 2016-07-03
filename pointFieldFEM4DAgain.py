@@ -45,6 +45,8 @@ def getImageCoords(xValues, yValues, zValues, axonXValues, points):
         zCoords = (points[2] - zMin) / (zMax - zMin) * (zNum-1)
         xAxonCoords = (points[3] - axonXMin) / (axonXMax - axonXMin) * (axonXNum-1)
 
+    zCoords = np.abs(zCoords) # in the input FEM field, we only take one side of the z-value range due to symmetry
+
     return np.vstack([xCoords, yCoords, zCoords, xAxonCoords])
 
 def interpolateFromImage(fieldDict, points, order=3):
@@ -157,14 +159,15 @@ if __name__ == "__main__":
     xPlot = np.linspace(-0.005, 0.005, xPoints)
     yPlot = [0]
     zPoints = 30
-    zPlot = np.linspace(0, 0.005, zPoints)
+    zPlot = np.linspace(-0.005, 0.005, zPoints)
+    xAxon = 0
 
     xv, zv = np.meshgrid(xPlot, zPlot)
 
     xvLin = np.squeeze(xv.reshape([1, -1]))
     zvLin = np.squeeze(zv.reshape([1, -1]))
 
-    points = np.array([xvLin, np.zeros(xPoints*zPoints), zvLin, np.ones(xPoints*zPoints) * 180])
+    points = np.array([xvLin, np.zeros(xPoints*zPoints), zvLin, np.ones(xPoints*zPoints) * xAxon])
 
 
     values = interpolateFromImage(fieldDict, points, order=1)
@@ -206,5 +209,37 @@ if __name__ == "__main__":
     # ax.set_zscale('log')
     # ax.legend()
 
-    plt.show()
+    # plt.show()
 
+    # # ----------------- 3D contour plot ---------------
+    #
+    # fig = plt.figure()
+    # ax = fig.gca(projection='3d')
+    # X, Y, Z = xv, zv, np.reshape(valuesLog, (zPoints, xPoints))
+    # ax.plot_surface(X, Y, Z, rstride=8, cstride=8, alpha=0.3)
+    # cset = ax.contour(X, Y, Z, zdir='z', offset=0.0, cmap=cm.coolwarm)
+    # cset = ax.contour(X, Y, Z, zdir='x', offset=0.005, cmap=cm.coolwarm)
+    # cset = ax.contour(X, Y, Z, zdir='y', offset=0, cmap=cm.coolwarm)
+    #
+    # ax.set_xlabel('X')
+    # ax.set_xlim(-0.01, 0.01)
+    # ax.set_ylabel('Z')
+    # ax.set_ylim(-0.01, 0.01)
+    # ax.set_zlabel('V')
+    # ax.set_zlim(-10, 0)
+
+    # ---------------- 2D contour plot ---------------------
+    X, Y, Z = xv, zv, np.reshape(valuesLog, (zPoints, xPoints))
+    plt.figure()
+    CS = plt.contour(X, Y, Z)
+    # plt.clabel(CS, inline=1, fontsize=10)
+
+    circle1 = plt.Circle((0, 0), .00019, color='b', fill=False)
+    circle2 = plt.Circle((0, 0), .00023, color='b', fill=False)
+    fig = plt.gcf()
+    fig.gca().add_artist(circle1)
+    fig.gca().add_artist(circle2)
+
+    plt.grid()
+
+    plt.show()

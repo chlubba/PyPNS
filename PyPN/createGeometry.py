@@ -127,12 +127,12 @@ def length_from_coords(coords):
 
 
 
-def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000):
+def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000, lengthFactor=3):
 
     #length after bundle end. necessary for myelinated axons
     bundleLength = bundleLength + overlapLength
 
-    segmentLengthBundle = segmentLengthAxon*3
+    segmentLengthBundle = segmentLengthAxon*lengthFactor
 
     numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
 

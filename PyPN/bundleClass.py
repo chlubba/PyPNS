@@ -26,6 +26,9 @@ import matplotlib.colors as colors
 from takeTime import *
 import silencer
 
+from recordingMechanismFEMClass import RecordingMechanismFEM
+from recordingMechanismClass import RecordingMechanism
+
 from scipy.signal import argrelextrema
 
 from nameSetters import *
@@ -279,7 +282,14 @@ class Bundle(object):
 
     def add_recording_mechanism(self, mechanism):
         self.recordingMechanisms.append(mechanism)
-        mechanism.setup_recording_elec(self.bundleCoords, self.length)
+
+        if isinstance(mechanism, RecordingMechanism):
+            mechanism.setup_recording_elec(self.bundleCoords, self.length)
+        elif isinstance(mechanism, RecordingMechanismFEM):
+            mechanism.bundleGuide = self.bundleCoords
+            mechanism.setup_recording_elec(self.bundleCoords, self.length)
+        else:
+            raise Exception('Recording mechanism type not recognized.')
 
     
     def add_excitation_mechanism(self, mechanism):
@@ -334,6 +344,12 @@ class Bundle(object):
 
             with takeTime("calculate voltage and membrane current"):
                 axon.simulate()
+
+            # # TODO: remove this again! Only testing with simple current
+            # # just test with simple current
+            # newImem = np.zeros(np.shape(self.axons[0].imem))
+            # newImem[0, :] = np.linspace(0, 10, np.shape(self.axons[0].imem)[1])
+            # self.axons[0].imem = newImem
 
             if len(self.recordingMechanisms) > 0:
                 with takeTime("calculate extracellular potential"):

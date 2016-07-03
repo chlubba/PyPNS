@@ -8,6 +8,10 @@ import mpl_toolkits.mplot3d
 from axonClass import *
 from nameSetters import *
 
+from recordingMechanismClass import RecordingMechanism
+from recordingMechanismFEMClass import RecordingMechanismFEM
+
+
 def geometry(bundle):
 
     '''
@@ -101,10 +105,17 @@ def geometry_definition(bundle, axis_equal=True):
 
         labelString=recMech.__class__.__name__ + str(recMechIndex)
 
-        refelecParamDict = recMech.electrodeParameters
-        X = refelecParamDict['x']
-        Y = refelecParamDict['y']
-        Z = refelecParamDict['z']
+        if isinstance(recMech, RecordingMechanism):
+            refelecParamDict = recMech.electrodeParameters
+            X = refelecParamDict['x']
+            Y = refelecParamDict['y']
+            Z = refelecParamDict['z']
+        elif isinstance(recMech, RecordingMechanismFEM):
+            X = recMech.electrodePositions[:,0]
+            Y = recMech.electrodePositions[:,1]
+            Z = recMech.electrodePositions[:,2]
+        else:
+            X, Y, Z = [], [], []
 
         ax.scatter(X, Y, Z, label=labelString, color=recMechColors[recMechIndex,:])
 

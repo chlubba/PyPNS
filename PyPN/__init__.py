@@ -6,6 +6,7 @@ from PyPN.stimulusClass import *
 
 # recording mechanisms
 from PyPN.recordingMechanismClass import *
+from PyPN.recordingMechanismFEMClass import *
 
 # geometry
 import PyPN.createGeometry
