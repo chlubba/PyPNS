@@ -23,8 +23,8 @@ timeRes=0.0025
 # ----------------------------- bundle params -------------------------------
 
 # set length of bundle and number of axons
-lengthOfBundle = 1000 # 400000
-numberOfAxons = 100
+lengthOfBundle = 5000 # 400000
+numberOfAxons = 20
 
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -37,13 +37,13 @@ myelinatedParameters = {'fiberD': myelinatedDiam}
 unmyelinatedParameters = {'fiberD': unmyelinatedDiam}
 
 # bundle guide
-segmentLengthAxon = 10
-bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
+segmentLengthAxon = 50
+bundleGuide = PyPN.createGeometry.get_bundle_guide_random(lengthOfBundle)# , segmentLengthAxon)
 
 # set all properties of the bundle
-bundleParameters = {    'radius': 300, #150, #um Radius of the bundle (typically 0.5-1.5mm)
+bundleParameters = {    'radius': 500, #150, #um Radius of the bundle (typically 0.5-1.5mm)
                         'length': lengthOfBundle, # um Axon length
-                        # 'randomDirectionComponent' : 0,
+                        'randomDirectionComponent' : 0.3,
                         'bundleGuide': bundleGuide,
 
                         'numberOfAxons': numberOfAxons, # Number of axons in the bundle
@@ -117,7 +117,7 @@ if calculationFlag:
     #
     # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParameters))
 
-    PyPN.plot.geometry_definition(bundle)
+    PyPN.plot.geometry_definition(bundle, axis_off=True)
     plt.show()
 
     # run the simulation

@@ -4,6 +4,8 @@ from scipy import ndimage
 import os
 import time
 import cPickle as pickle
+from scipy.optimize import curve_fit
+
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -11,7 +13,6 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.colorbar
-from matplotlib.ticker import FormatStrFormatter
 
 # print fieldImage.shape
 def getImageCoords(xValues, yValues, zValues, axonXValues, points):
@@ -177,19 +178,14 @@ if __name__ == "__main__":
 
 
 
-    folder1 = '/media/carl/4ECC-1C44/ComsolData/thickerEndoneurium'
-    folder2 = '/media/carl/4ECC-1C44/ComsolData/cuff_0.5mm'
+    # folder1 = '/media/carl/4ECC-1C44/ComsolData/thickerEndoneurium'
+    folder1 = '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z500'
+    # folder2 = '/media/carl/4ECC-1C44/ComsolData/cuff_0.5mm'
 
-    fieldDict1 = createFieldDict(folder1, [0, 180])
-    fieldDict2 = createFieldDict(folder2, [0, 180])
-
-    # folder1  = '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.03_1000,x0.0015_100,y_asym'
-    # folder2 = '/media/carl/4ECC-1C44/ComsolData/cuffFiner'
-    #
-    # fieldDictArray = np.load(os.path.join(folder1, 'numpy', 'fieldDict.npy'))
-    # fieldDict1 = fieldDictArray[()]
-    # fieldDictArray = np.load(os.path.join(folder2, 'numpy', 'fieldDict.npy'))
-    # fieldDict2 = fieldDictArray[()]
+    # fieldDict1 = createFieldDict(folder1, [0, 180])
+    # pickle.dump(fieldDict1, open(os.path.join(folder1,'field.obj'),'wb'))
+    fieldDict1 = pickle.load(open(os.path.join(folder1,'field.obj'),'rb'))
+    # fieldDict2 = createFieldDict(folder2, [0, 180])
 
     # filename1 = 'xP_0.txt'
     # filename2 = 'xP_180.txt'
@@ -274,27 +270,18 @@ if __name__ == "__main__":
 
     #------------------- prepare data -------------------
 
-
     # define points
-    unitScaling = 1000  # m to mm for plotting
-
     xPoints = 100
-    xMin = -0.005
-    xMax = 0.005
-
+    xMin = 0.0002
+    xMax = 0.0003
     xPlot = np.linspace(xMin, xMax, xPoints)
-    xTicks = np.arange(xMin+0.001, xMax+0.0001, 0.002)
-    xTickLabels = xTickLabels = ['%.0f' % x for x in xTicks*unitScaling]
-
+    xTicks = np.arange(xMin, xMax+0.0001, 0.002)
     yPlot = [0]
-
     zPoints = 500
-    zMin=-0.025
-    zMax=0.025
+    zMin=0
+    zMax=0.00005
     zPlot = np.linspace(zMin, zMax, zPoints)
-    zTicks = np.arange(zMin+0.005, zMax+0.0001, 0.01)
-    zTickLabels = ['%.0f' % z for z in zTicks * unitScaling]
-
+    zTicks = np.arange(zMin, zMax+0.0001, 0.01)
     xAxon = 0
 
     xv, zv = np.meshgrid(xPlot, zPlot)
@@ -306,15 +293,15 @@ if __name__ == "__main__":
 
 
     values1 = interpolateFromImage(fieldDict1, points, order=1)
-    values2 = interpolateFromImage(fieldDict2, points, order=1)
+    # values2 = interpolateFromImage(fieldDict2, points, order=1)
     # plt.semilogy(xPlot, values, label=str(180) + ' um')
 
     with np.errstate(invalid='ignore'):
         valuesLog1 = np.log10(values1)
         valuesLog1[valuesLog1 == -inf] = nan
 
-        valuesLog2 = np.log10(values2)
-        valuesLog2[valuesLog2 == -inf] = nan
+        # valuesLog2 = np.log10(values2)
+        # valuesLog2[valuesLog2 == -inf] = nan
 
     # # ---------------------------- plot voltage image -------------------
     # fieldImage = fieldDict1['fieldImage']
@@ -323,16 +310,74 @@ if __name__ == "__main__":
 
     # # ------------------------- Z plot 1D for multiple X --------------------
     #
-    # xNum = 10
-    # xValues = np.linspace(0, 1000, xNum)
+    # xValues = np.arange(200, 400, 25)
+    # xNum = len(xValues)
+    #
+    # # f, axArr = plt.subplots(xNum, 1)
+    #
+    # # z
+    # # pointsComp = np.array([np.ones(np.shape(xPlot))*0.000, np.zeros(np.shape(xPlot)), xPlot])
+    # zPoints = 100
+    # zPlot = np.linspace(-0.0001, 0.0001, zPoints)
+    #
+    # for xInd in range(xNum):
+    #     xValue = xValues[xInd]
+    #
+    #     pointsComp = np.array([np.ones(np.shape(zPlot)) * xValue / 1000000, np.zeros(np.shape(zPlot)), zPlot])
+    #
+    #     valuesAna = voltageAllElectrodes(pointsComp[0, :], pointsComp[2, :], np.array([[0, 0], [0, 0]]),
+    #                                      I=0.5 * 10 ** -6)
+    #     valuesInter1 = interpolateFromImage(fieldDict1, np.vstack([pointsComp, np.zeros(np.shape(zPlot))]), order=1)
+    #     # valuesInter2 = interpolateFromImage(fieldDict2, np.vstack([pointsComp, np.zeros(np.shape(zPlot))]), order=1)
+    #
+    #     # polyFit = np.poly1d(np.polyfit(zPlot, valuesInter1, 10))
+    #     # polyFitLog = np.poly1d(np.polyfit(zPlot, np.log10(valuesInter1), 3))
+    #
+    #     # plt.plot(zPlot, np.log10(valuesAna), label='analytical, $\sigma$=const')
+    #     plt.plot(zPlot, np.log10(valuesInter1), label=str(xValue) + ' $\mu$ m')
+    #     # plt.plot(zPlot, np.log10(polyFit(zPlot)), label=str(xValue)+' $\mu$ m (Fit)')
+    #     # plt.plot(zPlot, polyFitLog(zPlot), label=str(xValue) + ' $\mu$ m (FitLog)')
+    #     # # plt.plot(zPlot, np.log10(valuesInter2), label='FEM cuff')
+    #     # plt.plot(zPlot, valuesInter1, label=str(xValue)+' $\mu$ m')
+    #     # plt.plot(zPlot, polyFit(zPlot), label=str(xValue)+' $\mu$ m (Fit)')
+    #     # plt.loglog(zPlot, polyFitLog(zPlot), label=str(xValue) + ' $\mu$ m (FitLog)')
+    #     plt.xlabel('z [um]')
+    #     plt.legend()
+    #     plt.grid(True)
+    #     plt.title('pointsource field over z-coordinate (x=200um, y=0)')
+
+    # ---------------------------- plot autocrrelation -------------------------
+
+    zPoints = 100000
+    zPlot = np.linspace(0.000, 0.001, zPoints)
+
+    pointsComp = np.array([np.ones(np.shape(zPlot)) * 200 / 1000000, np.zeros(np.shape(zPlot)), zPlot])
+
+    valuesInter1 = interpolateFromImage(fieldDict1, np.vstack([pointsComp, np.zeros(np.shape(zPlot))]), order=1)
+
+
+    def autocorr(x):
+        result = np.correlate(x, x, mode='full')
+        return result[result.size / 2:]
+
+    autocorrZ = autocorr(valuesInter1)
+
+    plt.plot(autocorrZ)
+    plt.show()
+
+    # # --------------------------- Interpolate along Z --------------------
+    #
+    # xValues = [0] # [200] # np.arange(0,1000,200) # np.linspace(0, 1000, xNum)
+    # xNum = len(xValues)
     #
     # # f, axArr = plt.subplots(xNum, 1)
     #
     # # z
     # # pointsComp = np.array([np.ones(np.shape(xPlot))*0.000, np.zeros(np.shape(xPlot)), xPlot])
     # zPoints = 500
-    # zPlot = np.linspace(-0.005, 0.005, zPoints)
+    # zPlot = np.linspace(0.000, 0.001, zPoints)
     #
+    # plt.figure()
     # for xInd in range(xNum):
     #     xValue = xValues[xInd]
     #
@@ -340,18 +385,43 @@ if __name__ == "__main__":
     #
     #     valuesAna = voltageAllElectrodes(pointsComp[0, :], pointsComp[2, :], np.array([[0, 0], [0, 0]]), I=0.5*10**-6)
     #     valuesInter1 = interpolateFromImage(fieldDict1, np.vstack([pointsComp, np.zeros(np.shape(zPlot))]), order=1)
-    #     valuesInter2 = interpolateFromImage(fieldDict2, np.vstack([pointsComp, np.zeros(np.shape(zPlot))]), order=1)
+    #     # valuesInter2 = interpolateFromImage(fieldDict2, np.vstack([pointsComp, np.zeros(np.shape(zPlot))]), order=1)
     #
-    #     # polyFit = np.poly1d(np.polyfit(zPlot, valuesInter1, 10))
-    #     # polyFitLog = np.poly1d(np.polyfit(zPlot, np.log10(valuesInter1), 3))
+    #     polyFit = np.poly1d(np.polyfit(zPlot, valuesInter1, 10))
+    #     polyFitLog = np.poly1d(np.polyfit(zPlot, np.log10(valuesInter1), 3))
     #
-    #     # plt.plot(zPlot, np.log10(valuesAna), label='analytical, $\sigma$=const')
-    #     plt.plot(zPlot, np.log10(valuesInter1), label=str(xValue)+' $\mu$ m')
+    #     # try curve fit
+    #     def func(x, a, b, c):
+    #         return a * np.exp(-b * x) + c
+    #     def func1(x, a, b, c, d):
+    #         return a * (x + b)**(-c) + d
+    #     def func2(x, a, b, c):
+    #         return a * np.exp(-b * x**2) + c
+    #
+    #     # scale x and y data
+    #     zPrime = zPlot*10000
+    #     vPrime = valuesInter1*100000000
+    #
+    #     popt, pcov = curve_fit(func1, zPrime, vPrime, maxfev=4000)
+    #     # popt, pcov = curve_fit(func2, zPrime, np.log10(vPrime), maxfev=4000)
+    #     print popt
+    #
+    #     # poptPrime = popt
+    #     # poptPrime[0] = poptPrime[0]/1000
+    #     # poptPrime[2] = poptPrime[2] / 1000
+    #
+    #     print popt
+    #
+    #     # # plt.plot(zPlot, np.log10(valuesAna), label='analytical, $\sigma$=const')
+    #     # plt.plot(zPlot, np.log10(valuesInter1), label=str(xValue)+' $\mu$ m')
     #     # plt.plot(zPlot, np.log10(polyFit(zPlot)), label=str(xValue)+' $\mu$ m (Fit)')
     #     # plt.plot(zPlot, polyFitLog(zPlot), label=str(xValue) + ' $\mu$ m (FitLog)')
     #     # # plt.plot(zPlot, np.log10(valuesInter2), label='FEM cuff')
-    #     # plt.plot(zPlot, valuesInter1, label=str(xValue)+' $\mu$ m')
-    #     # plt.plot(zPlot, polyFit(zPlot), label=str(xValue)+' $\mu$ m (Fit)')
+    #     plt.semilogy(zPrime, vPrime, label=str(xValue)+' $\mu$ m')
+    #     # plt.semilogy(zPrime, func2(np.log10(zPrime), *popt), label=str(xValue)+' $\mu$ m (Fit)')
+    #     zPlotPrimeLonger = np.linspace(0.000, 0.005, zPoints)*10000
+    #     plt.semilogy(zPlotPrimeLonger, func1(zPlotPrimeLonger, *popt), label=str(xValue) + ' $\mu$ m (Fit)')
+    #     # plt.semilogy(zPrime, valuesAna*1000000000, label='analytical, $\sigma$=const')
     #     # plt.loglog(zPlot, polyFitLog(zPlot), label=str(xValue) + ' $\mu$ m (FitLog)')
     #     plt.xlabel('z [um]')
     #     plt.legend()
@@ -396,124 +466,98 @@ if __name__ == "__main__":
     # ax2.grid(True)
     # ax2.set_title('pointsource field over z-coordinate (x=200um, y=0)')
 
-    # ------------------------- comparison plot 2D --------------------
-
-    normalize = True
-    interpolationString = 'bilinear'
-
-    # x
-    pointsComp = np.array([xPlot, np.zeros(np.shape(xPlot)), np.zeros(np.shape(xPlot))])
-
-    valuesAna = np.log10(voltageAllElectrodes(xv/1000000, zv/1000000, np.array([[0, 0], [0, 0]]), I=0.5*10**-6))
-    valuesInter1 = valuesLog1.reshape([zPoints, xPoints])
-    valuesInter2 = valuesLog2.reshape([zPoints, xPoints])
-
-    # normalize field strengths
-    minValAna = np.nanmin(valuesAna)
-    maxValAna = np.nanmax(valuesAna)
-    valuesAnaNorm = (valuesAna - minValAna)/(maxValAna - minValAna)
-
-    minValInter1 = np.nanmin(valuesInter1)
-    maxValInter1 = np.nanmax(valuesInter1)
-    valuesInterNorm1 = (valuesInter1 - minValInter1) / (maxValInter1 - minValInter1)
-
-    minValInter2 = np.nanmin(valuesInter2)
-    maxValInter2 = np.nanmax(valuesInter2)
-    valuesInterNorm2 = (valuesInter2 - minValInter2) / (maxValInter2 - minValInter2)
-
-    minVal = min([minValAna, minValInter1, minValInter2])
-    maxVal = max([maxValAna, maxValInter1, maxValInter2])
-
-    f, (ax1, ax2, ax3) = plt.subplots(1, 3)
-    cmap = plt.get_cmap('GnBu') # ('gist_stern')
-
-    if normalize:
-        im1 = ax1.imshow(valuesAnaNorm, cmap=cmap, interpolation=interpolationString, vmin=0, vmax=1)
-    else:
-        im1 = ax1.imshow(valuesAna, cmap=cmap, interpolation=interpolationString, vmin=minVal, vmax=maxVal)
-
-    ax1.set_xlabel('x [mm]')
-    ax1.set_ylabel('z [mm]')
-    ax1.set_title('Homogeneous')
-    ttl = ax1.title
-    ttl.set_position([.5, 1.05])
-    # ax2.set_xticks([0,1,13,20]) # , ('la', 'li', 'lu', 'lo')
-
-    # xTickNum  = 10
-    # xTickLabelStep = (max(xPlot) - min(xPlot))/xTickNum
-    # zTickPositions = np.array(ax2.get_xticks()*(xPoints-1))
-    # xTickLabels = np.round(xPlot[zTickPositions.astype(int)], 1)
-    # ax2.set_xticklabels(xTickLabels)
-    xTickPositions = (xTicks - np.min(xPlot))/(np.max(xPlot) - np.min(xPlot))*(xPoints-1)
-    ax1.set_xticks(xTickPositions)
-    ax1.set_xticklabels(xTicks*unitScaling, rotation='vertical')
-
-    zTickPositions = (zTicks - np.min(zPlot))/(np.max(zPlot) - np.min(zPlot))*(zPoints-1)
-    ax1.set_yticks(zTickPositions)
-    ax1.set_yticklabels(zTicks*unitScaling)
-
-    # add line indicating electrode
-    line1 = plt.Line2D((xPoints*(0.0002 - min(xPlot))/(max(xPlot)-min(xPlot)), xPoints/2), (0, zPoints), color=[1,1,1], linestyle='dashed')
-    ax1.add_artist(line1)
-
-    # ax2.set_xticks( np.arange(5))
-    # ax2.set_xticklabels(('Tom', 'Dick', 'Harry', 'Sally', 'Sue') )
-
-    if normalize:
-        ax2.imshow(valuesInterNorm1, cmap=cmap, interpolation=interpolationString, vmin=0, vmax=1) # , aspect='auto'
-    else:
-        ax2.imshow(valuesInter1, cmap=cmap, interpolation=interpolationString, vmin=minVal, vmax=maxVal)  # , aspect='auto'
-
-    ax2.set_xlabel('x [mm]')
-    # ax2.set_ylabel('z [um]')
-    ax2.set_title('Nerve in Saline')
-    ttl = ax2.title
-    ttl.set_position([.5, 1.05])
-
-    xTickPositions = (xTicks - np.min(xPlot)) / (np.max(xPlot) - np.min(xPlot)) * (xPoints - 1)
-    ax2.set_xticks(xTickPositions)
-    ax2.set_xticklabels(xTicks*unitScaling, rotation='vertical')
-
-    ax2.set_yticks([])
-
-    # add line indicating electrode
-    line2 = plt.Line2D((xPoints * (0.0002 - min(xPlot)) / (max(xPlot) - min(xPlot)), xPoints / 2), (0, zPoints),
-                       color=[1, 1, 1], linestyle='dashed')
-    ax2.add_artist(line2)
-
-    if normalize:
-        ax3.imshow(valuesInterNorm2, cmap=cmap, interpolation=interpolationString, vmin=0, vmax=1) # , aspect='auto'
-    else:
-        ax3.imshow(valuesInter2, cmap=cmap, interpolation=interpolationString, vmin=minVal, vmax=maxVal)  # , aspect='auto'
-
-    ax3.set_xlabel('x [mm]')
-    # ax3.set_ylabel('z [um]')
-    ax3.set_title('Nerve with Cuff')
-    ttl = ax3.title
-    ttl.set_position([.5, 1.05])
-
-    xTickPositions = (xTicks - np.min(xPlot)) / (np.max(xPlot) - np.min(xPlot)) * (xPoints - 1)
-    ax3.set_xticks(xTickPositions)
-    ax3.set_xticklabels(xTicks*unitScaling, rotation='vertical')
-
-    ax3.set_yticks([])
-
-    # add line indicating electrode
-    line3 = plt.Line2D((xPoints * (0.0002 - min(xPlot)) / (max(xPlot) - min(xPlot)), xPoints / 2), (0, zPoints),
-                       color=[1, 1, 1], linestyle='dashed')
-    ax3.add_artist(line3)
-
-    # plt.colorbar(im1)
-    # # make room for colorbar
-    # f.subplots_adjust(right=0.8)
+    # # ------------------------- comparison plot 2D --------------------
     #
-    # # add colorbar axis
-    # axColorbar = f.add_axes([0.85, 0.15, 0.05, 0.7])
-    # cNorm = colors.Normalize(vmin=0, vmax=1)
-    # cb1 = mpl.colorbar.ColorbarBase(axColorbar, cmap=cmap,
-    #                                 norm=cNorm,
-    #                                 orientation='vertical')
-    # cb1.set_label('normalized voltage')
+    # # x
+    # pointsComp = np.array([xPlot, np.zeros(np.shape(xPlot)), np.zeros(np.shape(xPlot))])
+    #
+    # valuesAna = np.log10(voltageAllElectrodes(xv, zv, np.array([[0, 0], [0, 0]])))
+    # valuesInter1 = valuesLog1.reshape([zPoints, xPoints])
+    # valuesInter2 = valuesLog2.reshape([zPoints, xPoints])
+    #
+    # # normalize field strengths
+    # minValAna = np.nanmin(valuesAna)
+    # maxValAna = np.nanmax(valuesAna)
+    # valuesAnaNorm = (valuesAna - minValAna)/(maxValAna - minValAna)
+    #
+    # minValInter1 = np.nanmin(valuesInter1)
+    # maxValInter1 = np.nanmax(valuesInter1)
+    # valuesInterNorm1 = (valuesInter1 - minValInter1) / (maxValInter1 - minValInter1)
+    #
+    # minValInter2 = np.nanmin(valuesInter2)
+    # maxValInter2 = np.nanmax(valuesInter2)
+    # valuesInterNorm2 = (valuesInter2 - minValInter2) / (maxValInter2 - minValInter2)
+    #
+    # # minVal = min([minValAna, minValInter])
+    # # maxVal = max([maxValAna, maxValInter])
+    #
+    # f, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    # cmap = plt.get_cmap('jet') # ('gist_stern')
+    #
+    #
+    # im1 = ax1.imshow(valuesAnaNorm, cmap=cmap, interpolation='none', vmin=0, vmax=1)
+    #
+    # ax1.set_xlabel('x [m]')
+    # ax1.set_ylabel('z [m]')
+    # ax1.set_title('Homogeneous')
+    # ttl = ax1.title
+    # ttl.set_position([.5, 1.05])
+    # # ax2.set_xticks([0,1,13,20]) # , ('la', 'li', 'lu', 'lo')
+    #
+    # # xTickNum  = 10
+    # # xTickLabelStep = (max(xPlot) - min(xPlot))/xTickNum
+    # # zTickPositions = np.array(ax2.get_xticks()*(xPoints-1))
+    # # xTickLabels = np.round(xPlot[zTickPositions.astype(int)], 1)
+    # # ax2.set_xticklabels(xTickLabels)
+    # xTickPositions = (xTicks - np.min(xPlot))/(np.max(xPlot) - np.min(xPlot))*(xPoints-1)
+    # ax1.set_xticks(xTickPositions)
+    # ax1.set_xticklabels(xTicks, rotation='vertical')
+    #
+    # zTickPositions = (zTicks - np.min(zPlot))/(np.max(zPlot) - np.min(zPlot))*(zPoints-1)
+    # ax1.set_yticks(zTickPositions)
+    # ax1.set_yticklabels(zTicks)
+    #
+    #
+    # # ax2.set_xticks( np.arange(5))
+    # # ax2.set_xticklabels(('Tom', 'Dick', 'Harry', 'Sally', 'Sue') )
+    #
+    # ax2.imshow(valuesInterNorm1, cmap=cmap, interpolation='none', vmin=0, vmax=1) # , aspect='auto'
+    # ax2.set_xlabel('x [m]')
+    # # ax2.set_ylabel('z [um]')
+    # ax2.set_title('Nerve in Saline')
+    # ttl = ax2.title
+    # ttl.set_position([.5, 1.05])
+    #
+    # xTickPositions = (xTicks - np.min(xPlot)) / (np.max(xPlot) - np.min(xPlot)) * (xPoints - 1)
+    # ax2.set_xticks(xTickPositions)
+    # ax2.set_xticklabels(xTicks, rotation='vertical')
+    #
+    # ax2.set_yticks([])
+    #
+    # ax3.imshow(valuesInterNorm2, cmap=cmap, interpolation='none', vmin=0, vmax=1) # , aspect='auto'
+    # ax3.set_xlabel('x [m]')
+    # # ax3.set_ylabel('z [um]')
+    # ax3.set_title('Nerve with Cuff')
+    # ttl = ax3.title
+    # ttl.set_position([.5, 1.05])
+    #
+    # xTickPositions = (xTicks - np.min(xPlot)) / (np.max(xPlot) - np.min(xPlot)) * (xPoints - 1)
+    # ax3.set_xticks(xTickPositions)
+    # ax3.set_xticklabels(xTicks, rotation='vertical')
+    #
+    # ax3.set_yticks([])
+    #
+    # # plt.colorbar(im1)
+    # # # make room for colorbar
+    # # f.subplots_adjust(right=0.8)
+    # #
+    # # # add colorbar axis
+    # # axColorbar = f.add_axes([0.85, 0.15, 0.05, 0.7])
+    # # cNorm = colors.Normalize(vmin=0, vmax=1)
+    # # cb1 = mpl.colorbar.ColorbarBase(axColorbar, cmap=cmap,
+    # #                                 norm=cNorm,
+    # #                                 orientation='vertical')
+    # # cb1.set_label('normalized voltage')
 
 
     # # ------------------- 3D plot -----------------------

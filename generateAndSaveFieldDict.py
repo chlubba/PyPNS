@@ -1,6 +1,8 @@
 import numpy as np
+import os
+import cPickle as pickle
 
-def load_field(self, folder, axonXs):
+def load_field(folder, axonXs):
 
         # get file names
         filenames = [f for f in sorted(os.listdir(folder)) if os.path.isfile(os.path.join(folder, f))]
@@ -60,3 +62,17 @@ def load_field(self, folder, axonXs):
                      'axonX': axonXs}
 
         return fieldDict
+
+folder = '/media/carl/4ECC-1C44/ComsolData/cuffFiner' # '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.03_1000,x0.0015_100,y_asym' # '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.003_100/Lagrange_Smoothing_Finer'
+axonXs = [0, 180]
+
+fieldDict = load_field(folder, axonXs)
+
+# f = open('/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.003_100/Lagrange_Smoothing_Finer/numpy/fieldDict.npy', 'wb')
+np.save(os.path.join(folder, 'numpy', 'fieldDict.npy'), fieldDict)
+# pickle.dump(fieldDict, open(os.path.join(folder, 'numpy', 'fieldDict.pickle'), 'wb'))
+# f.close()
+
+# loadedFieldArray = np.load(os.path.join(folder, 'numpy', 'fieldDict.npy'))
+# loadedField = loadedFieldArray[0]
+# print loadedField

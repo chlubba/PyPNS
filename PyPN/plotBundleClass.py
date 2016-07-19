@@ -59,7 +59,7 @@ def geometry(bundle):
     
     plt.savefig(os.path.join(bundle.basePath, 'geometry.png'))
 
-def geometry_definition(bundle, axis_equal=True):
+def geometry_definition(bundle, axis_equal=True, axis_off=False):
 
     '''
     Plots the geometry of the bundle including recording mechanisms.
@@ -120,6 +120,9 @@ def geometry_definition(bundle, axis_equal=True):
         ax.scatter(X, Y, Z, label=labelString, color=recMechColors[recMechIndex,:])
 
         recMechIndex += 1
+
+    if axis_off:
+        ax.set_axis_off()
 
     # elecCoords = bundle.electrodeCoords
     # ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])

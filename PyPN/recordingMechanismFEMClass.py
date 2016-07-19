@@ -9,8 +9,12 @@ import shutil
 import silencer
 import LFPy
 import time
+import cPickle as pickle
 
 import matplotlib.pyplot as plt
+#TODO: delete, only for testing
+import matplotlib.cm as cm
+import matplotlib.colors as colors
 
 class RecordingMechanismFEM(object):
 
@@ -32,9 +36,14 @@ class RecordingMechanismFEM(object):
         self.FEMFieldLocation = []
         # TODO: input folder and axonXs
         # folder =  '/media/carl/UUI/Comsol/data/noCuffFinerGrid/z0.003/Gauss_Points_Order3' # '/media/carl/4ECC-1C44/ComsolData/thickerEndoneurium' # '/media/carl/4ECC-1C44/ComsolData/cuff_0.5mm' #
-        folder = '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.001_500'
+        # folder = '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.003_100/Lagrange_Smoothing_Finer' # '/media/carl/4ECC-1C44/ComsolData/thickerEndoneurium' # '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.001_500' # '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.001_500' #
+        folder  = '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.03_1000,x0.0015_100,y_asym'
+        # folder = '/media/carl/4ECC-1C44/ComsolData/cuffFiner'
+
         axonXs = [0, 180]
-        self.FEMFieldDict = self.load_field(folder, axonXs)
+        # self.FEMFieldDict = pickle.load(open(os.path.join(folder, 'numpy', 'fieldDict.pickle'), 'rb')) # self.load_field(folder, axonXs)
+        fieldDictArray = np.load(os.path.join(folder, 'numpy', 'fieldDict.npy'))
+        self.FEMFieldDict = fieldDictArray[()]
 
         self.electrodeDistances = []
         self.CAP = 0
@@ -177,6 +186,7 @@ class RecordingMechanismFEM(object):
 
             zCoords = np.abs(
                 zCoords) # in the input FEM field, we only take one side of the z-value range thanks to symmetry
+            yCoords = np.abs(yCoords) # same for y-Coordinates
 
             return np.vstack([xCoords, yCoords, zCoords, xAxonCoords])
 
@@ -208,9 +218,8 @@ class RecordingMechanismFEM(object):
 
             """
 
-            xmid, ymid, zmid = axon.xmid, axon.ymid, axon.zmid
-            axonSegCoords = np.vstack([xmid, ymid, zmid])
-            nseg = len(xmid)
+            axonSegCoords = np.vstack([axon.xmid, axon.ymid, axon.zmid])
+            nseg = len(axon.xmid)
 
             bundleCoords = self.bundleGuide[:,0:3]
 
@@ -218,9 +227,12 @@ class RecordingMechanismFEM(object):
             # quantities for all axon segments
             elecPotentials = np.zeros((self.electrodePositions.shape[0], np.shape(axon.imem)[1]))
 
-            # TODO: delete this again, only for testing
-            lastElectrodeSignal = []
-            f, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
+            # # TODO: delete this again, only for testing
+            # lastElectrodeSignal = []
+            # f, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
+            # jet = plt.get_cmap('jet')
+            # cNorm = colors.Normalize(vmin=0, vmax=int(nseg) - 1)
+            # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
 
             t0 = time.time()
 
@@ -241,7 +253,8 @@ class RecordingMechanismFEM(object):
                 else:
                     n = dir0
 
-                randomAxonXDir = random_perpendicular_vectors(dir0norm)[0,:]
+                # # TODO: maybe this introduces problems?
+                # randomAxonXDir = random_perpendicular_vectors(dir0norm)[0,:]
 
                 # process axons associated with the current bundle segment
                 # and store axon segment properties in these lists
@@ -262,7 +275,7 @@ class RecordingMechanismFEM(object):
                     if not axonXDist == 0:
                         axonDir2DNorm = axonDir2D / axonXDist
                     else:
-                        axonDir2DNorm = randomAxonXDir
+                        axonDir2DNorm = -1
 
                     # save all computed values of axon into these lists, they are used when iterating over electrodes
                     axonXDists.append(axonXDist)
@@ -289,18 +302,27 @@ class RecordingMechanismFEM(object):
                 # TODO: (check how long it is, maybe vary the length)
                 for axonSegIndLoc in range(len(axonDir2Ds)):
                     axonDir2D = axonDir2Ds[axonSegIndLoc]
-                    axonDir2DTiled = np.tile(axonDir2D, (electrodeVector.shape[0], 1))
 
-                    # electrode coordinates projected onto new base vectors
-                    elecX = np.inner(electrodeVector, axonDir2D)
+                    if isinstance(axonDir2D, int): # if the axon segment lies on the bundle middle exactly
+                        elecX = np.ones(self.electrodePositions.shape[0])*np.linalg.norm(electrodeVector[0,:])
+                        elecY = np.zeros(self.electrodePositions.shape[0])
+                    else:
+                        axonDir2DTiled = np.tile(axonDir2D, (electrodeVector.shape[0], 1))
 
-                    elecYVec = electrodeVector - axonDir2DTiled * elecX[:, np.newaxis]
-                    elecY = np.linalg.norm(elecYVec, axis=1)
+                        # electrode coordinates projected onto new base vectors
+                        elecX = np.inner(electrodeVector, axonDir2D)
+
+                        elecYVec = electrodeVector - axonDir2DTiled * elecX[:, np.newaxis]
+                        elecY = np.linalg.norm(elecYVec, axis=1)
 
                     axonZ = axonZs[axonSegIndLoc]
                     elecZ = np.add(elecPosPar, -axonZ)
 
                     axonXDist = np.tile(axonXDists[axonSegIndLoc],(1, len(elecZ)))
+
+                    # # TODO: remove this again, only testing
+                    # elecX = np.zeros(self.electrodePositions.shape[0])
+                    # elecY = np.zeros(self.electrodePositions.shape[0])
 
                     interpolationPoints = np.vstack([elecX, elecY, elecZ, axonXDist])
                     interpolationPoints = np.divide(interpolationPoints,1000000)  # from um to m TODO: numercal problem?
@@ -308,45 +330,71 @@ class RecordingMechanismFEM(object):
                     # now interpolate from fieldImage
                     elecPotTempStatic = _interpolateFromImage(self.FEMFieldDict, interpolationPoints, order=1)
 
+                    # # TODO: replace this by fitted function, just for testing here
+                    # def func1(x, a, b, c, d):
+                    #     return a * (x + b) ** (-c) + d
+                    # elecPotTempStatic = func1(elecZ, 10 ** (-2), 0.0005, 2, 0)
+
                     imemAxonSegInd = axonSegInd-len(axonDir2Ds)+axonSegIndLoc
 
                     elecPotTemp = np.outer(elecPotTempStatic, axon.imem[imemAxonSegInd,:])*1000 # COMSOL gave V, we need mV
 
-                    # if np.mod(imemAxonSegInd,50) == 0:
-                    #     # plt.plot(axon.imem[imemAxonSegInd,50:], label='Current') # /np.max(axon.imem[imemAxonSegInd,:])
-                    #     plt.plot(np.transpose(elecPotTemp[-1,50:]), label='Pot') # /np.max(elecPotTemp[-1, :])
-                    ax1.plot(np.transpose(elecPotTemp[-1, 50:]), label='Pot')  # /np.max(elecPotTemp[-1, :])
-
-                    lastElectrodeSignal.append(np.squeeze(elecPotTemp[-1, 50:]))
+                    # # if np.mod(imemAxonSegInd,50) == 0:
+                    # #     # plt.plot(axon.imem[imemAxonSegInd,50:], label='Current') # /np.max(axon.imem[imemAxonSegInd,:])
+                    # #     plt.plot(np.transpose(elecPotTemp[-1,50:]), label='Pot') # /np.max(elecPotTemp[-1, :])
+                    # ax1.plot(np.transpose(elecPotTemp[-1, 0:]), color=scalarMap.to_rgba(imemAxonSegInd))  # /np.max(elecPotTemp[-1, :])
+                    #
+                    # lastElectrodeSignal.append(np.squeeze(elecPotTemp[-1, 0:]))
 
                     # add contributions
                     elecPotentials = np.add(elecPotentials, elecPotTemp)
 
                 bundleSegInd += 1
 
-            lfp = np.zeros(len(np.squeeze(axon.imem[0,:])))
-            lfps = []
-            for axonSegInd in range(nseg):
-                axonSegPos = axonSegCoords[:, axonSegInd]
-                lastElecPos = self.electrodePositions[-1,:]
-
-                r = np.linalg.norm(axonSegPos - lastElecPos)
-
-                lfpTemp = 1/(4*np.pi*2*r)*axon.imem[axonSegInd,:]
-
-                lfps.append(lfpTemp)
-
-                lfp = lfp + lfpTemp
-
-
-
-            ax2.plot(np.transpose(np.array(lfps)))
+            # lfp = np.zeros(len(np.squeeze(axon.imem[0,:])))
+            # lfps = []
+            # for axonSegInd in range(nseg):
+            #     axonSegPos = axonSegCoords[:, axonSegInd]
+            #     lastElecPos = self.electrodePositions[-1,:]
+            #
+            #     r = np.linalg.norm(axonSegPos - lastElecPos)
+            #
+            #     lfpTemp = 1/(4*np.pi*2*r)*axon.imem[axonSegInd,:]
+            #
+            #     lfps.append(lfpTemp)
+            #
+            #     lfp = lfp + lfpTemp
 
 
+
+            # ax2.plot(np.transpose(np.array(lfps)))
+            #
+            #
+            #
+            # lastElectrodeSignalArray = np.array(lastElectrodeSignal)
+            # np.save('/media/carl/4ECC-1C44/PyPN/FEM_CAPs/z0.003m_100steps_longer.npy', lastElectrodeSignalArray)
+            # # ax3.plot(np.sum(lastElectrodeSignalArray[0:10,:], axis=0), linewidth=2, label='until 10')
+            # # ax3.plot(np.sum(lastElectrodeSignalArray[0:30, :], axis=0), linewidth=2, label='until 30')
+            # # ax3.plot(np.sum(lastElectrodeSignalArray[0:50, :], axis=0), linewidth=2, label='until 50')
+            # # ax3.plot(np.sum(lastElectrodeSignalArray[0:80, :], axis=0), linewidth=2, label='until 80')
+            # # ax3.plot(np.sum(lastElectrodeSignalArray[0:120, :], axis=0), linewidth=2, label='until 120')
+            # # ax3.plot(np.sum(lastElectrodeSignalArray[0:200, :], axis=0), linewidth=2, label='until 200')
+            # cNorm = colors.Normalize(vmin=0, vmax=10)
+            # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+            # ind = 0
+            # step = 10
+            # plotInd = 0
+            # while ind + step - 1 < lastElectrodeSignalArray.shape[0]:
+            #     # ax3.plot(np.sum(lastElectrodeSignalArray[ind:(ind+step), :], axis=0), linewidth=2, label='['+str(ind)+','+str(ind+step-1)+']', color=scalarMap.to_rgba(plotInd))
+            #     ax3.plot(np.sum(lastElectrodeSignalArray[0:(ind + step), :], axis=0), linewidth=2,
+            #              label='[' + str(0) + ',' + str(ind + step - 1) + ']', color=scalarMap.to_rgba(plotInd))
+            #     ind += step
+            #     plotInd += 1
+            # ax3.plot(np.sum(lastElectrodeSignalArray, axis=0), linewidth=2, label='all', color='red')
+            #
+            # ax3.plot(lfp, linewidth=2, label='analytical')
             # plt.legend()
-            ax3.plot(np.sum(np.array(lastElectrodeSignal), axis=0), linewidth=2)
-            ax3.plot(lfp, linewidth=2)
-            plt.show()
+            # plt.show()
 
 
             print 'finished all bundle segments in %i seconds.' % (time.time() - t0)
