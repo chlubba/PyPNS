@@ -8,7 +8,7 @@ import os
 # ------------------------------- SCRIPT CONTROL -------------------------------
 # ------------------------------------------------------------------------------
 
-calculationFlag = False # run simulation or load latest bundle with this parameters (not all taken into account for identification)
+calculationFlag = True # run simulation or load latest bundle with this parameters (not all taken into account for identification)
 electricalStimulusOn = True
 
 
@@ -24,8 +24,8 @@ timeRes=0.0025
 # ----------------------------- bundle params -------------------------------
 
 # set length of bundle and number of axons
-lengthOfBundle = 20000 # 20000 # 400000
-numberOfAxons = 500
+lengthOfBundle = 10000 # 20000 # 400000
+numberOfAxons = 1
 
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -39,7 +39,7 @@ unmyelinatedParameters = {'fiberD': unmyelinatedDiam}
 
 # bundle guide
 segmentLengthAxon = 10
-bundleGuide = PyPN.createGeometry.get_bundle_guide_corner(lengthOfBundle, segmentLengthAxon)
+bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segmentLengthAxon)
 
 # set all properties of the bundle
 bundleParameters = {    'radius': 300, #150, #um Radius of the bundle (typically 0.5-1.5mm)
@@ -81,6 +81,20 @@ intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectang
 
 # ----------------------------- recording params -------------------------------
 
+recordingParametersNew = {'bundleGuide': bundleGuide,
+                          'radius': 200,
+                          'positionAlongBundle': 7000,
+                          'numberOfPoles': 2,
+                          'poleDistance': 1000,
+                        }
+
+LFPMech1 = PyPN.Extracellular.precomputedFEM(bundleGuide)
+LFPMech2 = PyPN.Extracellular.homogeneous(sigma=1)
+electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
+
+modularRecMech1 = PyPN.RecordingMechanism(electrodePos, LFPMech1)
+modularRecMech2 = PyPN.RecordingMechanism(electrodePos, LFPMech2)
+
 recordingParameters = { 'radius': 200,
                         'numberOfElectrodes': 3,
                         'positionMax': .5,
@@ -110,10 +124,13 @@ if calculationFlag:
     if electricalStimulusOn:
         bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
 
-    bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParameters))
-    bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParameters))
-    bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParametersBip))
-    bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
+    # bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParameters))
+    # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParameters))
+    # bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParametersBip))
+    # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
+
+    bundle.add_recording_mechanism(modularRecMech1)
+    bundle.add_recording_mechanism(modularRecMech2)
 
     # PyPN.plot.geometry_definition(bundle)
     # plt.show()
@@ -135,41 +152,47 @@ else:
 # ------------------------------------------------------------------------------
 
 print '\nStarting to plot'
+
+# first load the desired data from file
+for i in range(len(bundle.recordingMechanisms)):
+    time, CAP = bundle.get_CAP_from_file(i)
+    plt.plot(time, CAP)
+
 # # # # PyPN.plot.geometry_definition(bundle)
 # PyPN.plot.CAP1D(bundle)
 # PyPN.plot.CAP1D(bundle, recMechIndex=1)
 # PyPN.plot.CAP1D(bundle, recMechIndex=2)
 # PyPN.plot.CAP1D(bundle, recMechIndex=3)
 
-plt.figure()
-time, CAP = bundle.get_CAP_from_file(0)
-plt.plot(time, CAP[-1,:], label='FEM')
-time, CAP = bundle.get_CAP_from_file(1)
-plt.plot(time, CAP[-1,:]/2*0.3, label='homogeneous')
-plt.xlabel('time [ms]')
-plt.ylabel('voltage [mV]')
-plt.legend()
-plt.tight_layout()
-
-plt.figure()
-time, CAP = bundle.get_CAP_from_file(2)
-plt.plot(time, CAP[-1,:], label='FEM')
-time, CAP = bundle.get_CAP_from_file(3)
-plt.plot(time, CAP[-1,:]/2*0.3, label='homogeneous')
-plt.xlabel('time [ms]')
-plt.ylabel('voltage [mV]')
-plt.legend()
-plt.tight_layout()
-
-plt.figure()
-time, CAP = bundle.get_CAP_from_file(0)
-plt.plot(time, CAP[-1,:], label='FEM monopolar')
-time, CAP = bundle.get_CAP_from_file(2)
-plt.plot(time, CAP[-1,:]/2*0.3, label='FEN bipolar')
-plt.xlabel('time [ms]')
-plt.ylabel('voltage [mV]')
-plt.legend()
-plt.tight_layout()
+# plt.figure()
+# time, CAP = bundle.get_CAP_from_file(0)
+# plt.plot(time, CAP[-1,:], label='FEM')
+# time, CAP = bundle.get_CAP_from_file(1)
+# plt.plot(time, CAP[-1,:]/2*0.3, label='homogeneous')
+# plt.xlabel('time [ms]')
+# plt.ylabel('voltage [mV]')
+# plt.legend()
+# plt.tight_layout()
+#
+# plt.figure()
+# time, CAP = bundle.get_CAP_from_file(2)
+# plt.plot(time, CAP[-1,:], label='FEM')
+# time, CAP = bundle.get_CAP_from_file(3)
+# plt.plot(time, CAP[-1,:]/2*0.3, label='homogeneous')
+# plt.xlabel('time [ms]')
+# plt.ylabel('voltage [mV]')
+# plt.legend()
+# plt.tight_layout()
+#
+# plt.figure()
+# time, CAP = bundle.get_CAP_from_file(0)
+# plt.plot(time, CAP[-1,:], label='FEM monopolar')
+# time, CAP = bundle.get_CAP_from_file(2)
+# plt.plot(time, CAP[-1,:]/2*0.3, label='FEN bipolar')
+# plt.xlabel('time [ms]')
+# plt.ylabel('voltage [mV]')
+# plt.legend()
+# plt.tight_layout()
 
 # t, CAP = bundle.get_CAP_from_file()
 # np.save(os.path.join('/media/carl/4ECC-1C44/PyPN/FEM_CAPs/forPoster', 'homogeneous2.npy'), [t, CAP])
