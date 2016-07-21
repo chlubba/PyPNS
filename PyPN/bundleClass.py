@@ -26,8 +26,9 @@ import matplotlib.colors as colors
 from takeTime import *
 import silencer
 
-from recordingMechanismFEMClass import RecordingMechanismFEM
-from recordingMechanismClass import RecordingMechanism
+# from recordingMechanismFEMClass import RecordingMechanismFEM
+# from recordingMechanismClass import RecordingMechanism
+from extracellularPotentialMechanisms import precomputedFEM
 
 from scipy.signal import argrelextrema
 
@@ -283,13 +284,15 @@ class Bundle(object):
     def add_recording_mechanism(self, mechanism):
         self.recordingMechanisms.append(mechanism)
 
-        if isinstance(mechanism, RecordingMechanism):
-            mechanism.setup_recording_elec(self.bundleCoords, self.length)
-        elif isinstance(mechanism, RecordingMechanismFEM):
-            mechanism.bundleGuide = self.bundleCoords
-            mechanism.setup_recording_elec(self.bundleCoords, self.length)
-        else:
-            raise Exception('Recording mechanism type not recognized.')
+        # if isinstance(mechanism, RecordingMechanism):
+        #     mechanism.setup_recording_elec(self.bundleCoords, self.length)
+        # elif isinstance(mechanism, RecordingMechanismFEM):
+        #     mechanism.bundleGuide = self.bundleCoords
+        #     mechanism.setup_recording_elec(self.bundleCoords, self.length)
+        # else:
+        #     raise Exception('Recording mechanism type not recognized.')
+
+
 
     
     def add_excitation_mechanism(self, mechanism):
@@ -437,14 +440,14 @@ class Bundle(object):
             DataOut = np.array(self.trec)
             DataOut = np.column_stack( (DataOut, np.transpose(np.array(recMech.CAP))))
 
-            filename = get_file_name("CAP_"+recMechName+'_recMech'+str(recMechIndex), self.basePath)
+            filename = get_file_name('CAP_'+recMechName+'_recMech'+str(recMechIndex), self.basePath)
             # print "Save location for CAP file: " + filename
 
             np.savetxt(filename, DataOut)
 
             # now save the extracellular signals of every cell
             DataOut = np.array(self.trec)
-            DataOut = np.column_stack((DataOut, np.transpose(np.array(recMech.CAP_axonwise)[:,-1,:])))
+            DataOut = np.column_stack((DataOut, np.transpose(np.array(recMech.CAP_axonwise))))
 
             filename = get_file_name('CAP1A_'+recMechName+'_recMech'+str(recMechIndex), self.basePath)
             # print "Save location for single axon differentiated CAP file: " + filename
@@ -571,7 +574,7 @@ class Bundle(object):
 
         CAPraw = np.transpose(np.loadtxt(newestFile))
         time = CAPraw[0,:]
-        CAP = CAPraw[1:,:]
+        CAP = np.squeeze(CAPraw[1:,:])
 
         return time, CAP
 

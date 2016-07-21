@@ -5,8 +5,11 @@ from PyPN.upstreamSpikingClass import UpstreamSpiking
 from PyPN.stimulusClass import *
 
 # recording mechanisms
-from PyPN.recordingMechanismClass import *
-from PyPN.recordingMechanismFEMClass import *
+# from PyPN.recordingMechanismClass import *
+# from PyPN.recordingMechanismFEMClass import *
+from PyPN.recordingMechanismClass2 import *
+import PyPN.extracellularPotentialMechanisms as Extracellular
+
 
 # geometry
 import PyPN.createGeometry

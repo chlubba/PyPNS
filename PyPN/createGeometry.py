@@ -125,6 +125,72 @@ def length_from_coords(coords):
     # sum over all segments
     return sum(dL)
 
+def distance_along_bundle(bundleGuide, bundleLength, positionMax):
+
+    bundleGuide = bundleGuide[:, 0:3]
+
+    # first find the bundle guide segment index that corresponds to the intendet bundle length (overlap for
+    # myelinated axons gives longer bundle than specified by user)
+    bundleLengthIndex = np.shape(bundleGuide)[0]-1
+    bundleLengthTemp = length_from_coords(bundleGuide)
+    while bundleLengthTemp > bundleLength:
+        bundleLengthIndex -= 1
+        bundleLengthTemp = length_from_coords(bundleGuide[:bundleLengthIndex])
+
+    lastRecordedSegmentIndex = bundleLengthIndex*positionMax
+
+    electrodeDistance = np.floor(length_from_coords(bundleGuide[:lastRecordedSegmentIndex]))
+
+    return electrodeDistance
+
+
+def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, poleDistance, numberOfPoints=8):
+
+    bundleGuide = bundleGuide[:, 0:3]
+
+    # first find the bundle guide segment index that corresponds to the intendet bundle length (overlap for
+    # myelinated axons gives longer bundle than specified by user)
+    segmentIndex = np.shape(bundleGuide)[0]-1
+    distanceTemp = length_from_coords(bundleGuide)
+    while distanceTemp > positionAlongBundle:
+        segmentIndex -= 1
+        distanceTemp = length_from_coords(bundleGuide[:segmentIndex])
+
+    # variable to save points of electrode
+    # electrodePositions = np.squeeze(np.array([]).reshape(0, 3, numberOfPoles))
+    electrodePositions = np.array([]).reshape(0, 3)
+
+    # get the geometry of the segment, position and orientation.
+    segmentStartingPos = bundleGuide[segmentIndex - 1, :]
+    segmentEndPos = bundleGuide[segmentIndex, :]
+    segmentMiddle = (segmentStartingPos + segmentEndPos) / 2
+
+    segmentOrientation = segmentEndPos - segmentStartingPos
+    segmentOrientation = segmentOrientation / np.linalg.norm(segmentOrientation)
+
+    # get one random orthogonal vector
+    orthogonalVector = random_perpendicular_vectors(segmentOrientation)[0, :]
+
+    # loop to generate one ring
+    for j in range(numberOfPoints):
+        # generate the coordinates for one ring for the first pole of the electrode
+        pointPosition = np.dot(rotation_matrix(segmentOrientation, 2 * np.pi / numberOfPoints * j),
+                               (orthogonalVector * radius)) + segmentMiddle
+
+        # append it to the list of coordinates for this pole
+        electrodePositions = np.vstack([electrodePositions, pointPosition])
+
+    # add axis for poles
+    electrodePositions = np.expand_dims(electrodePositions, axis=2)
+
+    # if the electrodes are bipolar
+    for i in range(1,numberOfPoles):
+        electrodePositionsPole = electrodePositions[:,:,0] + np.tile(segmentOrientation * poleDistance*i, (
+        np.shape(electrodePositions)[0], 1))
+        electrodePositionsPole = np.expand_dims(electrodePositionsPole, axis=2)
+        electrodePositions = np.concatenate((electrodePositions, electrodePositionsPole), axis=2)
+
+    return electrodePositions
 
 
 def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000, lengthFactor=3):
