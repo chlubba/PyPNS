@@ -64,6 +64,7 @@ class RecordingMechanism(object):
         for poleIndex in range(self.numberOfPoles):
 
             # calculate LFP with LFPy from membrane currents for first pole
+            # LFP = self.extPotMech.calculate_LFP(axon, self.electrodePositions[:, :, poleIndex])
             LFP = self.extPotMech.calculate_LFP(axon, self.electrodePositions[:, :, poleIndex])
             CAP_axonwise += np.mean(LFP, 0)*self.polarities[poleIndex]
 

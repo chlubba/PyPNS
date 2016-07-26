@@ -68,7 +68,8 @@ class Cell:
         # play v_ext into e_extracellular reference
         for sec in self.allseclist:
             for seg in sec:
-                v_ext.append(neuron.h.Vector(np.random.rand(len(t_ext) - 0.5)))
+                # v_ext.append(neuron.h.Vector(np.random.rand(len(t_ext) - 0.5)))
+                v_ext.append(neuron.h.Vector(np.random.rand(len(t_ext))))
                 v_ext[-1].play(seg._ref_e_extracellular, t_ext)
         self.v_ext = v_ext
         self.t_ext = t_ext

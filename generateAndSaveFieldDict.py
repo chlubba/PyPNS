@@ -2,6 +2,15 @@ import numpy as np
 import os
 import cPickle as pickle
 
+# set path according to location of the exported field from COMSOL
+sourceFolder = '/media/carl/4ECC-1C44/ComsolData/cuffFiner'
+
+# desired location and name of dictionary
+destinationFolder = os.path.join(sourceFolder, 'numpy')
+
+# axon positions
+axonXs = [0, 180]
+
 def load_field(folder, axonXs):
 
         # get file names
@@ -63,16 +72,6 @@ def load_field(folder, axonXs):
 
         return fieldDict
 
-folder = '/media/carl/4ECC-1C44/ComsolData/cuffFiner' # '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.03_1000,x0.0015_100,y_asym' # '/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.003_100/Lagrange_Smoothing_Finer'
-axonXs = [0, 180]
 
-fieldDict = load_field(folder, axonXs)
-
-# f = open('/media/carl/4ECC-1C44/ComsolData/noCuffFiner/z0.003_100/Lagrange_Smoothing_Finer/numpy/fieldDict.npy', 'wb')
-np.save(os.path.join(folder, 'numpy', 'fieldDict.npy'), fieldDict)
-# pickle.dump(fieldDict, open(os.path.join(folder, 'numpy', 'fieldDict.pickle'), 'wb'))
-# f.close()
-
-# loadedFieldArray = np.load(os.path.join(folder, 'numpy', 'fieldDict.npy'))
-# loadedField = loadedFieldArray[0]
-# print loadedField
+fieldDict = load_field(sourceFolder, axonXs)
+np.save(os.path.join(destinationFolder, 'fieldDict.npy'), fieldDict)

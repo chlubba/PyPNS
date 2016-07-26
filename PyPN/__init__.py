@@ -4,11 +4,14 @@ from PyPN.bundleClass import Bundle
 from PyPN.upstreamSpikingClass import UpstreamSpiking
 from PyPN.stimulusClass import *
 
+# spike train generation
+from PyPN.spikeTrainGeneration import generateCorrelaSpikeTimes
+
 # recording mechanisms
 # from PyPN.recordingMechanismClass import *
 # from PyPN.recordingMechanismFEMClass import *
 from PyPN.recordingMechanismClass2 import *
-import PyPN.extracellularPotentialMechanisms as Extracellular
+import PyPN.LFPMechanisms as Extracellular
 
 
 # geometry

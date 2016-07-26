@@ -1,8 +1,20 @@
 import numpy as np
 
-def stationary_poisson(nsyn,lambd,tstart,tstop):
-    ''' Generates nsyn stationary possion processes with rate lambda between tstart and tstop'''
-    # code from LFPy example 3
+def stationary_poisson(nsyn, lambd, tstart, tstop):
+    """
+    Generates nsyn stationary possion processes with rate lambda between tstart and tstop
+    code from LFPy example 3
+
+    Args:
+        nsyn:
+        lambd:
+        tstart:
+        tstop:
+
+    Returns:
+        nsyn spike trains stored in the matrix spiketimes
+    """
+
     interval_s = (tstop-tstart)*.001
     spiketimes = []
     for i in range(nsyn):
@@ -16,7 +28,7 @@ def stationary_poisson(nsyn,lambd,tstart,tstop):
 
     return spiketimes
 
-def generateCorrelaSpikeTimes(n_axons, tstart=0, tstop=300, lambd = 1000., correlation = 0.1):
+def generateCorrelaSpikeTimes(nAxons, tStart=0, lambd = 1000., correlation = 0.1, tStop=300):
 
     # function adapted from LFPy example 3
 
@@ -30,13 +42,13 @@ def generateCorrelaSpikeTimes(n_axons, tstart=0, tstop=300, lambd = 1000., corre
     #assign spike times to different units
     n_synapses = int(n_pre_syn*correlation)
 
-    pre_syn_sptimes = stationary_poisson(nsyn=n_pre_syn, lambd=lambd/n_synapses, tstart=tstart, tstop=tstop)
+    pre_syn_sptimes = stationary_poisson(nsyn=n_pre_syn, lambd=lambd/n_synapses, tstart=tStart, tstop=tStop)
 
 
 
     signalArray = [] # np.empty(n_axons)
 
-    for axon_id in range(n_axons):
+    for axon_id in range(nAxons):
 
         # re-seed the random number generator
         cell_seed = global_seed + axon_id

@@ -43,8 +43,9 @@ axon.diam = 1 # 18.8
 axon.L = 1000 # 18.8
 axon.Ra = 123.0
 set_nsegs_lambda_f(axon)
-axon.insert('hh')
 axon.insert('extracellular')
+# axon.insert('xtra')
+axon.insert('hh')
 
 vreclist = h.List()
 for seg in axon:
@@ -93,7 +94,6 @@ for sec in sectionList:
 
         signalVectors.append(h.Vector(stimulusSignalSection))
         signalVectors[-1].play(seg._ref_e_extracellular, tVec)
-
 
         segCounter += 1
 

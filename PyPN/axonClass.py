@@ -18,6 +18,7 @@ class Axon(object):
 
 
     def __init__(self, layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments):
+
         self.layout3D = layout3D
         self.rec_v = rec_v
         self.name = name
@@ -35,7 +36,7 @@ class Axon(object):
         self.timeRes = timeRes # set time step (ms)
         self.numberOfSavedSegments = numberOfSavedSegments
 
-        self.create_cell_props_for_LFPy(tStop, timeRes)
+        # self.create_cell_props_for_LFPy(tStop, timeRes)
 
     def calc_totnsegs(self):
         # Calculate the number of segments in the allseclist
@@ -45,12 +46,13 @@ class Axon(object):
 
         return i
 
-    # this function and the following one are only there for compliance with the LFPy package
-    def create_cell_props_for_LFPy(self, tStop, timeRes):
-        self.tstartms = 0
-        self.tstopms = tStop
-        self.timeres_NEURON = timeRes
-        self.timeres_python = timeRes
+    # # this function and the following one are only there for compliance with the LFPy package
+    # def create_cell_props_for_LFPy(self, tStop, timeRes):
+    #     self.tstartms = 0
+    #     self.tstopms = tStop
+    #     self.timeres_NEURON = timeRes
+    #     self.timeres_python = timeRes
+
     def _loadspikes(self):
         pass
 
@@ -207,11 +209,14 @@ class Axon(object):
         # Set the tvec to be a monotonically increasing numpy array after sim.
         self.tvec = np.arange(h.tstop /h.dt + 1)*h.dt
 
-    def simulate(self, electrode=None, rec_imem=True,
-                 rec_variables=[], variable_dt=False, atol=0.001,
-                 to_memory=True, to_file=False, file_name=None,
-                 dotprodcoeffs=None):
+    def simulate(self, rec_imem=True):
 
+        # before LFPy was used to simulate, this is not necessary.
+
+        # self, electrode = None, rec_imem = True,
+        # rec_variables = [], variable_dt = False, atol = 0.001,
+        # to_memory = True, to_file = False, file_name = None,
+        # dotprodcoeffs = None):
 
         # This is the main function running the simulation of the NEURON model.
         # Start NEURON simulation and record variables specified by arguments.
@@ -219,25 +224,10 @@ class Axon(object):
         # Arguments:
         # ::
         #
-        #     electrode:  Either an LFPy.RecExtElectrode object for a list of such.
-        #                 If supplied, LFPs will be calculated at every time step
-        #                 and accessible as electrode.LFP. If a list of objects
-        #                 is given, accessible as electrode[0].LFP etc.
         #     rec_imem:   If true, segment membrane currents will be recorded
         #                 If no electrode argument is given, it is necessary to
         #                 set rec_imem=True in order to calculate LFP later on.
         #                 Units of (nA).
-        #     rec_v:      record segment voltages (mV)
-        #     rec_istim:  record currents of StimIntraElectrode (nA)
-        #     rec_variables: list of variables to record, i.e arg=['cai', ]
-        #     variable_dt: boolean, using variable timestep in NEURON
-        #     atol:       absolute tolerance used with NEURON variable timestep
-        #     to_memory:  only valid with electrode, store lfp in -> electrode.LFP
-        #     to_file:    only valid with electrode, save LFPs in hdf5 file format
-        #     file_name:  name of hdf5 file, '.h5' is appended if it doesnt exist
-        #     dotprodcoeffs :  list of N x Nseg np.ndarray. These arrays will at
-        #                 every timestep be multiplied by the membrane currents.
-        #                 Presumably useful for memory efficient csd or lfp calcs
 
 
 
@@ -247,9 +237,14 @@ class Axon(object):
             self.set_voltage_recorders()
 
         h.celsius = self.temperature # set temperature in celsius
-        LFPy.run_simulation._run_simulation_with_electrode(self, electrode, variable_dt, atol,
-                                                   to_memory, to_file, file_name,
-                                                   dotprodcoeffs)
+
+        # LFPy.run_simulation._run_simulation_with_electrode(self, electrode, variable_dt, atol, to_memory, to_file, file_name, dotprodcoeffs)
+        h.finitialize(self.v_init)
+        h.tstop = self.tStop
+        h.dt = self.timeRes
+        h.run()
+
+
         if rec_imem:
             self.calc_imem()
 
@@ -441,7 +436,8 @@ class Unmyelinated(Axon):
         self.allseclist.append(sec = self.axon)
 
         self.axon.insert('extracellular')
-        self.axon.insert('xtra')
+        # todo: comment in
+        # self.axon.insert('xtra')
         self.axon_update_property()
 
         self.set_nsegs(self.nsegs_method, self.lambda_f, self.d_lambda, self.max_nsegs_length)
@@ -460,10 +456,11 @@ class Unmyelinated(Axon):
         else:
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
 
-        for sec_id in self.allseclist:
-            for seg in sec_id:
-                h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
-                h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
+        # todo: restore
+        # for sec_id in self.allseclist:
+        #     for seg in sec_id:
+        #         h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
+        #         h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
         self.interpxyz()
         self.collect_geometry()
         self.calc_midpoints()
