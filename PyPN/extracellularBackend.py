@@ -24,6 +24,7 @@ def _getImageCoords(fieldDict, points):
     zMax = max(zValues)
     zNum = len(zValues)
 
+    # todo: change from um to m! in generate dict script.
     axonXMin = min(axonXValues)
     axonXMax = max(axonXValues)
     axonXNum = len(axonXValues)
@@ -212,24 +213,41 @@ def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, 
 
 
 def i_to_v_homogeneous(sourcePositions, sourceCurrents, receiverPositions, sigma=1., currentUnitSource=-9):
+    """
+    Idea and some implementation details from LFPy package
+
+    Args:
+        sourcePositions:
+        sourceCurrents:
+        receiverPositions:
+        sigma:
+        currentUnitSource:
+
+    Returns:
+
+    """
+
+    # import matplotlib.pyplot as plt
+    # plt.plot(sourceCurrents)
+    # plt.show()
 
     nSourcePoints = np.shape(sourcePositions)[0]
     nReceiverPoints = np.shape(receiverPositions)[0]
 
     nTimePoints = len(sourceCurrents[:,0])
 
-    # first go through all bundle segments, find the associated source positions and calculate the needed
-    # quantities for all sources
-    # receiverPotentials = np.zeros((receiverPositions.shape[0], np.shape(sourceCurrents)[1]))
-
     receiverPotentials = []
     for rInd in range(nReceiverPoints):
         receiverPosition = receiverPositions[rInd,:]
 
-        r2 = (sourcePositions[:,0] - receiverPosition[0]) ** 2 + (sourcePositions[:,0] - receiverPosition[1]) ** 2 + (sourcePositions[:,0] - receiverPosition[2]) ** 2
+        r2 = (sourcePositions[:,0] - receiverPosition[0]) ** 2 + (sourcePositions[:,1] - receiverPosition[1]) ** 2 + (sourcePositions[:,2] - receiverPosition[2]) ** 2
         r = np.sqrt(r2)
 
         receiverPotential = 1 / (4 * np.pi * sigma) * np.dot(sourceCurrents.T, 1 / r)
+
+        # import matplotlib.pyplot as plt
+        # plt.plot(receiverPotential)
+        # plt.show()
 
         # receiverPotential = np.zeros(nTimePoints)
         # for sInd in range(nSourcePoints):

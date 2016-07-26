@@ -4,14 +4,16 @@ import os
 import silencer
 import LFPy
 import time
-from voltageFromFEM import *
+from extracellularBackend import *
 
 
 class LFPMechanism(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def calculate_LFP(self, axon, electrodePositions):
+
+    # def calculate_LFP(self, axon, electrodePositions):
+    def calculate_LFP(self, sourcePositions, sourceCurrents, receiverPositions):
         pass
 
 class precomputedFEM(LFPMechanism):
@@ -29,19 +31,13 @@ class precomputedFEM(LFPMechanism):
 
         self.bundleGuide = bundleGuide
 
-    def calculate_LFP(self, axon, electrodePositions): # sourcePositions, sourceCurrents,
-        """
-        Calculate extracellular potential for every electrode point defined in electrodeParameters
-
-        Args:
-            axon:
-
-        Returns: none
-
-        """
+    # def calculate_LFP(self, axon, electrodePositions): # sourcePositions, sourceCurrents,
+    def calculate_LFP(self, sourcePositions, sourceCurrents, receiverPositions):
 
         # calculate LFP from membrane currents
-        return compute_relative_positions_and_interpolate(np.vstack([axon.xmid, axon.ymid, axon.zmid]).T, axon.imem, electrodePositions, self.FEMFieldDict, self.bundleGuide)
+        return compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions, self.FEMFieldDict, self.bundleGuide)
+
+
 
 # class precomputedFEM(ExtracellularPotentialMechanism):
 #
@@ -266,43 +262,46 @@ class precomputedFEM(LFPMechanism):
 
 class homogeneous(LFPMechanism):
 
-    def __init__(self, method='pointsource', sigma=0.3):
+    def __init__(self, sigma=1.):
 
         self.sigma = sigma
-        self.method = method
 
+    def calculate_LFP(self, sourcePositions, sourceCurrents, receiverPositions):
 
-    def calculate_LFP(self, axon, electrodePositions):
-        """
-        Calculate extracellular potential (LFP) for every electrode point defined in self.electrodeParameters
-        Args:
-            axon:
+        # np.vstack([axon.xmid, axon.ymid, axon.zmid]).T, axon.imem, electrodePositions
+        return i_to_v_homogeneous(sourcePositions, sourceCurrents, receiverPositions, sigma=self.sigma)
 
-        Returns: LFP
-
-        """
-
-        #calculate LFP with LFPy from membrane currents
-
-        # put the locations of electrodes, the method and sigma in the right form for LFPy
-        electrodeParameters = {
-            'sigma': self.sigma,
-            'x': electrodePositions[:, 0],  # Coordinates of electrode contacts
-            'y': electrodePositions[:, 1],
-            'z': electrodePositions[:, 2],
-            'method': self.method,  # 'pointsource' or "linesource"
-        }
-
-        # shut down the output, always errors at the end because membrane current too high
-        with silencer.nostdout():
-            electrodes = LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters)
-
-            # calculate LFP by LFPy from membrane current
-            electrodes.calc_lfp()
-
-
-        # get the local field potential
-        return electrodes.LFP
+    # def calculate_LFP(self, axon, electrodePositions):
+    #     """
+    #     Calculate extracellular potential (LFP) for every electrode point defined in self.electrodeParameters
+    #     Args:
+    #         axon:
+    #
+    #     Returns: LFP
+    #
+    #     """
+    #
+    #     #calculate LFP with LFPy from membrane currents
+    #
+    #     # put the locations of electrodes, the method and sigma in the right form for LFPy
+    #     electrodeParameters = {
+    #         'sigma': self.sigma,
+    #         'x': electrodePositions[:, 0],  # Coordinates of electrode contacts
+    #         'y': electrodePositions[:, 1],
+    #         'z': electrodePositions[:, 2],
+    #         'method': self.method,  # 'pointsource' or "linesource"
+    #     }
+    #
+    #     # shut down the output, always errors at the end because membrane current too high
+    #     with silencer.nostdout():
+    #         electrodes = LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters)
+    #
+    #         # calculate LFP by LFPy from membrane current
+    #         electrodes.calc_lfp()
+    #
+    #
+    #     # get the local field potential
+    #     return electrodes.LFP
 
 
 

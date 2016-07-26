@@ -9,7 +9,7 @@ import os
 from signalGeneration import *
 from samplingRates import *
 from nameSetters import *
-from voltageFromFEM import *
+from extracellularBackend import *
 
 
 class StimIntra(ExcitationMechanism):
@@ -143,9 +143,65 @@ class SimpleIClamp(ExcitationMechanism):
 #         self.svec = None
 
 
+# class StimFieldQuasistatic(ExcitationMechanism):
+#
+#     def __init__(self, bundleGuide, stimulusSignal, electrodePositions, polarities = (), fieldName='noCuff1'):
+#         super(StimFieldQuasistatic, self).__init__()
+#
+#         # electrode setup: positions and polarities
+#         self.electrodePositions = electrodePositions
+#         self.numberOfPoints = np.shape(electrodePositions)[0]
+#         self.numberOfPoles = np.shape(electrodePositions)[2]
+#         if polarities == ():
+#             self.polarities = np.power((-1), range(self.numberOfPoles))
+#         else:
+#             self.polarities = polarities
+#         assert (self.numberOfPoles == len(self.polarities))
+#
+#         # load the field
+#         fieldDictArray = np.load(
+#             os.path.join('/media/carl/4ECC-1C44/ComsolData/usedFields', fieldName, 'fieldDict.npy'))
+#         self.FEMFieldDict = fieldDictArray[()]
+#
+#         self.bundleGuide = bundleGuide
+#
+#         self.signal = stimulusSignal
+#
+#     def connect_axon(self, axon):
+#
+#         # one signal for every point that constitutes an electrode. Divide by number of points to keep current constant
+#         signalTiled = np.tile(self.signal/self.numberOfPoints, (self.numberOfPoints, 1))
+#
+#         # calculate the potential caused by one stimulation pole, sum everything up
+#         extSegPot = np.ones((len(axon.xmid), len(self.signal)))
+#         for poleIndex in range(self.numberOfPoles):
+#             # todo: check current units
+#             extSegPot += self.polarities[poleIndex]*\
+#                          compute_relative_positions_and_interpolate(self.electrodePositions[:,:,poleIndex], signalTiled,
+#                                                                     np.transpose(np.vstack([axon.xmid, axon.ymid, axon.zmid])),
+#                                                                     self.FEMFieldDict, self.bundleGuide)
+#         # i_to_v_homogeneous(self.electrodePositions[:, :, poleIndex], signalTiled, np.transpose(np.vstack([axon.xmid, axon.ymid, axon.zmid])))
+#
+#
+#         # apply calculated voltage to axon segments by playing v_ext into e_extracellular reference
+#         t_ext = h.Vector(np.arange(len(self.signal))*self.timeRes)
+#         v_ext = []
+#
+#         for sec in axon.allseclist:
+#             for segInd, seg in enumerate(sec):
+#                 v_ext.append(h.Vector(extSegPot[segInd,:]))
+#                 v_ext[-1].play(seg._ref_e_extracellular, t_ext)
+#
+#         # keep variables in memory in order for NEURON to see them
+#         axon.append_ex_mech_vars([v_ext, t_ext])
+#
+#
+#     def delete_neuron_objects(self):
+#         pass
+
 class StimFieldQuasistatic(ExcitationMechanism):
 
-    def __init__(self, bundleGuide, stimulusSignal, electrodePositions, polarities = (), fieldName='noCuff1'):
+    def __init__(self, stimulusSignal, electrodePositions, extPotMech, polarities = ()):
         super(StimFieldQuasistatic, self).__init__()
 
         # electrode setup: positions and polarities
@@ -158,12 +214,7 @@ class StimFieldQuasistatic(ExcitationMechanism):
             self.polarities = polarities
         assert (self.numberOfPoles == len(self.polarities))
 
-        # load the field
-        fieldDictArray = np.load(
-            os.path.join('/media/carl/4ECC-1C44/ComsolData/usedFields', fieldName, 'fieldDict.npy'))
-        self.FEMFieldDict = fieldDictArray[()]
-
-        self.bundleGuide = bundleGuide
+        self.extPotMech = extPotMech
 
         self.signal = stimulusSignal
 
@@ -176,10 +227,12 @@ class StimFieldQuasistatic(ExcitationMechanism):
         extSegPot = np.ones((len(axon.xmid), len(self.signal)))
         for poleIndex in range(self.numberOfPoles):
             # todo: check current units
-            extSegPot += self.polarities[poleIndex]*\
-                         compute_relative_positions_and_interpolate(self.electrodePositions[:,:,poleIndex], signalTiled,
-                                                                    np.transpose(np.vstack([axon.xmid, axon.ymid, axon.zmid])),
-                                                                    self.FEMFieldDict, self.bundleGuide)
+            extSegPot += self.extPotMech.calculate_LFP(self.electrodePositions[:,:,poleIndex], signalTiled,
+                                                       np.transpose(np.vstack([axon.xmid, axon.ymid, axon.zmid])))
+            # extSegPot += self.polarities[poleIndex]*\
+            #              compute_relative_positions_and_interpolate(self.electrodePositions[:,:,poleIndex], signalTiled,
+            #                                                         np.transpose(np.vstack([axon.xmid, axon.ymid, axon.zmid])),
+            #                                                         self.FEMFieldDict, self.bundleGuide)
         # i_to_v_homogeneous(self.electrodePositions[:, :, poleIndex], signalTiled, np.transpose(np.vstack([axon.xmid, axon.ymid, axon.zmid])))
 
 
@@ -198,7 +251,6 @@ class StimFieldQuasistatic(ExcitationMechanism):
 
     def delete_neuron_objects(self):
         pass
-
 
 
 class StimField(ExcitationMechanism):

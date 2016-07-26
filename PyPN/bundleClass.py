@@ -28,7 +28,7 @@ import silencer
 
 # from recordingMechanismFEMClass import RecordingMechanismFEM
 # from recordingMechanismClass import RecordingMechanism
-from LFPMechanisms import precomputedFEM
+from extracellularMechanismClasses import precomputedFEM
 
 from scipy.signal import argrelextrema
 

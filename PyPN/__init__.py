@@ -11,7 +11,7 @@ from PyPN.spikeTrainGeneration import generateCorrelaSpikeTimes
 # from PyPN.recordingMechanismClass import *
 # from PyPN.recordingMechanismFEMClass import *
 from PyPN.recordingMechanismClass2 import *
-import PyPN.LFPMechanisms as Extracellular
+import PyPN.extracellularMechanismClasses as Extracellular
 
 
 # geometry

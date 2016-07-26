@@ -79,13 +79,13 @@ rectangularSignalParams = {'amplitude': 50.,  # Pulse amplitude (mA)
 
 intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParams)}
 
-rectangularSignalParamsExt = {'amplitude': 10*10**2,  # Pulse amplitude (nA)
+rectangularSignalParamsExt = {'amplitude': 1*10**4,  # Pulse amplitude (nA)
                            'frequency': 1.,  # Frequency of the pulse (kHz)
                            'dutyCycle': .5,  # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                            'stimDur': 1,  # Stimulus duration (ms)
                            'waveform': 'MONOPHASIC',  # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
                            'delay': 0.,  # ms
-                           'invert': True,
+                           # 'invert': True,
                            'timeRes': timeRes,
                            }
 
@@ -96,10 +96,14 @@ stimulationElectrodeParameters = {'bundleGuide': bundleGuide,
                           'poleDistance': 1000,
                           }
 
+extPotMechStim = PyPN.Extracellular.precomputedFEM(bundleGuide)
 
-FEMStimParameters = {'bundleGuide': bundleGuide,
+FEMStimParameters = {'extPotMech': extPotMechStim,
                      'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParamsExt) ,
                      'electrodePositions': PyPN.createGeometry.circular_electrode(**stimulationElectrodeParameters)}
+# FEMStimParameters = {'bundleGuide': bundleGuide,
+#                      'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParamsExt),
+#                      'electrodePositions': PyPN.createGeometry.circular_electrode(**stimulationElectrodeParameters)}
 
 # ----------------------------- recording params -------------------------------
 

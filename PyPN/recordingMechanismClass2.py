@@ -65,8 +65,13 @@ class RecordingMechanism(object):
 
             # calculate LFP with LFPy from membrane currents for first pole
             # LFP = self.extPotMech.calculate_LFP(axon, self.electrodePositions[:, :, poleIndex])
-            LFP = self.extPotMech.calculate_LFP(axon, self.electrodePositions[:, :, poleIndex])
+
+            LFP = self.extPotMech.calculate_LFP(np.vstack([axon.xmid, axon.ymid, axon.zmid]).T, axon.imem, self.electrodePositions[:, :, poleIndex])
             CAP_axonwise += np.mean(LFP, 0)*self.polarities[poleIndex]
+
+            # import matplotlib.pyplot as plt
+            # plt.plot(np.mean(LFP,0))
+            # plt.show()
 
         #     plt.plot(np.transpose(LFP), color=colors[poleIndex])
         #

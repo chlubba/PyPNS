@@ -38,7 +38,7 @@ myelinatedParameters = {'fiberD': myelinatedDiam}
 unmyelinatedParameters = {'fiberD': unmyelinatedDiam}
 
 # bundle guide
-segmentLengthAxon = 100
+segmentLengthAxon = 30
 bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segmentLengthAxon)
 
 # ----------------------------- stimulation params ---------------------------
@@ -49,7 +49,7 @@ rectangularSignalParams = {'amplitude': 50.,  # Pulse amplitude (mA)
                            'dutyCycle': 0.5,  # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                            'stimDur': 0.05,  # Stimulus duration (ms)
                            'waveform': 'MONOPHASIC',  # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-                           'delay': 0.,  # ms
+                           'delay': 2.,  # ms
                            # 'invert': True,
                            'timeRes': timeRes,
                            }
@@ -119,7 +119,7 @@ if calculationFlag:
         # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
 
         bundle.add_recording_mechanism(modularRecMech1)
-        # bundle.add_recording_mechanism(modularRecMech2)
+        bundle.add_recording_mechanism(modularRecMech2)
 
         # PyPN.plot.geometry_definition(bundle)
         # plt.show()
@@ -146,10 +146,11 @@ else:
 
 print '\nStarting to plot'
 
-# # first load the desired data from file
-# for i in range(len(bundle.recordingMechanisms)):
-#     time, CAP = bundle.get_CAP_from_file(i)
-#     plt.plot(time, CAP)
+# first load the desired data from file
+for i in range(len(bundle.recordingMechanisms)):
+    time, CAP = bundle.get_CAP_from_file(i)
+    plt.plot(time, CAP, label='recMech'+str(i))
+plt.legend()
 
 # # # # PyPN.plot.geometry_definition(bundle)
 # PyPN.plot.CAP1D(bundle)
