@@ -4,7 +4,7 @@ import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 
 from axonClass import *
-from inactiveCode.recordingMechanismClass import RecordingMechanism
+from recordingMechanismClass2 import RecordingMechanism
 from nameSetters import *
 
 
