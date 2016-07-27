@@ -83,7 +83,7 @@ rectangularSignalParamsExt = {'amplitude': 1*10**4,  # Pulse amplitude (nA)
                            'frequency': 1.,  # Frequency of the pulse (kHz)
                            'dutyCycle': .5,  # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                            'stimDur': 1,  # Stimulus duration (ms)
-                           'waveform': 'MONOPHASIC',  # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+                           'waveform': 'BIPHASIC',  # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
                            'delay': 0.,  # ms
                            # 'invert': True,
                            'timeRes': timeRes,
@@ -97,6 +97,7 @@ stimulationElectrodeParameters = {'bundleGuide': bundleGuide,
                           }
 
 extPotMechStim = PyPN.Extracellular.precomputedFEM(bundleGuide)
+# extPotMechStim = PyPN.Extracellular.homogeneous(sigma=.01)
 
 FEMStimParameters = {'extPotMech': extPotMechStim,
                      'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParamsExt) ,

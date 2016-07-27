@@ -28,7 +28,7 @@ import silencer
 
 # from recordingMechanismFEMClass import RecordingMechanismFEM
 # from recordingMechanismClass import RecordingMechanism
-from extracellularMechanismClasses import precomputedFEM
+from extracellularMechanismClass import precomputedFEM
 
 from scipy.signal import argrelextrema
 
@@ -334,67 +334,6 @@ class Bundle(object):
             # connect stimulus, spontaneous spiking, etc.
             for excitationMechanism in self.excitationMechanisms:
                 excitationMechanism.connect_axon(axon)
-
-            # # todo: remove
-            #
-            # from scipy import signal
-            # def _rectangularStimulusSignal(stimDur=0.1, amplitude=1, frequency=10, dutyCycle=0.5,
-            #                                waveform='MONOPHASIC',
-            #                                timeRes=.0025, delay=0, invert=False):
-            #
-            #     t = np.arange(0, stimDur, timeRes)
-            #
-            #     if waveform == 'MONOPHASIC':
-            #         stimulusSignal = amplitude * 0.5 * signal.square(2 * np.pi * frequency * t,
-            #                                                          duty=dutyCycle) + amplitude * 0.5
-            #     elif waveform == 'BIPHASIC':
-            #         stimulusSignal = amplitude * signal.square(2 * np.pi * frequency * t, duty=dutyCycle)
-            #     else:
-            #         print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
-            #         stimulusSignal = amplitude * 0.5 * signal.square(2 * np.pi * frequency * t,
-            #                                                          duty=dutyCycle) + amplitude * 0.5
-            #
-            #     if invert:
-            #         stimulusSignal = -stimulusSignal
-            #
-            #     # apply delay
-            #     stimulusSignal = np.concatenate((np.zeros(delay / timeRes), stimulusSignal))
-            #     t = np.arange(0, stimDur + delay, timeRes)
-            #
-            #     return t, stimulusSignal
-            #
-            # t, stimulusSignal = _rectangularStimulusSignal(timeRes=self.timeRes, delay=5)
-            # tVec = h.Vector(t)
-            #
-            # factors = np.ones(axon.totnsegs) * (-10)
-            # factors = np.cumsum(factors) * axon.L / axon.totnsegs
-            #
-            # # global signalVectors
-            # signalVectors = []
-            # for sec in axon.allseclist:
-            #     for segCounter, seg in enumerate(sec):
-            #         stimulusSignalSection = stimulusSignal * factors[segCounter]
-            #         # plt.plot(stimulusSignalSection)
-            #         # plt.show()
-            #
-            #         signalVectors.append(h.Vector(stimulusSignalSection))
-            #         signalVectors[-1].play(seg._ref_e_extracellular, tVec)
-            #
-            # self.trec = h.Vector()
-            # self.trec.record(h._ref_t)
-            #
-            # axon.set_imem_recorders()
-            # axon.set_voltage_recorders()
-            #
-            # h.celsius = axon.temperature  # set temperature in celsius
-            # h.finitialize(axon.v_init)
-            # h.tstop = axon.tStop
-            # h.dt = axon.timeRes
-            # h.run()
-            #
-            # axon.calc_imem()
-            #
-            # # todo: end remove
 
             # setup recorder for time
             if axonIndex == 0:

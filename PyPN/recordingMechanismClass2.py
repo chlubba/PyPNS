@@ -23,20 +23,6 @@ class RecordingMechanism(object):
         # self.savePath = "" # where are the recordings stored?
 
 
-    # @abstractmethod
-    # def setup_recording_elec(self, bundleGuide, bundleLength):
-    #     pass
-    #
-    # def load_one_axon(self, axonIndex):
-    #
-    #     directory = self.savePath
-    #     filename = "electrode_"+str(axonIndex)+".dat"
-    #
-    #     electrodeData = np.loadtxt(os.path.join(directory, filename), unpack=True)
-    #
-    #     return electrodeData
-
-
     def compute_overall_CAP(self):
 
         arrayd_axonwise_CAPs = np.array(self.CAP_axonwise)
@@ -66,7 +52,7 @@ class RecordingMechanism(object):
             # calculate LFP with LFPy from membrane currents for first pole
             # LFP = self.extPotMech.calculate_LFP(axon, self.electrodePositions[:, :, poleIndex])
 
-            LFP = self.extPotMech.calculate_LFP(np.vstack([axon.xmid, axon.ymid, axon.zmid]).T, axon.imem, self.electrodePositions[:, :, poleIndex])
+            LFP = self.extPotMech.calculate_extracellular_potential(np.vstack([axon.xmid, axon.ymid, axon.zmid]).T, axon.imem, self.electrodePositions[:, :, poleIndex])
             CAP_axonwise += np.mean(LFP, 0)*self.polarities[poleIndex]
 
             # import matplotlib.pyplot as plt

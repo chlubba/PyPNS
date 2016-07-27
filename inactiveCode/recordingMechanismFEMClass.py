@@ -1,12 +1,12 @@
 from abc import abstractmethod
 import numpy as np
 from scipy import ndimage
-from createGeometry import random_perpendicular_vectors, rotation_matrix, length_from_coords
-from nameSetters import get_directory_name
+from PyPN.createGeometry import random_perpendicular_vectors, rotation_matrix, length_from_coords
+from PyPN.nameSetters import get_directory_name
 import os
-import takeTime
+import PyPN.takeTime
 import shutil
-import silencer
+import PyPN.silencer
 import LFPy
 import time
 import cPickle as pickle

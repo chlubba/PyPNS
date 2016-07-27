@@ -1,10 +1,10 @@
 from abc import abstractmethod
 import numpy as np
-from createGeometry import random_perpendicular_vectors, rotation_matrix, length_from_coords
-from nameSetters import get_directory_name
+from PyPN.createGeometry import random_perpendicular_vectors, rotation_matrix, length_from_coords
+from PyPN.nameSetters import get_directory_name
 import os
 import shutil
-import silencer
+import PyPN.silencer
 import LFPy
 import time
 
@@ -66,7 +66,7 @@ class RecordingMechanism(object):
         electrodeParameters = self.electrodeParameters
 
         # shut down the output, always errors at the end because membrane current too high
-        with silencer.nostdout():
+        with PyPN.silencer.nostdout():
             electrodes = LFPy.recextelectrode.RecExtElectrode(axon, **electrodeParameters)
 
             # calculate LFP by LFPy from membrane current

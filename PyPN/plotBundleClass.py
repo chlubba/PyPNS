@@ -1,15 +1,11 @@
-import matplotlib.pyplot as plt
+import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
-import matplotlib as mpl
-from mpl_toolkits.mplot3d import Axes3D
-import mpl_toolkits.mplot3d
+import matplotlib.pyplot as plt
 
 from axonClass import *
+from inactiveCode.recordingMechanismClass import RecordingMechanism
 from nameSetters import *
-
-from recordingMechanismClass import RecordingMechanism
-from recordingMechanismFEMClass import RecordingMechanismFEM
 
 
 def geometry(bundle):

@@ -245,18 +245,6 @@ def i_to_v_homogeneous(sourcePositions, sourceCurrents, receiverPositions, sigma
 
         receiverPotential = 1 / (4 * np.pi * sigma) * np.dot(sourceCurrents.T, 1 / r)
 
-        # import matplotlib.pyplot as plt
-        # plt.plot(receiverPotential)
-        # plt.show()
-
-        # receiverPotential = np.zeros(nTimePoints)
-        # for sInd in range(nSourcePoints):
-        #     sourcePosition = sourcePositions[sInd, :]
-        #
-        #     r = np.linalg.norm(receiverPosition - sourcePosition)
-        #
-        #     receiverPotential += 1/(4*np.pi*sigma*r)*sourceCurrents[sInd,:]
-        #
         receiverPotentials.append(receiverPotential)
 
     receiverPotentials = np.array(receiverPotentials)
