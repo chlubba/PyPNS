@@ -127,8 +127,8 @@ if calculationFlag:
         # bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParametersBip))
         # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
 
-        # bundle.add_recording_mechanism(modularRecMech1)
-        # bundle.add_recording_mechanism(modularRecMech2)
+        bundle.add_recording_mechanism(modularRecMech1)
+        bundle.add_recording_mechanism(modularRecMech2)
         bundle.add_recording_mechanism(modularRecMech3)
 
         # PyPN.plot.geometry_definition(bundle)

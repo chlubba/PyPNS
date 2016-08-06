@@ -241,7 +241,11 @@ class Axon(object):
         # LFPy.run_simulation._run_simulation_with_electrode(self, electrode, variable_dt, atol, to_memory, to_file, file_name, dotprodcoeffs)
         h.finitialize(self.v_init)
         h.tstop = self.tStop
-        h.dt = self.timeRes
+
+        # h.dt = self.timeRes
+        h('cvode_active(1)')
+        h('cvode.atol(0.001)')
+
         h.run()
 
 

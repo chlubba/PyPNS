@@ -312,6 +312,9 @@ class Bundle(object):
         for excitationMechanism in self.excitationMechanisms:
             excitationMechanism.delete_neuron_objects()
 
+        # needed if variable time step is needed
+        self.createTimeVector()
+
         # compute the compound action potential by summing all axon contributions up, save it, delete variables
         with takeTime('compute CAP from single axon contributions'):
             self.compute_CAPs()
@@ -336,16 +339,16 @@ class Bundle(object):
                 excitationMechanism.connect_axon(axon)
 
             # setup recorder for time
-            if axonIndex == 0:
-                # record time variable
-                self.trec = h.Vector()
-                self.trec.record(h._ref_t)
+            # TODO: this has changed, now every axon has trec
+            axon.trec = h.Vector()
+            axon.trec.record(h._ref_t)
 
             # here we correct the conductance of the slow potassium channel from 0.08 S/cm2 to 0.12 S/cm2 to prevent
             # multiple action potentials for thin fibers
             h('forall for (x,0) if (ismembrane("axnode")) gkbar_axnode(x) = 0.12') # .16
 
             with takeTime("calculate voltage and membrane current"):
+                # TODO: variable time step option
                 axon.simulate()
 
             if len(self.recordingMechanisms) > 0:
@@ -492,7 +495,8 @@ class Bundle(object):
         voltageSingleAxonFormatted = np.transpose(voltageSingleAxonFormatted)
 
         # add the time vector as the first list
-        firstLine = np.transpose(np.concatenate(([0],np.array(self.trec))))
+        # TODO: time vector for every axon different if time step variable, save in axon and load here
+        firstLine = np.transpose(np.concatenate(([0],np.array(self.axons[axonIndex].trec))))
         dataOut = np.row_stack((firstLine, voltageSingleAxonFormatted))
         # np.savetxt(filename, dataOut)
         np.save(filename, dataOut)
@@ -616,6 +620,20 @@ class Bundle(object):
 
         return timeRec, voltageMatrices
 
+    def createTimeVector(self):
+        # TODO: make this optional depending on whether a variable time step was used or not
+        # TODO: separate function after all axons have been computed
+        minTimeStep = 0.025
+        minEndTime = np.Inf
+        maxStartTime = -np.Inf
+        for axon in self.axons:
+            t = axon.trec
+            # minTimeStep = np.min([minTimeStep,  np.min(np.diff(t))])
+            minEndTime = np.min([minEndTime, max(t)])
+            maxStartTime = np.max([maxStartTime, min(t)])
+
+        self.trec = np.arange(maxStartTime, minEndTime, minTimeStep)
+
     def compute_CAPs_from_files(self):
 
         for recMech in self.recordingMechanisms:
@@ -624,7 +642,15 @@ class Bundle(object):
 
     def compute_CAPs(self):
 
+        from scipy.interpolate import interp1d
+
         for recMech in self.recordingMechanisms:
+            # TODO: optional...
+            # first regularize time grid
+            for axonIndex, SFAP in enumerate(recMech.CAP_axonwise):
+                f = interp1d(self.axons[axonIndex].trec, SFAP)
+                recMech.CAP_axonwise[axonIndex] = f(self.trec)
+
             recMech.compute_overall_CAP()
 
 

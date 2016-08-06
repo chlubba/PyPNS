@@ -26,6 +26,9 @@ class RecordingMechanism(object):
     def compute_overall_CAP(self):
 
         arrayd_axonwise_CAPs = np.array(self.CAP_axonwise)
+
+        # TODO: for variable time step, adjust here to minimum time step and then add.
+
         self.CAP = np.sum(arrayd_axonwise_CAPs, axis=0)
 
 
