@@ -32,8 +32,8 @@ def _getImageCoords(fieldDict, points):
     points = np.array(points)
 
     if len(points.shape) > 1:
-        if points.shape[1] > 4:
-            points = np.transpose(points)
+        # if points.shape[1] > 4:
+        points = np.transpose(points)
         xCoords = np.add(points[:, 0], -xMin) / (xMax - xMin) * (xNum - 1)
         yCoords = np.add(points[:, 1], -yMin) / (yMax - yMin) * (yNum - 1)
         zCoords = np.add(points[:, 2], -zMin) / (zMax - zMin) * (zNum - 1)

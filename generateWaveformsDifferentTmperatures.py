@@ -18,27 +18,26 @@ electricalStimulusOn = True
 
 # ----------------------------- simulation params ---------------------------
 
-tStop=60
+tStop=20
 timeRes=0.0025
 
 # ----------------------------- bundle params -------------------------------
 
 # set length of bundle and number of axons
-lengthOfBundle = 15000 # 20000 # 400000
+lengthOfBundle = 4000 # 20000 # 400000
 numberOfAxons = 1
 
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
 # 5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.
 myelinatedDiam =  0.7 # {'distName' : 'normal', 'params' : (1.0, 0.7)} # (2.0, 0.7)
-unmyelinatedDiam = 5 # {'distName' : 'normal', 'params' : (0.7, 0.3)}
+unmyelinatedDiam = 2.1234 # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
 # axon definitions
 myelinatedParameters = {'fiberD': myelinatedDiam}
-unmyelinatedParameters = {'fiberD': unmyelinatedDiam}
 
 # bundle guide
-segmentLengthAxon = 30
+segmentLengthAxon = 10
 bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segmentLengthAxon)
 
 # ----------------------------- stimulation params ---------------------------
@@ -61,27 +60,18 @@ intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectang
 
 recordingParametersNew = {'bundleGuide': bundleGuide,
                           'radius': 200,
-                          'positionAlongBundle': 7000,
+                          'positionAlongBundle': 3000,
                           'numberOfPoles': 2,
                           'poleDistance': 1000,
                         }
 
 LFPMech1 = PyPN.Extracellular.precomputedFEM(bundleGuide)
 LFPMech2 = PyPN.Extracellular.homogeneous(sigma=1)
-LFPMech3 = PyPN.Extracellular.precomputedFEM(bundleGuide, fieldName='corkRecording')
 
 electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
 
-electrodePos2 = np.ones((2,3,2))
-electrodePos2[0,:,0] = [7000, -219, 0]
-electrodePos2[0,:,1] = [12000, -219, 0]
-electrodePos2[1,:,0] = [7010, -219, 0]
-electrodePos2[1,:,1] = [12010, -219, 0]
-
 modularRecMech1 = PyPN.RecordingMechanism(electrodePos, LFPMech1)
 modularRecMech2 = PyPN.RecordingMechanism(electrodePos, LFPMech2)
-modularRecMech3 = PyPN.RecordingMechanism(electrodePos2, LFPMech3)
-
 
 # ------------------------------------------------------------------------------
 # ---------------------------------- CALCULATION -------------------------------
@@ -90,12 +80,14 @@ modularRecMech3 = PyPN.RecordingMechanism(electrodePos2, LFPMech3)
 
 if calculationFlag:
 
-    for randomComponent in np.arange(0, 0.1, 0.1):
+    for temp in [30]: # np.arange(10, 40, 5):
+
+        unmyelinatedParameters = {'fiberD': unmyelinatedDiam, 'temperature' : temp}
 
         # set all properties of the bundle
         bundleParameters = {'radius': 300,  # 150, #um Radius of the bundle (typically 0.5-1.5mm)
                             'length': lengthOfBundle,  # um Axon length
-                            # 'randomDirectionComponent': .9,
+                            'randomDirectionComponent': 0,
                             # 'bundleGuide': bundleGuide,
 
                             'numberOfAxons': numberOfAxons,  # Number of axons in the bundle
@@ -128,8 +120,7 @@ if calculationFlag:
         # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
 
         # bundle.add_recording_mechanism(modularRecMech1)
-        # bundle.add_recording_mechanism(modularRecMech2)
-        bundle.add_recording_mechanism(modularRecMech3)
+        bundle.add_recording_mechanism(modularRecMech2)
 
         # PyPN.plot.geometry_definition(bundle)
         # plt.show()
@@ -137,9 +128,9 @@ if calculationFlag:
         # run the simulation
         bundle.simulate()
 
-        # # get SFAP
-        # time, CAP = bundle.get_CAP_from_file()
-        # plt.plot(time, CAP)
+        # get SFAP
+        time, CAP = bundle.get_CAP_from_file()
+        plt.plot(time, CAP, label=str(temp))
 
     # # save the bundle to disk
     # PyPN.save_bundle(bundle)
@@ -148,21 +139,21 @@ else:
     # try to open a bundle with the parameters set above
     # bundle = PyPN.open_recent_bundle(bundleParameters)
     # bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=100 pMyel=0.1 pUnmyel=0.9 L=20000 nAxons=500/bundle00000')
-    # bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=100 pMyel=0.1 pUnmyel=0.9 L=20000 nAxons=500/bundle00001')
-    bundle = PyPN.open_bundle_from_location(
-        '/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=100 pMyel=0.1 pUnmyel=0.9 L=20000 nAxons=500/bundle00001')
+    bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=100 pMyel=0.1 pUnmyel=0.9 L=20000 nAxons=500/bundle00001')
 
 # ------------------------------------------------------------------------------
 # ---------------------------------- PLOTTING ----------------------------------
 # ------------------------------------------------------------------------------
 
+plt.legend()
+
 print '\nStarting to plot'
 
-# first load the desired data from file
-for i in range(len(bundle.recordingMechanisms)):
-    time, CAP = bundle.get_CAP_from_file(i)
-    plt.plot(time, CAP, label='recMech'+str(i))
-plt.legend()
+# # first load the desired data from file
+# for i in range(len(bundle.recordingMechanisms)):
+#     time, CAP = bundle.get_CAP_from_file(i)
+#     plt.plot(time, CAP, label='recMech'+str(i))
+# plt.legend()
 
 # # # # PyPN.plot.geometry_definition(bundle)
 # PyPN.plot.CAP1D(bundle)
@@ -205,7 +196,7 @@ plt.legend()
 
 
 # PyPN.plot.CAP1D(bundle, recMechIndex=1)
-PyPN.plot.voltage(bundle)
+# PyPN.plot.voltage(bundle)
 # PyPN.plot.diameterHistogram(bundle)
 plt.show()
 

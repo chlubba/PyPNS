@@ -40,76 +40,164 @@ def rotation_matrix(axis, theta):
                      [2*(bc-ad), aa+cc-bb-dd, 2*(cd+ab)],
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
-def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAngle = pi/10, randomDirectionComponent=0.1):
 
-    bundleCoords = bundleCoords4D[:,:3]
+def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAngle=pi / 10,
+                       randomDirectionComponent=0.1):
+    bundleCoords = bundleCoords4D[:, :3]
 
-    pos1 = np.concatenate(([bundleCoords[0,0]], axonCoords+bundleCoords[0,1:3]))
-    pos2 = np.concatenate(([bundleCoords[1,0]], axonCoords+bundleCoords[1,1:3]))
+    pos1 = np.concatenate(([bundleCoords[0, 0]], axonCoords + bundleCoords[0, 1:3]))
+    pos2 = np.concatenate(([bundleCoords[1, 0]], axonCoords + bundleCoords[1, 1:3]))
 
     coords = np.row_stack((pos1, pos2))
 
-    rhoMax = tan(maximumAngle)*segmentLengthAxon
+    rhoMax = tan(maximumAngle) * segmentLengthAxon
     rhoArray = np.zeros(5)
 
     bundleLength = np.shape(bundleCoords)[0]
     currentBundleSegment = 2
-    while currentBundleSegment <= bundleLength-1:
+    while currentBundleSegment <= bundleLength - 1:
 
         # get last point
-        lastPointAxon = coords[-1,:]
+        lastPointAxon = coords[-1, :]
         # and vector between two last points
-        lastAxonDirection = (coords[-1,:] - coords[-2,:])
-        lastAxonDirectionNorm = lastAxonDirection/np.linalg.norm(lastAxonDirection)
+        lastAxonDirection = (coords[-1, :] - coords[-2, :])
+        lastAxonDirectionNorm = lastAxonDirection / np.linalg.norm(lastAxonDirection)
 
         # current bundle direction
-        bundleDirection = bundleCoords[currentBundleSegment,:] - bundleCoords[currentBundleSegment-1,:]
-        lastPointBundle = bundleCoords[currentBundleSegment-1,:]
-        bundleDirectionNorm = bundleDirection/np.linalg.norm(bundleDirection)
+        bundleDirection = bundleCoords[currentBundleSegment, :] - bundleCoords[currentBundleSegment - 1, :]
+        lastPointBundle = bundleCoords[currentBundleSegment - 1, :]
+        bundleDirectionNorm = bundleDirection / np.linalg.norm(bundleDirection)
 
         # get orthogonal vector to current direction vector
-        cp = np.inner(bundleDirectionNorm, lastPointAxon-lastPointBundle)
+        cp = np.inner(bundleDirectionNorm, lastPointAxon - lastPointBundle)
         if cp == 0:
-            radiusVectorNorm = [0, 0, 0]
+            radiusVectorNorm = random_perpendicular_vectors(bundleDirection)[0,:] # [0, 0, 0]
             distance = 0
         else:
-            radiusVector = -(lastPointAxon - (cp*bundleDirectionNorm + lastPointBundle))
+            radiusVector = -(lastPointAxon - (cp * bundleDirectionNorm + lastPointBundle))
             distance = np.linalg.norm(radiusVector)
             if not distance == 0:
-                radiusVectorNorm = radiusVector/distance
+                radiusVectorNorm = radiusVector / distance
             else:
                 radiusVectorNorm = radiusVector
 
         # assure axon stays within bundle. If too far away -> next direction
         # equals bundle direction
         bundleRadius = bundleCoords4D[currentBundleSegment, 3]
-        factorBundleDirection = min((max(0,distance/bundleRadius-0.7))*6,2.5)
-        
-        correctionVector = radiusVectorNorm + 0.1*bundleDirectionNorm
-        correctionVector = correctionVector/np.linalg.norm(correctionVector)
-        combinedDirection = lastAxonDirectionNorm + correctionVector*factorBundleDirection + 0.1*bundleDirection
-        combinedDirectionNorm = combinedDirection/np.linalg.norm(combinedDirection)
+        factorBundleDirection = min((max(0, distance / bundleRadius - 0.7)) * 6, 2.5)
 
-        # get one random orthogonal vector to desired mean direction of next segment
-        randomOrthogonalVectorNorm = random_perpendicular_vectors(combinedDirection)[0,:]
+        # new
+        factorRadiusBias = min((max(0, distance / bundleRadius - 0.7)) * 6, 2.5)
+        radialNorm = np.cross(radiusVectorNorm, bundleDirectionNorm)
+        randomVectorToAdd = np.random.uniform(-1,1)*radialNorm + (np.random.uniform(-1,1) - factorRadiusBias)*np.array(radiusVectorNorm*(-1))
+        if not np.sum(randomVectorToAdd) == 0:
+            randomVectorToAddNorm = randomVectorToAdd/np.linalg.norm(randomVectorToAdd)
+        else:
+            randomVectorToAddNorm = randomVectorToAdd
 
-        # select a direction defined by cylindical coordinate rho
-        rho = np.random.uniform(1)*rhoMax
+        nextAxonDir = randomVectorToAddNorm*randomDirectionComponent + lastAxonDirectionNorm + bundleDirectionNorm*(1.1-randomDirectionComponent)
+        nextAxonDirScaled = nextAxonDir*segmentLengthAxon
+        nextPoint = lastPointAxon + nextAxonDirScaled
 
-        randomDirection = (1-randomDirectionComponent)*combinedDirectionNorm + randomDirectionComponent*randomOrthogonalVectorNorm*rho
-        randomDirectionNorm = randomDirection/np.linalg.norm(randomDirection)
-        nextDirectionScaled = randomDirectionNorm*segmentLengthAxon
+        # end new
 
-        # add the direction to the last point to obtain the next point
-        nextPoint = lastPointAxon + nextDirectionScaled
+        # correctionVector = radiusVectorNorm + 0.1 * bundleDirectionNorm
+        # correctionVector = correctionVector / np.linalg.norm(correctionVector)
+        # combinedDirection = lastAxonDirectionNorm + correctionVector * factorBundleDirection + 0.1 * bundleDirection
+        # combinedDirectionNorm = combinedDirection / np.linalg.norm(combinedDirection)
+        #
+        # # get one random orthogonal vector to desired mean direction of next segment
+        # randomOrthogonalVectorNorm = random_perpendicular_vectors(combinedDirection)[0, :]
+        #
+        # # select a direction defined by cylindical coordinate rho
+        # rho = np.random.uniform(1) * rhoMax
+        #
+        # randomDirection = (
+        #                   1 - randomDirectionComponent) * combinedDirectionNorm + randomDirectionComponent * randomOrthogonalVectorNorm * rho
+        # randomDirectionNorm = randomDirection / np.linalg.norm(randomDirection)
+        # nextDirectionScaled = randomDirectionNorm * segmentLengthAxon
+        #
+        # # add the direction to the last point to obtain the next point
+        # nextPoint = lastPointAxon + nextDirectionScaled
 
         # addpend to coordinate list
-        coords = np.row_stack((coords,nextPoint))
+        coords = np.row_stack((coords, nextPoint))
 
-        if np.inner(bundleDirection,(nextPoint-bundleCoords[currentBundleSegment,:])) > 0:
+        if np.inner(bundleDirection, (nextPoint - bundleCoords[currentBundleSegment, :])) > 0:
             currentBundleSegment = currentBundleSegment + 1
 
     return coords
+
+# def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAngle = pi/10, randomDirectionComponent=0.1):
+#
+#     bundleCoords = bundleCoords4D[:,:3]
+#
+#     pos1 = np.concatenate(([bundleCoords[0,0]], axonCoords+bundleCoords[0,1:3]))
+#     pos2 = np.concatenate(([bundleCoords[1,0]], axonCoords+bundleCoords[1,1:3]))
+#
+#     coords = np.row_stack((pos1, pos2))
+#
+#     rhoMax = tan(maximumAngle)*segmentLengthAxon
+#     rhoArray = np.zeros(5)
+#
+#     bundleLength = np.shape(bundleCoords)[0]
+#     currentBundleSegment = 2
+#     while currentBundleSegment <= bundleLength-1:
+#
+#         # get last point
+#         lastPointAxon = coords[-1,:]
+#         # and vector between two last points
+#         lastAxonDirection = (coords[-1,:] - coords[-2,:])
+#         lastAxonDirectionNorm = lastAxonDirection/np.linalg.norm(lastAxonDirection)
+#
+#         # current bundle direction
+#         bundleDirection = bundleCoords[currentBundleSegment,:] - bundleCoords[currentBundleSegment-1,:]
+#         lastPointBundle = bundleCoords[currentBundleSegment-1,:]
+#         bundleDirectionNorm = bundleDirection/np.linalg.norm(bundleDirection)
+#
+#         # get orthogonal vector to current direction vector
+#         cp = np.inner(bundleDirectionNorm, lastPointAxon-lastPointBundle)
+#         if cp == 0:
+#             radiusVectorNorm = [0, 0, 0]
+#             distance = 0
+#         else:
+#             radiusVector = -(lastPointAxon - (cp*bundleDirectionNorm + lastPointBundle))
+#             distance = np.linalg.norm(radiusVector)
+#             if not distance == 0:
+#                 radiusVectorNorm = radiusVector/distance
+#             else:
+#                 radiusVectorNorm = radiusVector
+#
+#         # assure axon stays within bundle. If too far away -> next direction
+#         # equals bundle direction
+#         bundleRadius = bundleCoords4D[currentBundleSegment, 3]
+#         factorBundleDirection = min((max(0,distance/bundleRadius-0.7))*6,2.5)
+#
+#         correctionVector = radiusVectorNorm + 0.1*bundleDirectionNorm
+#         correctionVector = correctionVector/np.linalg.norm(correctionVector)
+#         combinedDirection = lastAxonDirectionNorm + correctionVector*factorBundleDirection + 0.1*bundleDirection
+#         combinedDirectionNorm = combinedDirection/np.linalg.norm(combinedDirection)
+#
+#         # get one random orthogonal vector to desired mean direction of next segment
+#         randomOrthogonalVectorNorm = random_perpendicular_vectors(combinedDirection)[0,:]
+#
+#         # select a direction defined by cylindical coordinate rho
+#         rho = np.random.uniform(1)*rhoMax
+#
+#         randomDirection = (1-randomDirectionComponent)*combinedDirectionNorm + randomDirectionComponent*randomOrthogonalVectorNorm*rho
+#         randomDirectionNorm = randomDirection/np.linalg.norm(randomDirection)
+#         nextDirectionScaled = randomDirectionNorm*segmentLengthAxon
+#
+#         # add the direction to the last point to obtain the next point
+#         nextPoint = lastPointAxon + nextDirectionScaled
+#
+#         # addpend to coordinate list
+#         coords = np.row_stack((coords,nextPoint))
+#
+#         if np.inner(bundleDirection,(nextPoint-bundleCoords[currentBundleSegment,:])) > 0:
+#             currentBundleSegment = currentBundleSegment + 1
+#
+#     return coords
 
 def length_from_coords(coords):
     # get the length of the wanted axon geometry

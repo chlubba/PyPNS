@@ -278,7 +278,7 @@ class Bundle(object):
         else:
             raise Exception('Invalid axon type given to getDiam function.')
 
-        return round(diam,1)
+        return diam # round(diam,1)
 
 
     def add_recording_mechanism(self, mechanism):
@@ -437,7 +437,8 @@ class Bundle(object):
             filename = get_file_name('CAP_'+recMechName+'_recMech'+str(recMechIndex), self.basePath)
             # print "Save location for CAP file: " + filename
 
-            np.savetxt(filename, DataOut)
+            # np.savetxt(filename, DataOut)
+            np.save(filename, DataOut)
 
             # now save the extracellular signals of every cell
             DataOut = np.array(self.trec)
@@ -446,7 +447,8 @@ class Bundle(object):
             filename = get_file_name('CAP1A_'+recMechName+'_recMech'+str(recMechIndex), self.basePath)
             # print "Save location for single axon differentiated CAP file: " + filename
 
-            np.savetxt(filename, DataOut)
+            # np.savetxt(filename, DataOut)
+            np.save(filename, DataOut)
 
     def clear_all_CAP_files(self):
 
@@ -492,14 +494,16 @@ class Bundle(object):
         # add the time vector as the first list
         firstLine = np.transpose(np.concatenate(([0],np.array(self.trec))))
         dataOut = np.row_stack((firstLine, voltageSingleAxonFormatted))
-        np.savetxt(filename, dataOut)
+        # np.savetxt(filename, dataOut)
+        np.save(filename, dataOut)
 
     def save_imem_to_file_axonwise(self, axonIndex):
 
         # generate axon specific file name (a little clumsy, directory
         filename = get_file_name("I" + str(axonIndex), self.basePath, directoryType='I')
 
-        np.savetxt(filename, self.axons[axonIndex].imem)
+        # np.savetxt(filename, self.axons[axonIndex].imem)
+        np.save(filename, self.axons[axonIndex].imem)
 
     def get_imem_from_file_axonwise(self, axonIndex):
 
@@ -507,7 +511,8 @@ class Bundle(object):
         filename = get_file_name("I" + str(axonIndex), self.basePath, directoryType='I', newFile=False)
 
         try:
-            imem = np.loadtxt(filename)
+            # imem = np.loadtxt(filename)
+            imem = np.load(filename)
             return imem
         except:
             raise Exception('imem-file not found for axon ' + str(axonIndex))
@@ -561,12 +566,14 @@ class Bundle(object):
         # get the whole CAP, can be single electrode or multiple
         directory = get_directory_name("CAP_"+recMechName+'_recMech'+str(recordingMechanismIndex), self.basePath)
         try:
-            newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+            # newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+            newestFile = max(glob.iglob(os.path.join(directory, '') + '*.[Nn][Pp][Yy]'), key=os.path.getctime)
         except ValueError:
             # print 'No CAP calculation has been performed yet with this set of parameters.'
             return None, None
 
-        CAPraw = np.transpose(np.loadtxt(newestFile))
+        # CAPraw = np.transpose(np.loadtxt(newestFile))
+        CAPraw = np.transpose(np.load(newestFile))
         time = CAPraw[0,:]
         CAP = np.squeeze(CAPraw[1:,:])
 
@@ -579,7 +586,8 @@ class Bundle(object):
 
         # check if calculations have been made
         try:
-            newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+            # newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
+            newestFile = max(glob.iglob(os.path.join(directory, '') + '*.[Nn][Pp][Yy]'), key=os.path.getctime)
         except ValueError:
             print 'No voltage calculation has been performed yet with this set of parameters.'
             return None, None
@@ -594,7 +602,8 @@ class Bundle(object):
             # get axon specific file name (of existing file)
             filename = get_file_name("V"+str(axonIndex), self.basePath, newFile=False, directoryType='V')
 
-            Vraw = np.loadtxt(filename)
+            # Vraw = np.loadtxt(filename)
+            Vraw = np.load(filename)
 
             timeRec = Vraw[0,1:] # extract time vector
             segmentArray = Vraw[1:,0] # extract segment numbers for each axon (varies with diameter, lambda rule)

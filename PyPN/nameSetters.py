@@ -106,7 +106,7 @@ def get_file_name(recordingType, basePath, newFile=True, directoryType=False):
             directory = get_directory_name(directoryType, basePath)
 
         # filename = 'recording.dat'
-        filename = recordingType+'.dat'
+        filename = recordingType+'.npy'
 
         number = 0
         filenameTemp = filename

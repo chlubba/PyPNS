@@ -24,21 +24,21 @@ timeRes=0.0025
 # ----------------------------- bundle params -------------------------------
 
 # set length of bundle and number of axons
-lengthOfBundle = 80000 # 20000 # 400000
+lengthOfBundle = 4000 # 20000 # 400000
 numberOfAxons = 1
 
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
 # 5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.
 myelinatedDiam =  0.7 # {'distName' : 'normal', 'params' : (1.0, 0.7)} # (2.0, 0.7)
-unmyelinatedDiam = 5 # {'distName' : 'normal', 'params' : (0.7, 0.3)}
+unmyelinatedDiam = 2 # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
 # axon definitions
 myelinatedParameters = {'fiberD': myelinatedDiam}
 unmyelinatedParameters = {'fiberD': unmyelinatedDiam}
 
 # bundle guide
-segmentLengthAxon = 30
+segmentLengthAxon = 10
 bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segmentLengthAxon)
 
 # ----------------------------- stimulation params ---------------------------
@@ -61,7 +61,7 @@ intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectang
 
 recordingParametersNew = {'bundleGuide': bundleGuide,
                           'radius': 200,
-                          'positionAlongBundle': 7000,
+                          'positionAlongBundle': 3000,
                           'numberOfPoles': 2,
                           'poleDistance': 1000,
                         }
@@ -81,7 +81,7 @@ modularRecMech2 = PyPN.RecordingMechanism(electrodePos, LFPMech2)
 
 if calculationFlag:
 
-    for randomComponent in np.arange(0, 0.1, 0.1):
+    for randomComponent in np.arange(0, .51, 0.05):
 
         # set all properties of the bundle
         bundleParameters = {'radius': 300,  # 150, #um Radius of the bundle (typically 0.5-1.5mm)
@@ -118,7 +118,7 @@ if calculationFlag:
         # bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParametersBip))
         # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
 
-        bundle.add_recording_mechanism(modularRecMech1)
+        # bundle.add_recording_mechanism(modularRecMech1)
         bundle.add_recording_mechanism(modularRecMech2)
 
         # PyPN.plot.geometry_definition(bundle)
@@ -127,9 +127,9 @@ if calculationFlag:
         # run the simulation
         bundle.simulate()
 
-        # # get SFAP
-        # time, CAP = bundle.get_CAP_from_file()
-        # plt.plot(time, CAP)
+        # get SFAP
+        time, CAP = bundle.get_CAP_from_file()
+        plt.plot(time, CAP)
 
     # # save the bundle to disk
     # PyPN.save_bundle(bundle)
@@ -193,7 +193,7 @@ print '\nStarting to plot'
 
 
 # PyPN.plot.CAP1D(bundle, recMechIndex=1)
-PyPN.plot.voltage(bundle)
+# PyPN.plot.voltage(bundle)
 # PyPN.plot.diameterHistogram(bundle)
 plt.show()
 

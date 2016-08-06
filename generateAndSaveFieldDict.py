@@ -3,13 +3,20 @@ import os
 import cPickle as pickle
 
 # set path according to location of the exported field from COMSOL
-sourceFolder = '/media/carl/4ECC-1C44/ComsolData/cuffFiner'
+# sourceFolder = '/media/carl/4ECC-1C44/ComsolData/cuffFiner'
+sourceFolder = '/media/carl/4ECC-1C44/ComsolData/stimulationField/noCuffStimulation'
 
 # desired location and name of dictionary
 destinationFolder = os.path.join(sourceFolder, 'numpy')
 
+try:
+    os.makedirs(destinationFolder)
+except OSError:
+    if not os.path.isdir(destinationFolder):
+        raise
+
 # axon positions
-axonXs = [0, 180]
+axonXs = [0, 1000] # [0, 180]
 
 def load_field(folder, axonXs):
 

@@ -2,6 +2,7 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 
 from axonClass import *
 from recordingMechanismClass2 import RecordingMechanism
@@ -96,26 +97,26 @@ def geometry_definition(bundle, axis_equal=True, axis_off=False):
 
     recMechColors = np.array(scalarMap.to_rgba(range(numRecMechs)))
 
-    recMechIndex = 0
-    for recMech in bundle.recordingMechanisms:
-
-        labelString=recMech.__class__.__name__ + str(recMechIndex)
-
-        if isinstance(recMech, RecordingMechanism):
-            refelecParamDict = recMech.electrodeParameters
-            X = refelecParamDict['x']
-            Y = refelecParamDict['y']
-            Z = refelecParamDict['z']
-        elif isinstance(recMech, RecordingMechanismFEM):
-            X = recMech.electrodePositions[:,0]
-            Y = recMech.electrodePositions[:,1]
-            Z = recMech.electrodePositions[:,2]
-        else:
-            X, Y, Z = [], [], []
-
-        ax.scatter(X, Y, Z, label=labelString, color=recMechColors[recMechIndex,:])
-
-        recMechIndex += 1
+    # recMechIndex = 0
+    # for recMech in bundle.recordingMechanisms:
+    #
+    #     labelString=recMech.__class__.__name__ + str(recMechIndex)
+    #
+    #     if isinstance(recMech, RecordingMechanism):
+    #         refelecParamDict = recMech.electrodeParameters
+    #         X = refelecParamDict['x']
+    #         Y = refelecParamDict['y']
+    #         Z = refelecParamDict['z']
+    #     elif isinstance(recMech, RecordingMechanismFEM):
+    #         X = recMech.electrodePositions[:,0]
+    #         Y = recMech.electrodePositions[:,1]
+    #         Z = recMech.electrodePositions[:,2]
+    #     else:
+    #         X, Y, Z = [], [], []
+    #
+    #     ax.scatter(X, Y, Z, label=labelString, color=recMechColors[recMechIndex,:])
+    #
+    #     recMechIndex += 1
 
     if axis_off:
         ax.set_axis_off()
@@ -174,7 +175,8 @@ def CAP1D_singleAxon(bundle, maxNumberOfAxons=10, recMechIndex=0):
         print 'No CAP calculation has been performed yet with this set of parameters.'
         return
 
-    CAPraw = np.transpose(np.loadtxt(newestFile))
+    # CAPraw = np.transpose(np.loadtxt(newestFile))
+    CAPraw = np.transpose(np.load(newestFile))
     time = CAPraw[0,:]
     CAP = CAPraw[1:,:]
 
