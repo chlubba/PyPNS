@@ -24,6 +24,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 
 from takeTime import *
+import constants
 import silencer
 
 # from recordingMechanismFEMClass import RecordingMechanismFEM
@@ -31,6 +32,7 @@ import silencer
 from extracellularMechanismClass import precomputedFEM
 
 from scipy.signal import argrelextrema
+from scipy.interpolate import interp1d
 
 from nameSetters import *
 
@@ -296,7 +298,7 @@ class Bundle(object):
 
     
     def add_excitation_mechanism(self, mechanism):
-        mechanism.timeRes = self.timeRes
+        # mechanism.timeRes = self.timeRes
         self.excitationMechanisms.append(mechanism)
 
 
@@ -312,8 +314,13 @@ class Bundle(object):
         for excitationMechanism in self.excitationMechanisms:
             excitationMechanism.delete_neuron_objects()
 
-        # needed if variable time step is needed
-        self.createTimeVector()
+        # TODO: for now trec is saved as the global time vector in the bundle. However it is only valid for the CAP if a variabletime step is used.
+        if isinstance(self.timeRes, numbers.Number):
+            # if the time step is constant, all axons have the same time vector
+            self.trec = self.axons[0].trec
+        else:
+            # create regularized time vector with a time step set in constants
+            self.createTimeVector()
 
         # compute the compound action potential by summing all axon contributions up, save it, delete variables
         with takeTime('compute CAP from single axon contributions'):
@@ -321,6 +328,10 @@ class Bundle(object):
         with takeTime('save CAP data'):
             self.save_CAPs_to_file()
         self.clear_CAP_vars()
+
+        # TODO: check if size is reduces, implement more elgantly
+        for recMech in self.recordingMechanisms:
+            recMech.clean_up()
 
     def simulate_axons(self):
 
@@ -359,6 +370,8 @@ class Bundle(object):
                         recMechIndex += 1
             else:
                 print 'No recording mechanisms added. No CAP will be recorded.'
+
+            # TODO: regularize time step for current and voltage here, so you don't need to care about it later
 
             if self.saveV:
                 with takeTime("save membrane potential to disk"):
@@ -620,10 +633,22 @@ class Bundle(object):
 
         return timeRec, voltageMatrices
 
+    def get_voltage_from_file_one_axon(self, axonIndex):
+
+        # get axon specific file name (of existing file)
+        filename = get_file_name("V" + str(axonIndex), self.basePath, newFile=False, directoryType='V')
+
+        # Vraw = np.loadtxt(filename)
+        Vraw = np.load(filename)
+
+        timeRec = Vraw[0, 1:]  # extract time vector
+        V = Vraw[1:, 1:]  # free actual voltage signals from surrounding formatting
+
+        return timeRec, V.T
+
     def createTimeVector(self):
         # TODO: make this optional depending on whether a variable time step was used or not
-        # TODO: separate function after all axons have been computed
-        minTimeStep = 0.025
+        minTimeStep = constants.timeResResult
         minEndTime = np.Inf
         maxStartTime = -np.Inf
         for axon in self.axons:
@@ -642,14 +667,13 @@ class Bundle(object):
 
     def compute_CAPs(self):
 
-        from scipy.interpolate import interp1d
-
         for recMech in self.recordingMechanisms:
-            # TODO: optional...
-            # first regularize time grid
-            for axonIndex, SFAP in enumerate(recMech.CAP_axonwise):
-                f = interp1d(self.axons[axonIndex].trec, SFAP)
-                recMech.CAP_axonwise[axonIndex] = f(self.trec)
+
+            # regularize time if variable time step was used
+            if not isinstance(self.timeRes, numbers.Number):
+                for axonIndex, SFAP in enumerate(recMech.CAP_axonwise):
+                    f = interp1d(self.axons[axonIndex].trec, SFAP)
+                    recMech.CAP_axonwise[axonIndex] = f(self.trec)
 
             recMech.compute_overall_CAP()
 

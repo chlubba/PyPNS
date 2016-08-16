@@ -5,6 +5,7 @@ import numpy as np # for arrays managing
 import math
 import os
 from scipy import interpolate
+import numbers
 
 import createGeometry
 
@@ -198,6 +199,8 @@ class Axon(object):
         # Fetch the vectors from the memireclist and calculate self.imem
         # containing all the membrane currents.
 
+        # TODO: transform time step
+
         self.imem = np.array(self.memireclist)
         for i in range(self.imem.shape[0]):
             self.imem[i, ] *= self.area[i] * 1E-2
@@ -242,12 +245,14 @@ class Axon(object):
         h.finitialize(self.v_init)
         h.tstop = self.tStop
 
-        # h.dt = self.timeRes
-        h('cvode_active(1)')
-        h('cvode.atol(0.001)')
+        # variable time step is indicated by a string as the timeRes parameter of the bundle/axon. Normally 'variable'
+        if isinstance(self.timeRes, numbers.Number):
+            h.dt = self.timeRes
+        else:
+            h('cvode_active(1)')
+            h('cvode.atol(0.001)')
 
         h.run()
-
 
         if rec_imem:
             self.calc_imem()

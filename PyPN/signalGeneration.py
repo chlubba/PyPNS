@@ -1,7 +1,8 @@
 import numpy as np
 from scipy import signal
+import constants
 
-def biphasic_decaying(timeRes, tDelay=0, tC=1, aC=0.05, tExp=1, cExp=-5, tD=2, aD=-0.01):
+def biphasic_decaying(timeRes=constants.timeResStim, tDelay=0, tC=1, aC=0.05, tExp=1, cExp=-5, tD=2, aD=-0.01):
     """
     Defines stimulus signal shape as in <name paper>
 
@@ -37,7 +38,7 @@ def biphasic_decaying(timeRes, tDelay=0, tC=1, aC=0.05, tExp=1, cExp=-5, tD=2, a
 
     return overallSignal
 
-def rectangular(stimDur, amplitude, frequency, dutyCycle, waveform, timeRes, delay=0, invert=False):
+def rectangular(stimDur, amplitude, frequency, dutyCycle, waveform, timeRes=constants.timeResStim, delay=0, invert=False):
 
     tGen = np.arange(0, stimDur, timeRes)
 

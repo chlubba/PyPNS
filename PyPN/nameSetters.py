@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import cPickle as pickle
 
@@ -9,6 +10,7 @@ def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop 
 
     # read out dictionary of parameters (more elegant methon possible?)
     # elecCount = len(paramDict['recordingElecPos'])
+    # TODO: variable timestep option
     dt=paramDict['timeRes']
     tStop = paramDict['tStop']
     pMyel = paramDict['pMyel']
@@ -144,5 +146,7 @@ def open_bundle_from_location(bundleSaveLocation):
         bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))
         return bundle
     except:
+        # print("Unexpected error:", sys.exc_info()[0])
+        # raise
         print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
 

@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from PyPN.takeTime import *
 import numpy as np
 import os
+from pprint import pprint
+import sys
 
 # ------------------------------------------------------------------------------
 # ------------------------------- SCRIPT CONTROL -------------------------------
@@ -24,7 +26,7 @@ timeRes=0.0025
 # ----------------------------- bundle params -------------------------------
 
 # set length of bundle and number of axons
-lengthOfBundle = 15000 # 20000 # 400000
+lengthOfBundle = 5000 # 20000 # 400000
 numberOfAxons = 1
 
 # set the diameter distribution or fixed value
@@ -51,7 +53,7 @@ rectangularSignalParams = {'amplitude': 50.,  # Pulse amplitude (mA)
                            'waveform': 'MONOPHASIC',  # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
                            'delay': 2.,  # ms
                            # 'invert': True,
-                           'timeRes': timeRes,
+                           # 'timeRes': timeRes,
                            }
 
 
@@ -105,7 +107,7 @@ if calculationFlag:
                             'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
 
                             'tStop': tStop,
-                            'timeRes': timeRes,
+                            'timeRes': 'variable', #timeRes, #
 
                             # 'saveI':True,
                             # 'saveV': False,
@@ -141,8 +143,8 @@ if calculationFlag:
         # time, CAP = bundle.get_CAP_from_file()
         # plt.plot(time, CAP)
 
-    # # save the bundle to disk
-    # PyPN.save_bundle(bundle)
+        # save the bundle to disk
+        PyPN.save_bundle(bundle)
 else:
 
     # try to open a bundle with the parameters set above
@@ -150,7 +152,7 @@ else:
     # bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=100 pMyel=0.1 pUnmyel=0.9 L=20000 nAxons=500/bundle00000')
     # bundle = PyPN.open_bundle_from_location('/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=100 pMyel=0.1 pUnmyel=0.9 L=20000 nAxons=500/bundle00001')
     bundle = PyPN.open_bundle_from_location(
-        '/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=100 pMyel=0.1 pUnmyel=0.9 L=20000 nAxons=500/bundle00001')
+        '/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=60 pMyel=0.0 pUnmyel=1.0 L=5000 nAxons=13/bundle00000')
 
 # ------------------------------------------------------------------------------
 # ---------------------------------- PLOTTING ----------------------------------
@@ -158,11 +160,25 @@ else:
 
 print '\nStarting to plot'
 
+# # pp = pprint.PrettyPrinter(indent=4)
+# # pp.pprint(bundle)
+# pprint (vars(bundle))
+# # for axon in bundle.axons:
+# #     # print axon.nbytes
+# #     pprint (vars(axon))
+# pprint(vars(bundle.axons[0]))
+# pprint(vars(bundle.recordingMechanisms[0]))
+
+
+
+
 # first load the desired data from file
 for i in range(len(bundle.recordingMechanisms)):
     time, CAP = bundle.get_CAP_from_file(i)
     plt.plot(time, CAP, label='recMech'+str(i))
 plt.legend()
+
+
 
 # # # # PyPN.plot.geometry_definition(bundle)
 # PyPN.plot.CAP1D(bundle)

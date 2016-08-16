@@ -68,5 +68,8 @@ class RecordingMechanism(object):
 
         self.CAP_axonwise.append(CAP_axonwise)
 
+    def clean_up(self):
+        self.extPotMech = None
+
 
 

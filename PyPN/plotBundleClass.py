@@ -97,6 +97,8 @@ def geometry_definition(bundle, axis_equal=True, axis_off=False):
 
     recMechColors = np.array(scalarMap.to_rgba(range(numRecMechs)))
 
+    # TODO: get electrode positions of recording mechanisms
+
     # recMechIndex = 0
     # for recMech in bundle.recordingMechanisms:
     #
@@ -354,12 +356,7 @@ def voltage(bundle, maxNumberOfSubplots=10):
 
     '''
 
-    timeRec, voltageMatrices = bundle.get_voltage_from_file()
-    if timeRec == None:
-        return
-
-    # now plot
-    numberOfAxons = np.shape(voltageMatrices)[0]
+    numberOfAxons = np.shape(bundle.axons)[0]
     numberOfPlots = min(maxNumberOfSubplots, numberOfAxons)
 
     axonSelection = np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
@@ -384,13 +381,14 @@ def voltage(bundle, maxNumberOfSubplots=10):
     for i in range(len(axonSelection)):
         axonIndex = int(axonSelection[i])
 
-        voltageMatrix = np.transpose(voltageMatrices[axonIndex])
+        # voltageMatrix = np.transpose(voltageMatrices[axonIndex])
+        t, v = bundle.get_voltage_from_file_one_axon(axonIndex)
 
         # find out whether axon is myelinated or not
         isMyelinated = (type(bundle.axons[axonIndex]) == Myelinated)
 
         axonDiameter = bundle.axons[axonIndex].fiberD
-        currentNumberOfSegments = np.shape(voltageMatrix)[1]
+        currentNumberOfSegments = np.shape(v)[1]
         currentAxonLength = bundle.axons[axonIndex].L
 
         if len(axonSelection) > 1:
@@ -401,13 +399,13 @@ def voltage(bundle, maxNumberOfSubplots=10):
         if not isMyelinated:
             for j in range(currentNumberOfSegments):
                 colorVal = scalarMap.to_rgba(int(j * currentAxonLength / currentNumberOfSegments))
-                currentAxis.plot(timeRec, voltageMatrix[:,j], color=colorVal)
+                currentAxis.plot(t, v[:,j], color=colorVal)
 
             currentAxis.set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
         else:
             Nnodes = bundle.axons[axonIndex].axonnodes
 
-            numberOfRecordingSites = np.shape(voltageMatrix)[1]
+            numberOfRecordingSites = np.shape(v)[1]
 
             nodePositions = range(0,(Nnodes-1)*11,11)
 
@@ -416,7 +414,7 @@ def voltage(bundle, maxNumberOfSubplots=10):
             nodeCounter = 0
             for j in nodePositions:
                 colorVal = scalarMap.to_rgba(int(nodeCounter * nodeDistance))
-                currentAxis.plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
+                currentAxis.plot(np.array(timeRec), np.array(v[:,j]), color=colorVal)
                 nodeCounter += 1
 
             currentAxis.set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
@@ -438,6 +436,104 @@ def voltage(bundle, maxNumberOfSubplots=10):
         cb1.set_label('length [um]')
 
     plt.savefig(os.path.join(bundle.basePath, 'voltage.png'))
+
+# def voltage(bundle, maxNumberOfSubplots=10):
+#
+#     '''
+#     Plot of the membrane voltage against time for axon-segments.
+#
+#     Args:
+#         bundle: PyPN.Bundle object
+#         maxNumberOfSubplots: If more than maxNumberOfSubplots axons recorded, select maxNumberOfSubplots randomly.
+#
+#     Returns:
+#
+#     '''
+#
+#     timeRec, voltageMatrices = bundle.get_voltage_from_file()
+#     if timeRec == None:
+#         return
+#
+#     # now plot
+#     numberOfAxons = np.shape(voltageMatrices)[0]
+#     numberOfPlots = min(maxNumberOfSubplots, numberOfAxons)
+#
+#     axonSelection = np.floor(np.linspace(0,numberOfAxons-1, numberOfPlots))
+#
+#     if len(axonSelection) > 1:
+#         f, axarr = plt.subplots(numberOfPlots, sharex=True)
+#     else:
+#         f = plt.figure()
+#
+#     # colors
+#     jet = plt.get_cmap('jet')
+#
+#     # for colorbar first check what is the longest axon
+#     maxAxonLength = 0
+#     for i in range(len(axonSelection)):
+#         axonIndex = int(axonSelection[i])
+#         maxAxonLength = max(maxAxonLength, bundle.axons[axonIndex].L)
+#
+#     cNorm = colors.Normalize(vmin=0, vmax=int(maxAxonLength)-1)
+#     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+#
+#     for i in range(len(axonSelection)):
+#         axonIndex = int(axonSelection[i])
+#
+#         voltageMatrix = np.transpose(voltageMatrices[axonIndex])
+#
+#         # find out whether axon is myelinated or not
+#         isMyelinated = (type(bundle.axons[axonIndex]) == Myelinated)
+#
+#         axonDiameter = bundle.axons[axonIndex].fiberD
+#         currentNumberOfSegments = np.shape(voltageMatrix)[1]
+#         currentAxonLength = bundle.axons[axonIndex].L
+#
+#         if len(axonSelection) > 1:
+#             currentAxis = axarr[i]
+#         else:
+#             currentAxis = plt.gca()
+#
+#         if not isMyelinated:
+#             for j in range(currentNumberOfSegments):
+#                 colorVal = scalarMap.to_rgba(int(j * currentAxonLength / currentNumberOfSegments))
+#                 currentAxis.plot(timeRec, voltageMatrix[:,j], color=colorVal)
+#
+#             currentAxis.set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
+#         else:
+#             Nnodes = bundle.axons[axonIndex].axonnodes
+#
+#             numberOfRecordingSites = np.shape(voltageMatrix)[1]
+#
+#             nodePositions = range(0,(Nnodes-1)*11,11)
+#
+#             nodeDistance = bundle.axons[axonIndex].lengthOneCycle
+#
+#             nodeCounter = 0
+#             for j in nodePositions:
+#                 colorVal = scalarMap.to_rgba(int(nodeCounter * nodeDistance))
+#                 currentAxis.plot(np.array(timeRec), np.array(voltageMatrix[:,j]), color=colorVal)
+#                 nodeCounter += 1
+#
+#             currentAxis.set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')
+#
+#         currentAxis.set_ylabel('Voltage [mV]')
+#         # axarr[i].set_ylim([-100,100])
+#         currentAxis.set_xlabel('time [ms]')
+#
+#
+#         # make room for colorbar
+#         f.subplots_adjust(right=0.8)
+#
+#         # add colorbar axis
+#         axColorbar = f.add_axes([0.85, 0.15, 0.05, 0.7])
+#
+#         cb1 = mpl.colorbar.ColorbarBase(axColorbar, cmap=jet,
+#                                         norm=cNorm,
+#                                         orientation='vertical')
+#         cb1.set_label('length [um]')
+#
+#     plt.savefig(os.path.join(bundle.basePath, 'voltage.png'))
 
 def voltage_one_myelinated_axon(bundle, myelinatedIndex=0):
 
