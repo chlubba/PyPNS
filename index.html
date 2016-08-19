@@ -1,0 +1,950 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The PyPN API &mdash; PyPN 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PyPN 0.1 documentation" href="#" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">PyPN 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-PyPN">
+<span id="the-pypn-api"></span><h1>The PyPN API<a class="headerlink" href="#module-PyPN" title="Permalink to this headline">¶</a></h1>
+<p>To use <code class="docutils literal"><span class="pre">PyPN</span></code>, you need to:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">PyPN</span>
+</pre></div>
+</div>
+<p>This will import the classes</p>
+<ul class="simple">
+<li><a class="reference internal" href="#bundleClass.Bundle" title="bundleClass.Bundle"><code class="xref py py-class docutils literal"><span class="pre">bundleClass.Bundle</span></code></a></li>
+<li><a class="reference internal" href="#extracellularMechanismClass.homogeneous" title="extracellularMechanismClass.homogeneous"><code class="xref py py-class docutils literal"><span class="pre">extracellularMechanismClass.homogeneous</span></code></a> and <a class="reference internal" href="#extracellularMechanismClass.precomputedFEM" title="extracellularMechanismClass.precomputedFEM"><code class="xref py py-class docutils literal"><span class="pre">extracellularMechanismClass.precomputedFEM</span></code></a></li>
+<li><a class="reference internal" href="#recordingMechanismClass.RecordingMechanism" title="recordingMechanismClass.RecordingMechanism"><code class="xref py py-class docutils literal"><span class="pre">recordingMechanismClass.RecordingMechanism</span></code></a></li>
+<li><a class="reference internal" href="#stimulusClass.StimIntra" title="stimulusClass.StimIntra"><code class="xref py py-class docutils literal"><span class="pre">stimulusClass.StimIntra</span></code></a>, <a class="reference internal" href="#stimulusClass.StimFieldQuasistatic" title="stimulusClass.StimFieldQuasistatic"><code class="xref py py-class docutils literal"><span class="pre">stimulusClass.StimFieldQuasistatic</span></code></a>, <a class="reference internal" href="#upstreamSpikingClass.UpstreamSpiking" title="upstreamSpikingClass.UpstreamSpiking"><code class="xref py py-class docutils literal"><span class="pre">upstreamSpikingClass.UpstreamSpiking</span></code></a></li>
+</ul>
+<p>as well as the modules</p>
+<ul class="simple">
+<li><a class="reference internal" href="#module-createGeometry" title="createGeometry"><code class="xref py py-mod docutils literal"><span class="pre">createGeometry</span></code></a></li>
+<li><a class="reference internal" href="#module-nameSetters" title="nameSetters"><code class="xref py py-mod docutils literal"><span class="pre">nameSetters</span></code></a></li>
+<li><a class="reference internal" href="#module-signalGeneration" title="signalGeneration"><code class="xref py py-mod docutils literal"><span class="pre">signalGeneration</span></code></a></li>
+<li><a class="reference internal" href="#module-spikeTrainGeneration" title="spikeTrainGeneration"><code class="xref py py-mod docutils literal"><span class="pre">spikeTrainGeneration</span></code></a></li>
+</ul>
+<div class="section" id="the-bundle-class">
+<h2>The <code class="docutils literal"><span class="pre">Bundle</span></code> Class<a class="headerlink" href="#the-bundle-class" title="Permalink to this headline">¶</a></h2>
+<p>The central object in <code class="docutils literal"><span class="pre">PyPN</span></code> is <a class="reference internal" href="#bundleClass.Bundle" title="bundleClass.Bundle"><code class="xref py py-class docutils literal"><span class="pre">bundleClass.Bundle</span></code></a>.</p>
+<dl class="class">
+<dt id="bundleClass.Bundle">
+<em class="property">class </em><code class="descclassname">bundleClass.</code><code class="descname">Bundle</code><a class="headerlink" href="#bundleClass.Bundle" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="bundleClass.Bundle.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>radius</em>, <em>length</em>, <em>numberOfAxons</em>, <em>pMyel</em>, <em>pUnmyel</em>, <em>paramsMyel</em>, <em>paramsUnmyel</em>, <em>bundleGuide=None</em>, <em>segmentLengthAxon=10</em>, <em>randomDirectionComponent=0.3</em>, <em>tStop=30</em>, <em>timeRes=0.0025</em>, <em>numberOfSavedSegments=300</em>, <em>saveV=True</em>, <em>saveI=False</em>, <em>saveLocation=''</em><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor of the Bundle class, the main object in <cite>PyPN</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>radius</strong> &#8211; radius of the nerve</li>
+<li><strong>length</strong> &#8211; length of the nerve (not equal to length of the axons as they can take a curvy trajectory)</li>
+<li><strong>bundleGuide</strong> &#8211; 3D-trajectory of the bundle</li>
+<li><strong>numberOfAxons</strong> &#8211; number of axons exist within the nerve</li>
+<li><strong>segmentLengthAxon</strong> &#8211; length of a straight axon segment (used by <code class="xref py py-meth docutils literal"><span class="pre">generateGeometry.create_random_axon()</span></code>)</li>
+<li><strong>randomDirectionComponent</strong> &#8211; (0-1) how curvy are the axons (used by <code class="xref py py-meth docutils literal"><span class="pre">generateGeometry.create_random_axon()</span></code>)</li>
+<li><strong>pMyel</strong> &#8211; fraction of myelinated axons</li>
+<li><strong>pUnmyel</strong> &#8211; fraction of unmyelinated axons</li>
+<li><strong>paramsMyel</strong> &#8211; parameters for myelinated axons</li>
+<li><strong>paramsUnmyel</strong> &#8211; parameters for unmyelinated axons</li>
+<li><strong>tStop</strong> &#8211; length of the simulation</li>
+<li><strong>timeRes</strong> &#8211; either &#8216;variable&#8217; or numerical in ms</li>
+<li><strong>numberOfSavedSegments</strong> &#8211; specifies for how many segments the membrane voltage is saved to disk</li>
+<li><strong>saveV</strong> &#8211; decides whether membrane voltage is saved to disk at all</li>
+<li><strong>saveI</strong> &#8211; decides whether membrane current is saved to disk</li>
+<li><strong>saveLocation</strong> &#8211; where to save the bundle and every other output of the calculations</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="simulating-a-bundle">
+<h3>Simulating a <code class="docutils literal"><span class="pre">Bundle</span></code><a class="headerlink" href="#simulating-a-bundle" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="bundleClass.Bundle.simulate">
+<code class="descclassname">Bundle.</code><code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method starts the actual simulation of the bundle. Each axon will be created in NEURON separately, all excitation mechanisms will be connected to it and the simulation of the particular axon will be started. After having finished, the membrane currents are used to calculate the extracellular potentials for all recording mechanisms added. All NEURON objects are deleted and the next axon is processed. When all axons are done, their contributions are added in each recording mechanism to obtain the overall compound action potential.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="configuring-the-bundle-for-simulation">
+<h3>Configuring the Bundle for Simulation<a class="headerlink" href="#configuring-the-bundle-for-simulation" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="bundleClass.Bundle.add_excitation_mechanism">
+<code class="descclassname">Bundle.</code><code class="descname">add_excitation_mechanism</code><span class="sig-paren">(</span><em>mechanism</em><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.add_excitation_mechanism" title="Permalink to this definition">¶</a></dt>
+<dd><p>To incite activity on the axons containted in the nerve, excitation mechanisms need to be added to to the bundle with this function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mechanism</strong> &#8211; An excitation mechanism instance.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bundleClass.Bundle.add_recording_mechanism">
+<code class="descclassname">Bundle.</code><code class="descname">add_recording_mechanism</code><span class="sig-paren">(</span><em>mechanism</em><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.add_recording_mechanism" title="Permalink to this definition">¶</a></dt>
+<dd><p>While membrane voltage and current recording can be switched off and on directly in the <a class="reference internal" href="#bundleClass.Bundle" title="bundleClass.Bundle"><code class="xref py py-class docutils literal"><span class="pre">bundleClass.Bundle</span></code></a> class, extracellular recording electrodes (or other mechansisms) need to be added to the bundle before simulating with this function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mechanism</strong> &#8211; A recording mechanism instance from <cite>recordingMechanismClass</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="recovering-the-results-of-a-simulation">
+<h3>Recovering the Results of a Simulation<a class="headerlink" href="#recovering-the-results-of-a-simulation" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="bundleClass.Bundle.get_CAP_from_file">
+<code class="descclassname">Bundle.</code><code class="descname">get_CAP_from_file</code><span class="sig-paren">(</span><em>recordingMechanismIndex=0</em><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.get_CAP_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the CAP of the recording mechansim specified from disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>recordingMechanismIndex</strong> &#8211; Index of the desired recording mechanism.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">time vector, CAP</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bundleClass.Bundle.get_SFAPs_from_file">
+<code class="descclassname">Bundle.</code><code class="descname">get_SFAPs_from_file</code><span class="sig-paren">(</span><em>recordingMechanismIndex=0</em><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.get_SFAPs_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the extracellular single fiber action potentials of the recording mechansim specified from disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>recordingMechanismIndex</strong> &#8211; Index of the desired recording mechanism.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">time vector, matrix of SFAPs</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="bundleClass.Bundle.get_voltage_from_file_one_axon">
+<code class="descclassname">Bundle.</code><code class="descname">get_voltage_from_file_one_axon</code><span class="sig-paren">(</span><em>axonIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.get_voltage_from_file_one_axon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the voltage time series of one particular axon.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>axonIndex</strong> &#8211; index of desired axon</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">time vector, voltage signal</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="rerunning-the-cap-calculation-from-precomputed-membrane-current">
+<h3>Rerunning the CAP Calculation from Precomputed Membrane Current<a class="headerlink" href="#rerunning-the-cap-calculation-from-precomputed-membrane-current" title="Permalink to this headline">¶</a></h3>
+<dl class="method">
+<dt id="bundleClass.Bundle.compute_CAPs_from_imem_files">
+<code class="descclassname">Bundle.</code><code class="descname">compute_CAPs_from_imem_files</code><span class="sig-paren">(</span><em>recMecIndices=-1</em><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.compute_CAPs_from_imem_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>If simulation has already been run and the membrane current has been saved, this function calculates the CAP from the saved membrane current.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bundleClass.Bundle.clear_all_CAP_files">
+<code class="descclassname">Bundle.</code><code class="descname">clear_all_CAP_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.clear_all_CAP_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rid of all CAP recordings written to disk. This might be useful if you save the membrane current and then calculate the CAP from it several times with different recording mechanisms using <a class="reference internal" href="#bundleClass.Bundle.compute_CAPs_from_imem_files" title="bundleClass.Bundle.compute_CAPs_from_imem_files"><code class="xref py py-meth docutils literal"><span class="pre">bundleClass.Bundle.compute_CAPs_from_imem_files()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="bundleClass.Bundle.clear_all_recording_mechanisms">
+<code class="descclassname">Bundle.</code><code class="descname">clear_all_recording_mechanisms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#bundleClass.Bundle.clear_all_recording_mechanisms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete all recording mechansisms from the <a class="reference internal" href="#bundleClass.Bundle" title="bundleClass.Bundle"><code class="xref py py-class docutils literal"><span class="pre">bundleClass.Bundle</span></code></a> object.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="the-extracellularmechanism-class">
+<h2>The <code class="docutils literal"><span class="pre">ExtracellularMechanism</span></code> Class<a class="headerlink" href="#the-extracellularmechanism-class" title="Permalink to this headline">¶</a></h2>
+<p>An <code class="docutils literal"><span class="pre">ExtracellularMechanism</span></code> is needed in <code class="docutils literal"><span class="pre">PyPN</span></code> to compute the extracellular field from currents. Two variants exist:</p>
+<dl class="class">
+<dt id="extracellularMechanismClass.homogeneous">
+<em class="property">class </em><code class="descclassname">extracellularMechanismClass.</code><code class="descname">homogeneous</code><span class="sig-paren">(</span><em>sigma=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#extracellularMechanismClass.homogeneous" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="extracellularMechanismClass.homogeneous.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>sigma=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#extracellularMechanismClass.homogeneous.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>The extracellular potential is calculated assuming a homogeneous outer medium with a constant, isotropic conductivity <code class="docutils literal"><span class="pre">sigma</span></code>. Used by <code class="xref py py-class docutils literal"><span class="pre">recodingMechanismClass.RecordingMechanism</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sigma</strong> &#8211; conductivity of the homogeneous tissue in S/m</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="extracellularMechanismClass.homogeneous.calculate_extracellular_potential">
+<code class="descname">calculate_extracellular_potential</code><span class="sig-paren">(</span><em>sourcePositions</em>, <em>sourceCurrents</em>, <em>receiverPositions</em><span class="sig-paren">)</span><a class="headerlink" href="#extracellularMechanismClass.homogeneous.calculate_extracellular_potential" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sourcePositions</strong> &#8211; positions of current point sources</li>
+<li><strong>sourceCurrents</strong> &#8211; currents of these point sources</li>
+<li><strong>receiverPositions</strong> &#8211; positions the voltage is calculated for</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="extracellularMechanismClass.precomputedFEM">
+<em class="property">class </em><code class="descclassname">extracellularMechanismClass.</code><code class="descname">precomputedFEM</code><span class="sig-paren">(</span><em>bundleGuide</em>, <em>fieldName='noCuff1'</em><span class="sig-paren">)</span><a class="headerlink" href="#extracellularMechanismClass.precomputedFEM" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="extracellularMechanismClass.precomputedFEM.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>bundleGuide</em>, <em>fieldName='noCuff1'</em><span class="sig-paren">)</span><a class="headerlink" href="#extracellularMechanismClass.precomputedFEM.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores a precomputed voltage field and calculates the extracelluar potential caused by point sources. Used by <code class="xref py py-class docutils literal"><span class="pre">recodingMechanismClass.RecordingMechanism</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>bundleGuide</strong> &#8211; 3D nerve trajectory</li>
+<li><strong>fieldName</strong> &#8211; string containing the name of the field to import; the location of field files needs to be specified somewhere (TODO)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="extracellularMechanismClass.precomputedFEM.calculate_extracellular_potential">
+<code class="descname">calculate_extracellular_potential</code><span class="sig-paren">(</span><em>sourcePositions</em>, <em>sourceCurrents</em>, <em>receiverPositions</em><span class="sig-paren">)</span><a class="headerlink" href="#extracellularMechanismClass.precomputedFEM.calculate_extracellular_potential" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sourcePositions</strong> &#8211; positions of current point sources</li>
+<li><strong>sourceCurrents</strong> &#8211; currents of these point sources</li>
+<li><strong>receiverPositions</strong> &#8211; positions the voltage is calculated for</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-recordingmechanism-class">
+<h2>The <code class="docutils literal"><span class="pre">RecordingMechanism</span></code> Class<a class="headerlink" href="#the-recordingmechanism-class" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="docutils literal"><span class="pre">RecordingMechansim</span></code> calculates the signal that would be picked up by an electrode. One electrode is approximated as a set of points.</p>
+<dl class="class">
+<dt id="recordingMechanismClass.RecordingMechanism">
+<em class="property">class </em><code class="descclassname">recordingMechanismClass.</code><code class="descname">RecordingMechanism</code><span class="sig-paren">(</span><em>electrodePositions</em>, <em>extracellularPotentialMechanism</em>, <em>polarities=()</em><span class="sig-paren">)</span><a class="headerlink" href="#recordingMechanismClass.RecordingMechanism" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="recordingMechanismClass.RecordingMechanism.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>electrodePositions</em>, <em>extracellularPotentialMechanism</em>, <em>polarities=()</em><span class="sig-paren">)</span><a class="headerlink" href="#recordingMechanismClass.RecordingMechanism.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">RecordingMechanism</span></code> calculates the extracellular potental as picked up by an electrode.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>electrodePositions</strong> &#8211; Positions of the recording electrodes. 3D numpy array for (electrode points) x (position in space of each electrode point ) x (poles)</li>
+<li><strong>extracellularPotentialMechanism</strong> &#8211; <code class="docutils literal"><span class="pre">ExtracellularMechanism</span></code> to convert membrane current into voltage</li>
+<li><strong>polarities</strong> &#8211; Signs of recording poles</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="recordingMechanismClass.RecordingMechanism.compute_overall_CAP">
+<code class="descname">compute_overall_CAP</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#recordingMechanismClass.RecordingMechanism.compute_overall_CAP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simply sum over single fibre contributions. Result saved in <code class="docutils literal"><span class="pre">self.CAP</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="recordingMechanismClass.RecordingMechanism.compute_single_axon_CAP">
+<code class="descname">compute_single_axon_CAP</code><span class="sig-paren">(</span><em>axon</em><span class="sig-paren">)</span><a class="headerlink" href="#recordingMechanismClass.RecordingMechanism.compute_single_axon_CAP" title="Permalink to this definition">¶</a></dt>
+<dd><ol class="arabic simple">
+<li>Calculate extracellular potential (LFP) for every electrode point defined in <code class="docutils literal"><span class="pre">self.electrodePositions</span></code></li>
+<li>Sum over points of single electrodes</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>axon</strong> &#8211; The axon for which the single fibre action potential is computed.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="stimulating-the-axons">
+<h2>Stimulating the Axons<a class="headerlink" href="#stimulating-the-axons" title="Permalink to this headline">¶</a></h2>
+<p>To make the axons spike, <code class="docutils literal"><span class="pre">ExcitationMechanisms</span></code> can be added to the <code class="docutils literal"><span class="pre">Bundle</span></code>. The user can choose from the following.</p>
+<div class="section" id="the-stimulationmechanism-class">
+<h3>The <code class="docutils literal"><span class="pre">StimulationMechanism</span></code> Class<a class="headerlink" href="#the-stimulationmechanism-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="stimulusClass.StimIntra">
+<em class="property">class </em><code class="descclassname">stimulusClass.</code><code class="descname">StimIntra</code><span class="sig-paren">(</span><em>stimulusSignal</em><span class="sig-paren">)</span><a class="headerlink" href="#stimulusClass.StimIntra" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="stimulusClass.StimIntra.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>stimulusSignal</em><span class="sig-paren">)</span><a class="headerlink" href="#stimulusClass.StimIntra.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Intracellular stimulation is effectively a current injection into each axon.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stimulusSignal</strong> &#8211; signal to stimulate the axons with. Unit nA</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="stimulusClass.StimIntra.connect_axon">
+<code class="descname">connect_axon</code><span class="sig-paren">(</span><em>axon</em><span class="sig-paren">)</span><a class="headerlink" href="#stimulusClass.StimIntra.connect_axon" title="Permalink to this definition">¶</a></dt>
+<dd><p>An IClamp is placed on the first section of the axon.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>axon</strong> &#8211; The axon the mechanism is connected to.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="stimulusClass.StimFieldQuasistatic">
+<em class="property">class </em><code class="descclassname">stimulusClass.</code><code class="descname">StimFieldQuasistatic</code><span class="sig-paren">(</span><em>stimulusSignal</em>, <em>electrodePositions</em>, <em>extPotMech</em>, <em>polarities=()</em><span class="sig-paren">)</span><a class="headerlink" href="#stimulusClass.StimFieldQuasistatic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="stimulusClass.StimFieldQuasistatic.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>stimulusSignal</em>, <em>electrodePositions</em>, <em>extPotMech</em>, <em>polarities=()</em><span class="sig-paren">)</span><a class="headerlink" href="#stimulusClass.StimFieldQuasistatic.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>A field is calulated from the current on stimulation electrodes and then applied to the axon as the extracellular membrane voltage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stimulusSignal</strong> &#8211; Current signal on the electrodes [nA]. If electrode is composed of many point electrodes, the signal is divided by the number of those.</li>
+<li><strong>electrodePositions</strong> &#8211; Positions of the electrodes as for RecordingMechanisms 3D</li>
+<li><strong>extPotMech</strong> &#8211; <code class="docutils literal"><span class="pre">ExtracellularMechansim</span></code> used to calculate the voltage at the axon membrane caused by the stimulation current.</li>
+<li><strong>polarities</strong> &#8211; Signs of the stimulation electrodes.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-upstreamspiking-class">
+<h3>The <code class="docutils literal"><span class="pre">UpstreamSpiking</span></code> Class<a class="headerlink" href="#the-upstreamspiking-class" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="upstreamSpikingClass.UpstreamSpiking">
+<em class="property">class </em><code class="descclassname">upstreamSpikingClass.</code><code class="descname">UpstreamSpiking</code><span class="sig-paren">(</span><em>spikeTrains</em><span class="sig-paren">)</span><a class="headerlink" href="#upstreamSpikingClass.UpstreamSpiking" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="upstreamSpikingClass.UpstreamSpiking.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>spikeTrains</em><span class="sig-paren">)</span><a class="headerlink" href="#upstreamSpikingClass.UpstreamSpiking.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Each axon receives a certain pattern of spikes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>spikeTrains</strong> &#8211; Matrix containing the spike streams for all axons. Current problem: Axons are generated in a random manner, no way of assining a certain spike stream to an axon of certain properties in a bundle with different axons.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-createGeometry">
+<span id="the-creategeometry-module"></span><h2>The <code class="docutils literal"><span class="pre">createGeometry</span></code> Module<a class="headerlink" href="#module-createGeometry" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="createGeometry.circular_electrode">
+<code class="descclassname">createGeometry.</code><code class="descname">circular_electrode</code><span class="sig-paren">(</span><em>bundleGuide</em>, <em>positionAlongBundle</em>, <em>radius</em>, <em>numberOfPoles</em>, <em>poleDistance</em>, <em>numberOfPoints=8</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.circular_electrode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the set of electrode coordinates for a circular electrode. Can be used for <code class="docutils literal"><span class="pre">RecordingMechanism</span></code> or <code class="docutils literal"><span class="pre">StimFieldQuasistatic</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bundleGuide</strong> &#8211; trajectory of the bundle</li>
+<li><strong>positionAlongBundle</strong> &#8211; distance from origin of the bundle along the trajectory</li>
+<li><strong>radius</strong> &#8211; radius of the ring</li>
+<li><strong>numberOfPoles</strong> &#8211; number of poles (rings)</li>
+<li><strong>poleDistance</strong> &#8211; distance between poles</li>
+<li><strong>numberOfPoints</strong> &#8211; number of points per ring</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">3D matrix of electrode coordinates</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="createGeometry.create_random_axon">
+<code class="descclassname">createGeometry.</code><code class="descname">create_random_axon</code><span class="sig-paren">(</span><em>bundleCoords4D</em>, <em>axonCoords</em>, <em>segmentLengthAxon</em>, <em>randomDirectionComponent=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.create_random_axon" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to generate the trajectory of axons. They can follow the bundle trajectory more or less loosely, as set by the parameter <code class="docutils literal"><span class="pre">randomDirectionComponent</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bundleCoords4D</strong> &#8211; Coordinates of the bundle trajectory, 4th coordinate is radius</li>
+<li><strong>axonCoords</strong> &#8211; initial position of the axon in the y-z-plane at x=0</li>
+<li><strong>segmentLengthAxon</strong> &#8211; length of each straight step of the axon trajectory</li>
+<li><strong>randomDirectionComponent</strong> &#8211; (0 - 1) Regulates the totuosity of the axon. If 0, axon follows bundle direction completely exactly. If 1, axon will only follow the bundle direction very loosely and get very long.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">axon coordinates</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="createGeometry.get_bundle_guide_corner">
+<code class="descclassname">createGeometry.</code><code class="descname">get_bundle_guide_corner</code><span class="sig-paren">(</span><em>bundleLength</em>, <em>segmentLengthAxon</em>, <em>overlapLength=1000</em>, <em>lengthFactor=3</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.get_bundle_guide_corner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a bundle trajectory with a corner (only a demonstration).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bundleLength</strong> &#8211; length of bundle</li>
+<li><strong>segmentLengthAxon</strong> &#8211; length of straight axon segment. Important for this function as the bundle segment length needs to be longer than the axon segment length for <code class="docutils literal"><span class="pre">create_random_axon</span></code> to work properly.</li>
+<li><strong>lengthFactor</strong> &#8211; (&gt;2) factor (bundle segment length) / (axon segment length)</li>
+<li><strong>overlapLength</strong> &#8211; additional length of the bundle trajectory to finish myelinated axons.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">bundle trajectory coordinates. 3 coordinates, no radius</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="createGeometry.get_bundle_guide_random">
+<code class="descclassname">createGeometry.</code><code class="descname">get_bundle_guide_random</code><span class="sig-paren">(</span><em>bundleLength</em>, <em>segmentLength=200</em>, <em>overlapLength=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.get_bundle_guide_random" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a random bundle trajectory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bundleLength</strong> &#8211; length of bundle</li>
+<li><strong>segmentLength</strong> &#8211; length of straight bundle segment</li>
+<li><strong>overlapLength</strong> &#8211; additional length of the bundle trajectory to finish myelinated axons.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">coordinates of random bundle. 3 coordinates, no radius</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="createGeometry.get_bundle_guide_straight">
+<code class="descclassname">createGeometry.</code><code class="descname">get_bundle_guide_straight</code><span class="sig-paren">(</span><em>bundleLength</em>, <em>segmentLengthAxon</em>, <em>overlapLength=1000</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.get_bundle_guide_straight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a straight bundle. Default if no bundle guide is provided.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bundleLength</strong> &#8211; length of bundle</li>
+<li><strong>segmentLengthAxon</strong> &#8211; length of straight axon segment. Important for this function as the bundle segment length needs to be longer than the axon segment length for <code class="docutils literal"><span class="pre">create_random_axon</span></code> to work properly.</li>
+<li><strong>overlapLength</strong> &#8211; additional length of the bundle trajectory to finish myelinated axons.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">coordinates of a straight bundle. 3 coordinates, no radius</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="createGeometry.get_bundle_guide_straight_2radii">
+<code class="descclassname">createGeometry.</code><code class="descname">get_bundle_guide_straight_2radii</code><span class="sig-paren">(</span><em>bundleLength</em>, <em>segmentLengthAxon</em>, <em>overlapLength=1000</em>, <em>radii=(150</em>, <em>150)</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.get_bundle_guide_straight_2radii" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demo of a bundle with radius varying linearly along bundle length.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bundleLength</strong> &#8211; length of bundle</li>
+<li><strong>segmentLengthAxon</strong> &#8211; length of straight axon segment. Important for this function as the bundle segment length needs to be longer than the axon segment length for <code class="docutils literal"><span class="pre">create_random_axon</span></code> to work properly.</li>
+<li><strong>overlapLength</strong> &#8211; additional length of the bundle trajectory to finish myelinated axons.</li>
+<li><strong>radii</strong> &#8211; start and end radius of the nerve</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">bundle coordinates including radius</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="createGeometry.get_bundle_guide_straight_radius">
+<code class="descclassname">createGeometry.</code><code class="descname">get_bundle_guide_straight_radius</code><span class="sig-paren">(</span><em>bundleLength</em>, <em>segmentLengthAxon</em>, <em>overlapLength=1000</em>, <em>radius=200</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.get_bundle_guide_straight_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <code class="docutils literal"><span class="pre">get_bundle_guide_straight</span></code> but with a radius as 4th coordinate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bundleLength</strong> &#8211; length of bundle</li>
+<li><strong>segmentLengthAxon</strong> &#8211; length of straight axon segment. Important for this function as the bundle segment length needs to be longer than the axon segment length for <code class="docutils literal"><span class="pre">create_random_axon</span></code> to work properly.</li>
+<li><strong>overlapLength</strong> &#8211; additional length of the bundle trajectory to finish myelinated axons.</li>
+<li><strong>radius</strong> &#8211; radius of the nerve</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">coordinates of a straight bundle. Nx4, 4th coordinate for radius.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="createGeometry.length_from_coords">
+<code class="descclassname">createGeometry.</code><code class="descname">length_from_coords</code><span class="sig-paren">(</span><em>coords</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.length_from_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the length of a curve defined by the input coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coords</strong> &#8211; coordinates</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">length curve</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="createGeometry.rotation_matrix">
+<code class="descclassname">createGeometry.</code><code class="descname">rotation_matrix</code><span class="sig-paren">(</span><em>axis</em>, <em>theta</em><span class="sig-paren">)</span><a class="headerlink" href="#createGeometry.rotation_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the rotation matrix associated with counterclockwise rotation about
+the given axis by theta radians.
+From: <a class="reference external" href="http://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector">http://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector</a>
+User: unutbu</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>axis</strong> &#8211; rotation axis</li>
+<li><strong>theta</strong> &#8211; rotation angle</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rotation matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-nameSetters">
+<span id="the-namesetters-module"></span><h2>The <code class="docutils literal"><span class="pre">nameSetters</span></code> Module<a class="headerlink" href="#module-nameSetters" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="nameSetters.get_bundle_directory">
+<code class="descclassname">nameSetters.</code><code class="descname">get_bundle_directory</code><span class="sig-paren">(</span><em>paramDict</em>, <em>new=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nameSetters.get_bundle_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the directory where all output of the simulation is saved in. If no <code class="docutils literal"><span class="pre">saveLocation</span></code> is specified in the <code class="docutils literal"><span class="pre">paramDict</span></code>, the working directory is used as a basis. For each simulation an individual subfolder will be generated.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>paramDict</strong> &#8211; dictionary containing all information charaterizing the <code class="docutils literal"><span class="pre">Bundle</span></code> and the wanted save location.</li>
+<li><strong>new</strong> &#8211; True if new directory is to be generated. False if directory of previous calculation wants to be retrieved.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">location for simulation output</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nameSetters.get_directory_name">
+<code class="descclassname">nameSetters.</code><code class="descname">get_directory_name</code><span class="sig-paren">(</span><em>keyword</em>, <em>basePath</em><span class="sig-paren">)</span><a class="headerlink" href="#nameSetters.get_directory_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get directory name based on the purpose defined by keyword and the <code class="docutils literal"><span class="pre">basePath</span></code> where all output will be stored.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>keyword</strong> &#8211; prefix of the file name</li>
+<li><strong>basePath</strong> &#8211; bundle basepath</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">directory name</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nameSetters.get_file_name">
+<code class="descclassname">nameSetters.</code><code class="descname">get_file_name</code><span class="sig-paren">(</span><em>recordingType</em>, <em>basePath</em>, <em>newFile=True</em>, <em>directoryType=False</em><span class="sig-paren">)</span><a class="headerlink" href="#nameSetters.get_file_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the file name for certain output data including the folder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>recordingType</strong> &#8211; Type of output</li>
+<li><strong>basePath</strong> &#8211; base path where all output is stored</li>
+<li><strong>newFile</strong> &#8211; If true, new unambiguous file name will be returned (for saving) otherwise most recent existing filename is given (loading).</li>
+<li><strong>directoryType</strong> &#8211; directory name can be specified. If unset, directory name is equal to file prefix.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">file name includig folder</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nameSetters.open_bundle_from_location">
+<code class="descclassname">nameSetters.</code><code class="descname">open_bundle_from_location</code><span class="sig-paren">(</span><em>bundleSaveLocation</em><span class="sig-paren">)</span><a class="headerlink" href="#nameSetters.open_bundle_from_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <code class="docutils literal"><span class="pre">open_recent_bundle</span></code> but with a location as an argument. More reliable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bundleSaveLocation</strong> &#8211; Exact location of the pickled bundle file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">Bundle</span></code> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nameSetters.open_recent_bundle">
+<code class="descclassname">nameSetters.</code><code class="descname">open_recent_bundle</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#nameSetters.open_recent_bundle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open most recent bundle in at the specified base path with save parameters as specified. Not all characteristics of <code class="docutils literal"><span class="pre">Bundle</span></code> are captured in the save parameters so beware of loading the wrong <code class="docutils literal"><span class="pre">Bundle</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>parameters</strong> &#8211; bundle parameters as a dictionary</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal"><span class="pre">Bundle</span></code> instance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="nameSetters.save_bundle">
+<code class="descclassname">nameSetters.</code><code class="descname">save_bundle</code><span class="sig-paren">(</span><em>bundle</em><span class="sig-paren">)</span><a class="headerlink" href="#nameSetters.save_bundle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use <code class="docutils literal"><span class="pre">pickle</span></code> to save the <code class="docutils literal"><span class="pre">Bundle</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bundle</strong> &#8211; <code class="docutils literal"><span class="pre">Bundle</span></code> class</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-signalGeneration">
+<span id="the-signalgeneration-module"></span><h2>The <code class="docutils literal"><span class="pre">signalGeneration</span></code> Module<a class="headerlink" href="#module-signalGeneration" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="signalGeneration.biphasic_decaying">
+<code class="descclassname">signalGeneration.</code><code class="descname">biphasic_decaying</code><span class="sig-paren">(</span><em>tDelay=0</em>, <em>tC=1</em>, <em>aC=0.05</em>, <em>tExp=1</em>, <em>cExp=-5</em>, <em>tD=2</em>, <em>aD=-0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#signalGeneration.biphasic_decaying" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines stimulus signal shape as in &lt;name paper&gt;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tDelay</strong> &#8211; length of first zero phase [ms]</li>
+<li><strong>tC</strong> &#8211; length of up phase [ms]</li>
+<li><strong>aC</strong> &#8211; amplitude of up phase [mA]</li>
+<li><strong>tExp</strong> &#8211; length of decaying phase</li>
+<li><strong>cExp</strong> &#8211; decaying coefficient</li>
+<li><strong>tD</strong> &#8211; length down time</li>
+<li><strong>aD</strong> &#8211; amplitude down time</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">signal array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="signalGeneration.rectangular">
+<code class="descclassname">signalGeneration.</code><code class="descname">rectangular</code><span class="sig-paren">(</span><em>stimDur</em>, <em>amplitude</em>, <em>frequency</em>, <em>dutyCycle</em>, <em>waveform</em>, <em>delay=0</em>, <em>invert=False</em><span class="sig-paren">)</span><a class="headerlink" href="#signalGeneration.rectangular" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return rectangular signal (uses SciPy)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stimDur</strong> &#8211; duration of stimulus signal</li>
+<li><strong>amplitude</strong> &#8211; peak amplitude (not peak-to-peak)</li>
+<li><strong>frequency</strong> &#8211; frequency</li>
+<li><strong>dutyCycle</strong> &#8211; fraction of a period that is &#8216;up&#8217;</li>
+<li><strong>waveform</strong> &#8211; &#8216;MONOPHASIC&#8217; or &#8216;BIPHASIC&#8217;</li>
+<li><strong>delay</strong> &#8211; onset of the stimulus in ms</li>
+<li><strong>invert</strong> &#8211; invert the stimulus signal or not</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">rectangular stimulus signal</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-spikeTrainGeneration">
+<span id="the-spiketraingeneration-module"></span><h2>The <code class="docutils literal"><span class="pre">spikeTrainGeneration</span></code> Module<a class="headerlink" href="#module-spikeTrainGeneration" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="spikeTrainGeneration.generateCorrelatedSpikeTimes">
+<code class="descclassname">spikeTrainGeneration.</code><code class="descname">generateCorrelatedSpikeTimes</code><span class="sig-paren">(</span><em>nAxons</em>, <em>tStart=0</em>, <em>lambd=1000.0</em>, <em>correlation=0.1</em>, <em>tStop=300</em><span class="sig-paren">)</span><a class="headerlink" href="#spikeTrainGeneration.generateCorrelatedSpikeTimes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate <code class="docutils literal"><span class="pre">nAxons</span></code> spike trains that are pairwise correlated with a factor <code class="docutils literal"><span class="pre">correlation</span></code>. Function adapted from LFPy example 3.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nAxons</strong> &#8211; number of spike streams to create</li>
+<li><strong>tStart</strong> &#8211; start time</li>
+<li><strong>lambd</strong> &#8211; rate [1/s]</li>
+<li><strong>correlation</strong> &#8211; pairwise (!) correlation</li>
+<li><strong>tStop</strong> &#8211; stop time</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><code class="docutils literal"><span class="pre">nAxons</span></code> spike trains in a matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="spikeTrainGeneration.stationary_poisson">
+<code class="descclassname">spikeTrainGeneration.</code><code class="descname">stationary_poisson</code><span class="sig-paren">(</span><em>nsyn</em>, <em>lambd</em>, <em>tstart</em>, <em>tstop</em><span class="sig-paren">)</span><a class="headerlink" href="#spikeTrainGeneration.stationary_poisson" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates nsyn stationary possion processes with rate lambda between tstart and tstop
+code from LFPy example 3</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nsyn</strong> &#8211; number of spike trains</li>
+<li><strong>lambd</strong> &#8211; rate [1/s]</li>
+<li><strong>tstart</strong> &#8211; start time [ms]</li>
+<li><strong>tstop</strong> &#8211; stop time [ms]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nsyn spike trains stored in a matrix</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">The PyPN API</a><ul>
+<li><a class="reference internal" href="#the-bundle-class">The <code class="docutils literal"><span class="pre">Bundle</span></code> Class</a><ul>
+<li><a class="reference internal" href="#simulating-a-bundle">Simulating a <code class="docutils literal"><span class="pre">Bundle</span></code></a></li>
+<li><a class="reference internal" href="#configuring-the-bundle-for-simulation">Configuring the Bundle for Simulation</a></li>
+<li><a class="reference internal" href="#recovering-the-results-of-a-simulation">Recovering the Results of a Simulation</a></li>
+<li><a class="reference internal" href="#rerunning-the-cap-calculation-from-precomputed-membrane-current">Rerunning the CAP Calculation from Precomputed Membrane Current</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-extracellularmechanism-class">The <code class="docutils literal"><span class="pre">ExtracellularMechanism</span></code> Class</a></li>
+<li><a class="reference internal" href="#the-recordingmechanism-class">The <code class="docutils literal"><span class="pre">RecordingMechanism</span></code> Class</a></li>
+<li><a class="reference internal" href="#stimulating-the-axons">Stimulating the Axons</a><ul>
+<li><a class="reference internal" href="#the-stimulationmechanism-class">The <code class="docutils literal"><span class="pre">StimulationMechanism</span></code> Class</a></li>
+<li><a class="reference internal" href="#the-upstreamspiking-class">The <code class="docutils literal"><span class="pre">UpstreamSpiking</span></code> Class</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-createGeometry">The <code class="docutils literal"><span class="pre">createGeometry</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-nameSetters">The <code class="docutils literal"><span class="pre">nameSetters</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-signalGeneration">The <code class="docutils literal"><span class="pre">signalGeneration</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-spikeTrainGeneration">The <code class="docutils literal"><span class="pre">spikeTrainGeneration</span></code> Module</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">PyPN 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Carl Lubba, Yann Le Guenn, Sarah Jarvis, Simon Schultz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.5.
+    </div>
+  </body>
+</html>
