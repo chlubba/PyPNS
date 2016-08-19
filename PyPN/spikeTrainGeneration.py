@@ -5,14 +5,12 @@ def stationary_poisson(nsyn, lambd, tstart, tstop):
     Generates nsyn stationary possion processes with rate lambda between tstart and tstop
     code from LFPy example 3
 
-    Args:
-        nsyn:
-        lambd:
-        tstart:
-        tstop:
+    :param nsyn: number of spike trains
+    :param lambd: rate [1/s]
+    :param tstart: start time [ms]
+    :param tstop: stop time [ms]
 
-    Returns:
-        nsyn spike trains stored in the matrix spiketimes
+    :return: nsyn spike trains stored in a matrix
     """
 
     interval_s = (tstop-tstart)*.001
@@ -28,9 +26,19 @@ def stationary_poisson(nsyn, lambd, tstart, tstop):
 
     return spiketimes
 
-def generateCorrelaSpikeTimes(nAxons, tStart=0, lambd = 1000., correlation = 0.1, tStop=300):
+def generateCorrelatedSpikeTimes(nAxons, tStart=0, lambd = 1000., correlation = 0.1, tStop=300):
+    """ Generate ``nAxons`` spike trains that are pairwise correlated with a factor ``correlation``. Function adapted from LFPy example 3.
 
-    # function adapted from LFPy example 3
+    :param nAxons: number of spike streams to create
+    :param tStart: start time
+    :param lambd: rate [1/s]
+    :param correlation: pairwise (!) correlation
+    :param tStop: stop time
+
+    :return: ``nAxons`` spike trains in a matrix
+
+    """
+
 
     #set the numpy random seeds
     global_seed = 1234

@@ -3,14 +3,19 @@ import sys
 import glob
 import cPickle as pickle
 
-def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop = 0, pMyel=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False):
+def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, pMyel=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False): createDir=False
+    """Create the directory where all output of the simulation is saved in. If no ``saveLocation`` is specified in the ``paramDict``, the working directory is used as a basis. For each simulation an individual subfolder will be generated.
 
-    # define here the root of the PyPN file system
-    homeDirectory= '/media/carl/4ECC-1C44/PyPN/' # '/home/carl/PNPy/Results/' #  ""#"results"#
+    :param paramDict: dictionary containing all information charaterizing the ``Bundle`` and the wanted save location.
+    :param new: True if new directory is to be generated. False if directory of previous calculation wants to be retrieved.
+
+    :return: location for simulation output
+    :rtype: string
+
+    """
 
     # read out dictionary of parameters (more elegant methon possible?)
     # elecCount = len(paramDict['recordingElecPos'])
-    # TODO: variable timestep option
     dt=paramDict['timeRes']
     tStop = paramDict['tStop']
     pMyel = paramDict['pMyel']
@@ -22,6 +27,11 @@ def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop 
 
     myelinatedDiam = paramsMyel['fiberD']
     unmyelinatedDiam = paramsUnmyel['fiberD']
+
+    homeDirectory = paramDict['saveLocation']
+
+    # # define here the root of the PyPN file system
+    # homeDirectory = '/media/carl/4ECC-1C44/PyPN/'  # '/home/carl/PNPy/Results/' #  ""#"results"#
 
     # further process save parameters
     pUnmyel = 1 - pMyel
@@ -38,14 +48,6 @@ def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop 
         unmyelDiamStr = str(unmyelinatedDiam)
     else:
         unmyelDiamStr = 'draw'
-
-    # if elecCount == 1:
-    #     poleString = 'monopolarRecording'
-    # elif elecCount == 2:
-    #     poleString = 'bipolarRecording'
-    # else:
-    #     print 'Received ' + str(elecCount) + ' as number of poles. Values 1 or 2 allowed only.'
-    #     quit()
 
     #concatenate strings
     pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" pMyel="+str(pMyel)+" pUnmyel="+str(pUnmyel)+" L="+str(L)+' nAxons='+str(numberOfAxons)#+' '+poleString
@@ -75,15 +77,13 @@ def get_bundle_directory(paramDict, new = False, createDir=False): #dt=0, tStop 
 
 
 def get_directory_name(keyword, basePath):
-
     """
-    retrieve directory name based on the purpose defined by keyword and the bundleParameters
+    Get directory name based on the purpose defined by keyword and the ``basePath`` where all output will be stored.
 
-    Args:
-        keyword: prefix of the file name
-        basePath: bundle basepath
+    :param keyword: prefix of the file name
+    :param basePath: bundle basepath
 
-    Returns:
+    :return: directory name
 
     """
 
@@ -101,37 +101,57 @@ def get_directory_name(keyword, basePath):
     return finalCombinedPath
 
 def get_file_name(recordingType, basePath, newFile=True, directoryType=False):
+    """Get the file name for certain output data including the folder.
 
-        if isinstance(directoryType, bool):
-            directory = get_directory_name(recordingType, basePath)
-        else:
-            directory = get_directory_name(directoryType, basePath)
+    :param recordingType: Type of output
+    :param basePath: base path where all output is stored
+    :param newFile: If true, new unambiguous file name will be returned (for saving) otherwise most recent existing filename is given (loading).
+    :param directoryType: directory name can be specified. If unset, directory name is equal to file prefix.
 
-        # filename = 'recording.dat'
-        filename = recordingType+'.npy'
+    :return: file name includig folder
 
-        number = 0
-        filenameTemp = filename
-        if newFile:
-            while os.path.isfile(os.path.join(directory,filenameTemp)):
-                number += 1
-                # print "Be careful this file name already exist! We concatenate a number to the name to avoid erasing your previous file."
-                filenameTemp = str(number).zfill(5) + filename
+    """
+
+    if isinstance(directoryType, bool):
+        directory = get_directory_name(recordingType, basePath)
+    else:
+        directory = get_directory_name(directoryType, basePath)
+
+    # filename = 'recording.dat'
+    filename = recordingType+'.npy'
+
+    number = 0
+    filenameTemp = filename
+    if newFile:
+        while os.path.isfile(os.path.join(directory,filenameTemp)):
+            number += 1
+            # print "Be careful this file name already exist! We concatenate a number to the name to avoid erasing your previous file."
+            filenameTemp = str(number).zfill(5) + filename
 
 
-        filename = os.path.join(directory,filenameTemp)
+    filename = os.path.join(directory,filenameTemp)
 
 
-        return filename
+    return filename
 
 def save_bundle(bundle):
+    """Use ``pickle`` to save the ``Bundle``.
+
+    :param bundle: ``Bundle`` class
+    """
 
     # save the bundle definition file
     bundleSaveLocation = bundle.basePath
     pickle.dump(bundle,open( os.path.join(bundleSaveLocation, 'bundle.cl'), "wb" ))
 
-def open_recent_bundle(Parameters):
-    bundleSaveLocation = get_bundle_directory(Parameters, new=False)
+def open_recent_bundle(parameters):
+    """Open most recent bundle in at the specified base path with save parameters as specified. Not all characteristics of ``Bundle`` are captured in the save parameters so beware of loading the wrong ``Bundle``.
+
+    :param parameters: bundle parameters as a dictionary
+
+    :return: ``Bundle`` instance
+    """
+    bundleSaveLocation = get_bundle_directory(parameters, new=False)
     try:
         bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))
         return bundle
@@ -141,6 +161,12 @@ def open_recent_bundle(Parameters):
 
 
 def open_bundle_from_location(bundleSaveLocation):
+    """Like ``open_recent_bundle`` but with a location as an argument. More reliable.
+
+    :param bundleSaveLocation: Exact location of the pickled bundle file.
+
+    :return: ``Bundle`` instance
+    """
 
     try:
         bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))

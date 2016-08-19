@@ -1,16 +1,18 @@
 import os
-
 # load the neuron packages needed from the path of the package
+# TODO: not sure how to proceed. Either the user compiles the extensions in his working directory or they are compiled during package installation into the PyPN directory.
+# TODO: Then the working directory of the script needs to be changed.
 PyPNDir = os.path.realpath(__file__)
 PyPNDir = os.path.dirname(PyPNDir)
-
-from neuron import h
-h('load_file("noload.hoc")')
-for processorSpecificFolderName in ['x86_64', 'i686', 'powerpc']:
-    neuronCommand = 'nrn_load_dll("'+os.path.join(PyPNDir,processorSpecificFolderName,'.libs','libnrnmech.so')+'")'
-    h(neuronCommand)
+os.chdir(PyPNDir)
 
 from axonClass import *
+
+h('load_file("noload.hoc")')
+# for processorSpecificFolderName in ['x86_64', 'i686', 'powerpc']:
+#     neuronCommand = 'nrn_load_dll("'+os.path.join(PyPNDir,processorSpecificFolderName,'.libs','libnrnmech.so')+'")'
+#     h(neuronCommand)
+
 import createGeometry
 
 import LFPy
@@ -47,11 +49,35 @@ class Bundle(object):
     # umyelinated:  parameters for fiber type C
 
     def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=None,
-                 segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False, downsamplingFactor=1):
+                 segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation=''): # , downsamplingFactor=1
+
+        """Constructor of the Bundle class, the main object in `PyPN`.
+
+        :param radius: radius of the nerve
+        :param length: length of the nerve (not equal to length of the axons as they can take a curvy trajectory)
+        :param bundleGuide: 3D-trajectory of the bundle
+
+        :param numberOfAxons: number of axons exist within the nerve
+        :param segmentLengthAxon: length of a straight axon segment (used by :meth:`generateGeometry.create_random_axon()`)
+        :param randomDirectionComponent: (0-1) how curvy are the axons (used by :meth:`generateGeometry.create_random_axon()`)
+
+        :param pMyel: fraction of myelinated axons
+        :param pUnmyel: fraction of unmyelinated axons
+        :param paramsMyel: parameters for myelinated axons
+        :param paramsUnmyel: parameters for unmyelinated axons
+
+        :param tStop: length of the simulation
+        :param timeRes: either 'variable' or numerical in ms
+
+        :param numberOfSavedSegments: specifies for how many segments the membrane voltage is saved to disk
+        :param saveV: decides whether membrane voltage is saved to disk at all
+        :param saveI: decides whether membrane current is saved to disk
+        :param saveLocation: where to save the bundle and every other output of the calculations
+
+        """
 
         self.saveI = saveI
         self.saveV = saveV
-        self.downsamplingFactor = downsamplingFactor
 
         self.paramsMyel =  paramsMyel
         self.paramsUnmyel =  paramsUnmyel
@@ -87,11 +113,11 @@ class Bundle(object):
         self.tStop = tStop # set simulation duration (ms)
         self.timeRes = timeRes # set time step (ms)
 
-        self.build_disk(self.numberOfAxons,self.bundleCoords[0,-1])
+        self._build_disk(self.numberOfAxons, self.bundleCoords[0, -1])
 
         self.saveParams={'timeRes': timeRes, 'tStop': tStop, 'pMyel': pMyel,
                     'paramsMyel': paramsMyel, 'paramsUnmyel': paramsUnmyel,
-                    'length': length, 'numberOfAxons' : numberOfAxons}
+                    'length': length, 'numberOfAxons' : numberOfAxons, 'saveLocation': saveLocation}
         self.numberOfSavedSegments = numberOfSavedSegments
 
         self.basePath = get_bundle_directory(self.saveParams, new = True)
@@ -105,12 +131,13 @@ class Bundle(object):
         for i in range(self.numberOfAxons):
             print "Creating axon " + str(i)
 
-            self.create_axon(self.axons_pos[i,:])
+            self.create_axon(self.axons_pos[i, :])
             self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
 
 
-    def build_disk(self,numberOfAxons,radiusBundle):
-        """
+    def _build_disk(self, numberOfAxons, radiusBundle):
+        """Distributes the startpoints of axons uniformly over the cross section of the bundle.
+
         Partly from http://blog.marmakoide.org/?p=1
         """
         n = numberOfAxons
@@ -125,33 +152,40 @@ class Bundle(object):
         self.axons_pos[:,1] = np.sin(theta)
         self.axons_pos *= radius.reshape((n, 1))
 
-
-    def approx_num_segs(self):
-
-        # def lambda_f(freq, diam, Ra, cm):
-        #     return 1e5 * np.sqrt(diam / (4 * np.pi *freq * Ra * cm))
-        #
-        # def approx_nseg_d_lambda(unmyelinatedAxon):
-        #     return int((unmyelinatedAxon.L / (unmyelinatedAxon.d_lambda * lambda_f(unmyelinatedAxon.lambda_f,
-        #                                                                            unmyelinatedAxon.fiberD,
-        #                                                                            unmyelinatedAxon.Ra,
-        #                                                                            unmyelinatedAxon.cm)) + 0.9) / 2) * 2 + 1
-
-        nsegs_tot = 0
-        nsegs_axonwise = []
-        for axon in self.axons:
-            if isinstance(axon, Myelinated):
-                nsegTemp = axon.axontotal
-            else:
-                nsegTemp = axon.get_number_of_segs()
-            nsegs_tot += nsegTemp
-
-            nsegs_axonwise.append(nsegTemp)
-
-        return nsegs_tot, nsegs_axonwise
+    # def approx_num_segs(self):
+    #
+    #     # def lambda_f(freq, diam, Ra, cm):
+    #     #     return 1e5 * np.sqrt(diam / (4 * np.pi *freq * Ra * cm))
+    #     #
+    #     # def approx_nseg_d_lambda(unmyelinatedAxon):
+    #     #     return int((unmyelinatedAxon.L / (unmyelinatedAxon.d_lambda * lambda_f(unmyelinatedAxon.lambda_f,
+    #     #                                                                            unmyelinatedAxon.fiberD,
+    #     #                                                                            unmyelinatedAxon.Ra,
+    #     #                                                                            unmyelinatedAxon.cm)) + 0.9) / 2) * 2 + 1
+    #
+    #     nsegs_tot = 0
+    #     nsegs_axonwise = []
+    #     for axon in self.axons:
+    #         if isinstance(axon, Myelinated):
+    #             nsegTemp = axon.axontotal
+    #         else:
+    #             nsegTemp = axon.get_number_of_segs()
+    #         nsegs_tot += nsegTemp
+    #
+    #         nsegs_axonwise.append(nsegTemp)
+    #
+    #     return nsegs_tot, nsegs_axonwise
 
 
     def create_axon(self, axonPosition):
+
+        """
+        The properties of an axon are defined. Axon type (myelinated or unmyelinated) is chosen randomly depending on
+        the probabilities set in :class:Bundle. Diameters etc. are specified according to the respective dictionary
+        handed to :meth:`bundleClass.Bundle.__init__`.
+
+        :param axonPosition: the position of the first axon segment in the y-z-plane (x=0)
+        """
 
         # first decide by chance whether myelinated or unmyelinated
         axonTypeIndex = np.random.choice(2,1,p = [self.pMyel, self.pUnmyel])
@@ -159,7 +193,7 @@ class Bundle(object):
         axonType = axonTypes[axonTypeIndex]
 
         # then get diameter. Either drawn from distribution or constant.
-        axonDiameter = self.get_diam(axonType)
+        axonDiameter = self._get_diam(axonType)
 
         # axonCoords = np.row_stack((np.concatenate(([0], axonPosition)), np.concatenate(([self.bundleLength], axonPosition))))
 
@@ -198,7 +232,7 @@ class Bundle(object):
         self.axons[-1].axonPosition = axonPosition
 
 
-    def draw_sample(self, distName, params, size=1):
+    def _draw_sample(self, distName, params, size=1):
 
         if distName=='constant':
             # take fixed diameter
@@ -231,7 +265,7 @@ class Bundle(object):
         return diam
 
 
-    def get_diam(self, axonType):
+    def _get_diam(self, axonType):
 
         if axonType == 'm':
 
@@ -242,7 +276,7 @@ class Bundle(object):
                 distName = fiberDef['distName']
                 params = fiberDef['params']
 
-                drawnDiam = self.draw_sample(distName, params, size=1)
+                drawnDiam = self._draw_sample(distName, params, size=1)
             elif isinstance(fiberDef, float) or isinstance(fiberDef, int):
                 drawnDiam = fiberDef
             else:
@@ -269,7 +303,7 @@ class Bundle(object):
                     distName = 'manual'
                     params = fiberDef
 
-                diam = self.draw_sample(distName, params, size=1)
+                diam = self._draw_sample(distName, params, size=1)
 
             elif isinstance(fiberDef, float) or isinstance(fiberDef, int):
                 diam = fiberDef
@@ -284,6 +318,11 @@ class Bundle(object):
 
 
     def add_recording_mechanism(self, mechanism):
+        """While membrane voltage and current recording can be switched off and on directly in the :class:`bundleClass.Bundle` class, extracellular recording electrodes (or other mechansisms) need to be added to the bundle before simulating with this function.
+
+        :param mechanism: A recording mechanism instance from `recordingMechanismClass`
+        """
+
         self.recordingMechanisms.append(mechanism)
 
         # if isinstance(mechanism, RecordingMechanism):
@@ -298,11 +337,20 @@ class Bundle(object):
 
     
     def add_excitation_mechanism(self, mechanism):
+        """To incite activity on the axons containted in the nerve, excitation mechanisms need to be added to to the bundle with this function.
+
+        :param mechanism: An excitation mechanism instance.
+
+        """
         # mechanism.timeRes = self.timeRes
         self.excitationMechanisms.append(mechanism)
 
 
     def simulate(self):
+        """
+        This method starts the actual simulation of the bundle. Each axon will be created in NEURON separately, all excitation mechanisms will be connected to it and the simulation of the particular axon will be started. After having finished, the membrane currents are used to calculate the extracellular potentials for all recording mechanisms added. All NEURON objects are deleted and the next axon is processed. When all axons are done, their contributions are added in each recording mechanism to obtain the overall compound action potential.
+
+        """
 
         # exectue the NEURON and LFPy calculations of all axons
         self.simulate_axons()
@@ -334,6 +382,9 @@ class Bundle(object):
             recMech.clean_up()
 
     def simulate_axons(self):
+        """
+        Routine called by :meth:`bundleClass.Bundle.simulate` to simulate all axons.
+        """
 
         for axonIndex in range(self.numberOfAxons):
 
@@ -372,6 +423,7 @@ class Bundle(object):
                 print 'No recording mechanisms added. No CAP will be recorded.'
 
             # TODO: regularize time step for current and voltage here, so you don't need to care about it later
+            # TODO: first check how long the interpolation takes.
 
             if self.saveV:
                 with takeTime("save membrane potential to disk"):
@@ -467,6 +519,9 @@ class Bundle(object):
             np.save(filename, DataOut)
 
     def clear_all_CAP_files(self):
+        """
+        Get rid of all CAP recordings written to disk. This might be useful if you save the membrane current and then calculate the CAP from it several times with different recording mechanisms using :meth:`bundleClass.Bundle.compute_CAPs_from_imem_files`.
+        """
 
         for recMechIndex in range(len(self.recordingMechanisms)):
 
@@ -482,6 +537,9 @@ class Bundle(object):
             shutil.rmtree(directory)
 
     def clear_all_recording_mechanisms(self):
+        """
+        Delete all recording mechansisms from the :class:`bundleClass.Bundle` object.
+        """
         self.clear_all_CAP_files()
         self.recordingMechanisms = []
 
@@ -491,6 +549,10 @@ class Bundle(object):
             recMech.CAP = 0
 
     def save_voltage_to_file_axonwise(self, axonIndex):
+        """This function is called after the simulation of an individual axon and saves the voltage over time of ``numberOfSavedSegments``; ``numpy.save`` is used instead of ``numpy.savetxt`` to save space and time.
+
+        :param axonIndex: which axon is about to be saved
+        """
 
         # generate axon specific file name (a little clumsy, directory
         filename = get_file_name("V"+str(axonIndex), self.basePath, directoryType='V')
@@ -498,7 +560,7 @@ class Bundle(object):
         # transform NEURON voltage vector to numpy array
         voltageSingleAxon = np.transpose(np.array(self.axons[axonIndex].vreclist))
 
-        voltageSingleAxonDownsampled = voltageSingleAxon[range(0,voltageSingleAxon.shape[0], self.downsamplingFactor), :]
+        # voltageSingleAxonDownsampled = voltageSingleAxon[range(0,voltageSingleAxon.shape[0], self.downsamplingFactor), :]
 
         # append the sectionlength in the first column for later processing
         # in fact this is not needed now anymore because we have single files for each axon
@@ -515,6 +577,10 @@ class Bundle(object):
         np.save(filename, dataOut)
 
     def save_imem_to_file_axonwise(self, axonIndex):
+        """Like :meth:`bundleClass.Bundle.save_voltage_to_file_axonwise`, the membrane currents are saved to file. All segments are saved because they might be reused for CAP calculation.
+
+        :param axonIndex: which axon is about to be saved
+        """
 
         # generate axon specific file name (a little clumsy, directory
         filename = get_file_name("I" + str(axonIndex), self.basePath, directoryType='I')
@@ -536,7 +602,7 @@ class Bundle(object):
 
     def compute_CAPs_from_imem_files(self, recMecIndices=-1):
         """
-        if simulation has already been run, this function calculates the CAP from the saved membrane current
+        If simulation has already been run and the membrane current has been saved, this function calculates the CAP from the saved membrane current.
         """
         if recMecIndices == -1:
             recMecIndices = range(len(self.recordingMechanisms))
@@ -577,6 +643,12 @@ class Bundle(object):
         self.clear_CAP_vars()
 
     def get_CAP_from_file(self, recordingMechanismIndex=0):
+        """Load the CAP of the recording mechansim specified from disk.
+
+        :param recordingMechanismIndex: Index of the desired recording mechanism.
+
+        :return: time vector, CAP
+        """
 
         recMechName = self.recordingMechanisms[recordingMechanismIndex].__class__.__name__
 
@@ -595,6 +667,30 @@ class Bundle(object):
         CAP = np.squeeze(CAPraw[1:,:])
 
         return time, CAP
+
+    def get_SFAPs_from_file(self, recordingMechanismIndex=0):
+        """Load the extracellular single fiber action potentials of the recording mechansim specified from disk.
+
+        :param recordingMechanismIndex: Index of the desired recording mechanism.
+
+        :return: time vector, matrix of SFAPs
+        """
+
+        # get the whole CAP, can be single electrode or multiple
+        recMechName = self.recordingMechanisms[recordingMechanismIndex].__class__.__name__
+        directory = get_directory_name('CAP1A_' + recMechName + '_recMech' + str(recordingMechanismIndex), self.basePath)
+        try:
+            newestFile = max(glob.iglob(os.path.join(directory, '') + '*.[Dd][Aa][Tt]'), key=os.path.getctime)
+        except ValueError:
+            print 'No CAP calculation has been performed yet with this set of parameters.'
+            return
+
+        # CAPraw = np.transpose(np.loadtxt(newestFile))
+        SFAPsraw = np.transpose(np.load(newestFile))
+        time = SFAPsraw[0, :]
+        SFAPs = SFAPsraw[1:, :]
+
+        return time, SFAPs
 
     def get_voltage_from_file(self):
 
@@ -634,6 +730,12 @@ class Bundle(object):
         return timeRec, voltageMatrices
 
     def get_voltage_from_file_one_axon(self, axonIndex):
+        """Load the voltage time series of one particular axon.
+
+        :param axonIndex: index of desired axon
+
+        :return: time vector, voltage signal
+        """
 
         # get axon specific file name (of existing file)
         filename = get_file_name("V" + str(axonIndex), self.basePath, newFile=False, directoryType='V')
@@ -699,158 +801,158 @@ class Bundle(object):
 
         return self.filename
 
-    def conduction_velocities(self, saveToFile=False, plot=True):
-
-        voltageMatricesTime =  self.get_voltage_from_file()
-
-        timeArray =  voltageMatricesTime[0]
-        timeStep = timeArray[1]
-        voltageMatrices = voltageMatricesTime[1]
-
-
-        diameterArrayMyel = []
-        meanVelocityArrayMyel = []
-        medianVelocityArrayMyel = []
-        stdVelocityArrayMyel = []
-
-        diameterArrayUnmyel = []
-        meanVelocityArrayUnmyel = []
-        medianVelocityArrayUnmyel = []
-        stdVelocityArrayUnmyel = []
-
-        # iterate over all axons
-        for i in range(1,len(self.axons)):
-
-            axon = self.axons[i]
-
-            axonLength = axon.L
-            voltageMatrix = voltageMatrices[i]
-
-            # for myelinated axons, only the nodes will be taken into account
-            if isinstance(axon, Myelinated):
-
-                # save diameter to plot velocity against it
-                diameterArrayMyel.append(axon.fiberD)
-
-                Nnodes = self.axons[i].axonnodes
-                nodePositions = range(0,(Nnodes-1)*11,11)
-
-                # check for maximum
-                maximumTimes = []
-                for j in nodePositions:
-                    segmentVoltage = voltageMatrix[j]
-
-                    maximumIndex = segmentVoltage.argmax()
-
-                    maximumTimes.append(maximumIndex)
-                    plt.plot(segmentVoltage)
-
-                # plt.title('segment voltage at nodes')
-                # plt.show()
-
-                # as only nodes get recorded, distance is node distance.
-                stepSize = axon.lengthOneCycle
-
-            else:
-
-                # save diameter to plot velocity against it
-                diameterArrayUnmyel.append(axon.fiberD)
-
-                # number or recorded segments.
-                recordedSegmentCount = np.shape(voltageMatrix)[0]
-
-                # find the time of the signal maxima
-                maximumTimes = []
-                for j in range(recordedSegmentCount):#recordedSegmentCount):
-
-                    segmentVoltage = voltageMatrix[j]
-
-                    # # for local maxima
-                    # maxima = argrelextrema(segmentVoltage, np.greater)
-
-                    maximumIndex = segmentVoltage.argmax()
-
-                    maximumTimes.append(maximumIndex)
-
-
-                # distance between recorded segments in um
-                stepSize = axonLength / recordedSegmentCount
-
-
-
-            # time difference between action potentials of two consecutive segments in ms
-            timeDifferences = np.diff(np.array(maximumTimes))*timeStep
-
-            # conduction  velocity estimate between two segments in m/s
-            velocities = stepSize/timeDifferences/1000
-
-            # filter beginning and end
-            numVel = len(velocities)
-            minIndex = int(0.3*numVel)
-            maxIndex = int(0.7*numVel)
-
-            # # mask to exclude inf values (how to they evolve? stimulation artefact?)
-            # maskedVelocities = np.ma.log(velocities[minIndex:maxIndex])
-
-            # meanVelocity = maskedVelocities.mean()
-            # stdVelocity = maskedVelocities.std()
-
-            velCut = velocities[minIndex:maxIndex]
-
-            meanVelocity = velCut.mean()
-            medianVelocity = np.median(velCut)
-            stdVelocity = velCut.std()
-
-            if isinstance(axon, Myelinated):
-                meanVelocityArrayMyel.append(meanVelocity)
-                medianVelocityArrayMyel.append(medianVelocity)
-                stdVelocityArrayMyel.append(stdVelocity)
-            else:
-                meanVelocityArrayUnmyel.append(meanVelocity)
-                medianVelocityArrayUnmyel.append(medianVelocity)
-                stdVelocityArrayUnmyel.append(stdVelocity)
-
-            # plt.plot(velocities)
-            # plt.title('axon diameter '+str(axon.fiberD)+ ' um')
-            # plt.show()
-
-        if plot:
-            f, (ax1, ax2) = plt.subplots(1,2)
-            ax1.scatter(diameterArrayMyel, meanVelocityArrayMyel, label='mean')
-            ax1.scatter(diameterArrayMyel, medianVelocityArrayMyel, label='median', color='red')
-            ax1.errorbar(diameterArrayMyel, meanVelocityArrayMyel, yerr=stdVelocityArrayMyel, linestyle='None')
-            ax1.set_title('Conduction velocity of myelinated axons')
-            ax1.set_xlabel('Diameter [um]')
-            ax1.set_ylabel('Conduction velocity [m/s]')
-            ax1.legend()
-
-            ax2.scatter(diameterArrayUnmyel, meanVelocityArrayUnmyel, label='mean')
-            ax2.scatter(diameterArrayUnmyel, medianVelocityArrayUnmyel, label='median')
-            ax2.errorbar(diameterArrayUnmyel, meanVelocityArrayUnmyel, yerr=stdVelocityArrayUnmyel, linestyle='None')
-            ax2.set_title('Conduction velocity of unmyelinated axons')
-            ax2.set_xlabel('Diameter [um]')
-            ax2.set_ylabel('Conduction velocity [m/s]')
-            ax2.legend()
-
-            # plt.show()
-
-
-        # pack for return values
-        myelinatedDict = {'diams': diameterArrayMyel,
-                          'meanVelocity': meanVelocityArrayMyel,
-                          'medianVelocity': medianVelocityArrayMyel,
-                          'stdVelocity': stdVelocityArrayMyel}
-
-        unmyelinatedDict = {'diams': diameterArrayUnmyel,
-                            'meanVelocity': meanVelocityArrayUnmyel,
-                          'medianVelocity': medianVelocityArrayUnmyel,
-                          'stdVelocity': stdVelocityArrayUnmyel}
-
-        returnDict = {'myel': myelinatedDict,
-                      'unmyel': unmyelinatedDict}
-
-        if saveToFile:
-            pickle.dump(returnDict,open( os.path.join(self.basePath, 'conductionVelocities.dict'), "wb" ))
-
-        return returnDict
+    # def conduction_velocities(self, saveToFile=False, plot=True):
+    #
+    #     voltageMatricesTime =  self.get_voltage_from_file()
+    #
+    #     timeArray =  voltageMatricesTime[0]
+    #     timeStep = timeArray[1]
+    #     voltageMatrices = voltageMatricesTime[1]
+    #
+    #
+    #     diameterArrayMyel = []
+    #     meanVelocityArrayMyel = []
+    #     medianVelocityArrayMyel = []
+    #     stdVelocityArrayMyel = []
+    #
+    #     diameterArrayUnmyel = []
+    #     meanVelocityArrayUnmyel = []
+    #     medianVelocityArrayUnmyel = []
+    #     stdVelocityArrayUnmyel = []
+    #
+    #     # iterate over all axons
+    #     for i in range(1,len(self.axons)):
+    #
+    #         axon = self.axons[i]
+    #
+    #         axonLength = axon.L
+    #         voltageMatrix = voltageMatrices[i]
+    #
+    #         # for myelinated axons, only the nodes will be taken into account
+    #         if isinstance(axon, Myelinated):
+    #
+    #             # save diameter to plot velocity against it
+    #             diameterArrayMyel.append(axon.fiberD)
+    #
+    #             Nnodes = self.axons[i].axonnodes
+    #             nodePositions = range(0,(Nnodes-1)*11,11)
+    #
+    #             # check for maximum
+    #             maximumTimes = []
+    #             for j in nodePositions:
+    #                 segmentVoltage = voltageMatrix[j]
+    #
+    #                 maximumIndex = segmentVoltage.argmax()
+    #
+    #                 maximumTimes.append(maximumIndex)
+    #                 plt.plot(segmentVoltage)
+    #
+    #             # plt.title('segment voltage at nodes')
+    #             # plt.show()
+    #
+    #             # as only nodes get recorded, distance is node distance.
+    #             stepSize = axon.lengthOneCycle
+    #
+    #         else:
+    #
+    #             # save diameter to plot velocity against it
+    #             diameterArrayUnmyel.append(axon.fiberD)
+    #
+    #             # number or recorded segments.
+    #             recordedSegmentCount = np.shape(voltageMatrix)[0]
+    #
+    #             # find the time of the signal maxima
+    #             maximumTimes = []
+    #             for j in range(recordedSegmentCount):#recordedSegmentCount):
+    #
+    #                 segmentVoltage = voltageMatrix[j]
+    #
+    #                 # # for local maxima
+    #                 # maxima = argrelextrema(segmentVoltage, np.greater)
+    #
+    #                 maximumIndex = segmentVoltage.argmax()
+    #
+    #                 maximumTimes.append(maximumIndex)
+    #
+    #
+    #             # distance between recorded segments in um
+    #             stepSize = axonLength / recordedSegmentCount
+    #
+    #
+    #
+    #         # time difference between action potentials of two consecutive segments in ms
+    #         timeDifferences = np.diff(np.array(maximumTimes))*timeStep
+    #
+    #         # conduction  velocity estimate between two segments in m/s
+    #         velocities = stepSize/timeDifferences/1000
+    #
+    #         # filter beginning and end
+    #         numVel = len(velocities)
+    #         minIndex = int(0.3*numVel)
+    #         maxIndex = int(0.7*numVel)
+    #
+    #         # # mask to exclude inf values (how to they evolve? stimulation artefact?)
+    #         # maskedVelocities = np.ma.log(velocities[minIndex:maxIndex])
+    #
+    #         # meanVelocity = maskedVelocities.mean()
+    #         # stdVelocity = maskedVelocities.std()
+    #
+    #         velCut = velocities[minIndex:maxIndex]
+    #
+    #         meanVelocity = velCut.mean()
+    #         medianVelocity = np.median(velCut)
+    #         stdVelocity = velCut.std()
+    #
+    #         if isinstance(axon, Myelinated):
+    #             meanVelocityArrayMyel.append(meanVelocity)
+    #             medianVelocityArrayMyel.append(medianVelocity)
+    #             stdVelocityArrayMyel.append(stdVelocity)
+    #         else:
+    #             meanVelocityArrayUnmyel.append(meanVelocity)
+    #             medianVelocityArrayUnmyel.append(medianVelocity)
+    #             stdVelocityArrayUnmyel.append(stdVelocity)
+    #
+    #         # plt.plot(velocities)
+    #         # plt.title('axon diameter '+str(axon.fiberD)+ ' um')
+    #         # plt.show()
+    #
+    #     if plot:
+    #         f, (ax1, ax2) = plt.subplots(1,2)
+    #         ax1.scatter(diameterArrayMyel, meanVelocityArrayMyel, label='mean')
+    #         ax1.scatter(diameterArrayMyel, medianVelocityArrayMyel, label='median', color='red')
+    #         ax1.errorbar(diameterArrayMyel, meanVelocityArrayMyel, yerr=stdVelocityArrayMyel, linestyle='None')
+    #         ax1.set_title('Conduction velocity of myelinated axons')
+    #         ax1.set_xlabel('Diameter [um]')
+    #         ax1.set_ylabel('Conduction velocity [m/s]')
+    #         ax1.legend()
+    #
+    #         ax2.scatter(diameterArrayUnmyel, meanVelocityArrayUnmyel, label='mean')
+    #         ax2.scatter(diameterArrayUnmyel, medianVelocityArrayUnmyel, label='median')
+    #         ax2.errorbar(diameterArrayUnmyel, meanVelocityArrayUnmyel, yerr=stdVelocityArrayUnmyel, linestyle='None')
+    #         ax2.set_title('Conduction velocity of unmyelinated axons')
+    #         ax2.set_xlabel('Diameter [um]')
+    #         ax2.set_ylabel('Conduction velocity [m/s]')
+    #         ax2.legend()
+    #
+    #         # plt.show()
+    #
+    #
+    #     # pack for return values
+    #     myelinatedDict = {'diams': diameterArrayMyel,
+    #                       'meanVelocity': meanVelocityArrayMyel,
+    #                       'medianVelocity': medianVelocityArrayMyel,
+    #                       'stdVelocity': stdVelocityArrayMyel}
+    #
+    #     unmyelinatedDict = {'diams': diameterArrayUnmyel,
+    #                         'meanVelocity': meanVelocityArrayUnmyel,
+    #                       'medianVelocity': medianVelocityArrayUnmyel,
+    #                       'stdVelocity': stdVelocityArrayUnmyel}
+    #
+    #     returnDict = {'myel': myelinatedDict,
+    #                   'unmyel': unmyelinatedDict}
+    #
+    #     if saveToFile:
+    #         pickle.dump(returnDict,open( os.path.join(self.basePath, 'conductionVelocities.dict'), "wb" ))
+    #
+    #     return returnDict
 

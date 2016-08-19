@@ -5,12 +5,12 @@ from PyPN.upstreamSpikingClass import UpstreamSpiking
 from PyPN.stimulusClass import *
 
 # spike train generation
-from PyPN.spikeTrainGeneration import generateCorrelaSpikeTimes
+from PyPN.spikeTrainGeneration import generateCorrelatedSpikeTimes
 
 # recording mechanisms
 # from PyPN.recordingMechanismClass import *
 # from PyPN.recordingMechanismFEMClass import *
-from PyPN.recordingMechanismClass2 import *
+from PyPN.recordingMechanismClass import *
 import PyPN.extracellularMechanismClass as Extracellular
 
 

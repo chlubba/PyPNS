@@ -17,6 +17,13 @@ class ExtracellularPotentialMechanism(object):
 class precomputedFEM(ExtracellularPotentialMechanism):
 
     def __init__(self, bundleGuide, fieldName='noCuff1'):
+        """Stores a precomputed voltage field and calculates the extracelluar potential caused by point sources. Used by :class:`recodingMechanismClass.RecordingMechanism`.
+
+        :param bundleGuide: 3D nerve trajectory
+        :param fieldName: string containing the name of the field to import; the location of field files needs to be specified somewhere (TODO)
+        """
+
+        # TODO: finally solve the location issue, saving and field loading. Input dict to bundle.
 
         # todo: input params that allow more degrees of freedom for the FEM model
 
@@ -31,6 +38,13 @@ class precomputedFEM(ExtracellularPotentialMechanism):
 
     # def calculate_LFP(self, axon, electrodePositions): # sourcePositions, sourceCurrents,
     def calculate_extracellular_potential(self, sourcePositions, sourceCurrents, receiverPositions):
+        """
+
+        :param sourcePositions: positions of current point sources
+        :param sourceCurrents: currents of these point sources
+        :param receiverPositions: positions the voltage is calculated for
+
+        """
 
         # calculate LFP from membrane currents
         return compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions, self.FEMFieldDict, self.bundleGuide)
@@ -40,10 +54,21 @@ class precomputedFEM(ExtracellularPotentialMechanism):
 class homogeneous(ExtracellularPotentialMechanism):
 
     def __init__(self, sigma=1.):
+        """The extracellular potential is calculated assuming a homogeneous outer medium with a constant, isotropic conductivity ``sigma``. Used by :class:`recodingMechanismClass.RecordingMechanism`.
+
+        :param sigma: conductivity of the homogeneous tissue in S/m
+        """
 
         self.sigma = sigma
 
     def calculate_extracellular_potential(self, sourcePositions, sourceCurrents, receiverPositions):
+        """
+
+        :param sourcePositions: positions of current point sources
+        :param sourceCurrents: currents of these point sources
+        :param receiverPositions: positions the voltage is calculated for
+
+        """
 
         # np.vstack([axon.xmid, axon.ymid, axon.zmid]).T, axon.imem, electrodePositions
         return i_to_v_homogeneous(sourcePositions, sourceCurrents, receiverPositions, sigma=self.sigma)

@@ -79,7 +79,7 @@ rectangularSignalParams = {'amplitude': 10.,  # Pulse amplitude (mA)
 
 intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParams)}
 
-spikeTrains = PyPN.generateCorrelaSpikeTimes(numberOfAxons, tStop=tStop)
+spikeTrains = PyPN.generateCorrelatedSpikeTimes(numberOfAxons, tStop=tStop)
 
 # ----------------------------- recording params -------------------------------
 

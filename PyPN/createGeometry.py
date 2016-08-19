@@ -28,6 +28,11 @@ def rotation_matrix(axis, theta):
     the given axis by theta radians.
     From: http://stackoverflow.com/questions/6802577/python-rotation-of-3d-vector
     User: unutbu
+
+    :param axis: rotation axis
+    :param theta: rotation angle
+
+    :return: rotation matrix
     """
     axis = np.asarray(axis)
     theta = np.asarray(theta)
@@ -41,8 +46,17 @@ def rotation_matrix(axis, theta):
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
 
-def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAngle=pi / 10,
-                       randomDirectionComponent=0.1):
+def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDirectionComponent=0.1): # maximumAngle=pi / 10,
+    """
+    This function is used to generate the trajectory of axons. They can follow the bundle trajectory more or less loosely, as set by the parameter ``randomDirectionComponent``.
+
+    :param bundleCoords4D: Coordinates of the bundle trajectory, 4th coordinate is radius
+    :param axonCoords: initial position of the axon in the y-z-plane at x=0
+    :param segmentLengthAxon: length of each straight step of the axon trajectory
+    :param randomDirectionComponent: (0 - 1) Regulates the totuosity of the axon. If 0, axon follows bundle direction completely exactly. If 1, axon will only follow the bundle direction very loosely and get very long.
+
+    :return: axon coordinates
+    """
     bundleCoords = bundleCoords4D[:, :3]
 
     pos1 = np.concatenate(([bundleCoords[0, 0]], axonCoords + bundleCoords[0, 1:3]))
@@ -50,8 +64,8 @@ def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAng
 
     coords = np.row_stack((pos1, pos2))
 
-    rhoMax = tan(maximumAngle) * segmentLengthAxon
-    rhoArray = np.zeros(5)
+    # rhoMax = tan(maximumAngle) * segmentLengthAxon
+    # rhoArray = np.zeros(5)
 
     bundleLength = np.shape(bundleCoords)[0]
     currentBundleSegment = 2
@@ -84,9 +98,11 @@ def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAng
         # assure axon stays within bundle. If too far away -> next direction
         # equals bundle direction
         bundleRadius = bundleCoords4D[currentBundleSegment, 3]
-        factorBundleDirection = min((max(0, distance / bundleRadius - 0.7)) * 6, 2.5)
+        # factorBundleDirection = min((max(0, distance / bundleRadius - 0.7)) * 6, 2.5)
 
-        # new
+
+        # calculate the random component perpendicular to the bundle direction. If axon approaches bundle limit (radius),
+        # the random component faces inwards, towards the bundle core.
         factorRadiusBias = min((max(0, distance / bundleRadius - 0.7)) * 6, 2.5)
         radialNorm = np.cross(radiusVectorNorm, bundleDirectionNorm)
         randomVectorToAdd = np.random.uniform(-1,1)*radialNorm + (np.random.uniform(-1,1) - factorRadiusBias)*np.array(radiusVectorNorm*(-1))
@@ -95,30 +111,12 @@ def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAng
         else:
             randomVectorToAddNorm = randomVectorToAdd
 
+        # direction of next axon segment is the sum of previous direction, bundle direction and random component.
+        # The higher randomDirectionComponent, the more weight is put on the random vector and less weight on the
+        # bundle direction.
         nextAxonDir = randomVectorToAddNorm*randomDirectionComponent + lastAxonDirectionNorm + bundleDirectionNorm*(1.1-randomDirectionComponent)
         nextAxonDirScaled = nextAxonDir*segmentLengthAxon
         nextPoint = lastPointAxon + nextAxonDirScaled
-
-        # end new
-
-        # correctionVector = radiusVectorNorm + 0.1 * bundleDirectionNorm
-        # correctionVector = correctionVector / np.linalg.norm(correctionVector)
-        # combinedDirection = lastAxonDirectionNorm + correctionVector * factorBundleDirection + 0.1 * bundleDirection
-        # combinedDirectionNorm = combinedDirection / np.linalg.norm(combinedDirection)
-        #
-        # # get one random orthogonal vector to desired mean direction of next segment
-        # randomOrthogonalVectorNorm = random_perpendicular_vectors(combinedDirection)[0, :]
-        #
-        # # select a direction defined by cylindical coordinate rho
-        # rho = np.random.uniform(1) * rhoMax
-        #
-        # randomDirection = (
-        #                   1 - randomDirectionComponent) * combinedDirectionNorm + randomDirectionComponent * randomOrthogonalVectorNorm * rho
-        # randomDirectionNorm = randomDirection / np.linalg.norm(randomDirection)
-        # nextDirectionScaled = randomDirectionNorm * segmentLengthAxon
-        #
-        # # add the direction to the last point to obtain the next point
-        # nextPoint = lastPointAxon + nextDirectionScaled
 
         # addpend to coordinate list
         coords = np.row_stack((coords, nextPoint))
@@ -200,8 +198,13 @@ def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, maximumAng
 #     return coords
 
 def length_from_coords(coords):
-    # get the length of the wanted axon geometry
+    """Calculates the length of a curve defined by the input coordinates.
 
+    :param coords: coordinates
+
+    :return: length curve
+
+    """
     # do calculate that by summing over lenghts of segments, calculate the difference in coords between each consecutive
     # pair of segments
     dCoords = np.diff(coords,axis=0)
@@ -214,6 +217,19 @@ def length_from_coords(coords):
     return sum(dL)
 
 def distance_along_bundle(bundleGuide, bundleLength, positionMax):
+    # TODO: is this function useless?!
+    #
+    # A bundle is always a little longer than specified in order to complete myelinated axons that have large internodal
+    # distances for higher diameters. This function finds the index of the bundle guide segment that
+    #
+    # Args:
+    #     bundleGuide:
+    #     bundleLength:
+    #     positionMax:
+    #
+    # Returns:
+    #
+    #
 
     bundleGuide = bundleGuide[:, 0:3]
 
@@ -233,6 +249,18 @@ def distance_along_bundle(bundleGuide, bundleLength, positionMax):
 
 
 def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, poleDistance, numberOfPoints=8):
+    """Calculate the set of electrode coordinates for a circular electrode. Can be used for ``RecordingMechanism`` or ``StimFieldQuasistatic``.
+
+    :param bundleGuide: trajectory of the bundle
+    :param positionAlongBundle: distance from origin of the bundle along the trajectory
+    :param radius: radius of the ring
+    :param numberOfPoles: number of poles (rings)
+    :param poleDistance: distance between poles
+    :param numberOfPoints: number of points per ring
+
+    :return: 3D matrix of electrode coordinates
+
+    """
 
     bundleGuide = bundleGuide[:, 0:3]
 
@@ -282,6 +310,16 @@ def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, 
 
 
 def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000, lengthFactor=3):
+    """Generate a bundle trajectory with a corner (only a demonstration).
+
+    :param bundleLength: length of bundle
+    :param segmentLengthAxon: length of straight axon segment. Important for this function as the bundle segment length needs to be longer than the axon segment length for ``create_random_axon`` to work properly.
+    :param lengthFactor: (>2) factor (bundle segment length) / (axon segment length)
+    :param overlapLength: additional length of the bundle trajectory to finish myelinated axons.
+
+    :return: bundle trajectory coordinates. 3 coordinates, no radius
+
+    """
 
     #length after bundle end. necessary for myelinated axons
     bundleLength = bundleLength + overlapLength
@@ -302,6 +340,15 @@ def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000,
     return bundleCoords
 
 def get_bundle_guide_random(bundleLength, segmentLength = 200, overlapLength=1000):
+    """Generate a random bundle trajectory.
+
+    :param bundleLength: length of bundle
+    :param segmentLength: length of straight bundle segment
+    :param overlapLength: additional length of the bundle trajectory to finish myelinated axons.
+
+    :return: coordinates of random bundle. 3 coordinates, no radius
+
+    """
 
     bundleLength = bundleLength + overlapLength
 
@@ -321,6 +368,15 @@ def get_bundle_guide_random(bundleLength, segmentLength = 200, overlapLength=100
     return bundleGuideScaled
 
 def get_bundle_guide_straight(bundleLength, segmentLengthAxon, overlapLength=1000):
+    """Generate a straight bundle. Default if no bundle guide is provided.
+
+    :param bundleLength: length of bundle
+    :param segmentLengthAxon: length of straight axon segment. Important for this function as the bundle segment length needs to be longer than the axon segment length for ``create_random_axon`` to work properly.
+    :param overlapLength: additional length of the bundle trajectory to finish myelinated axons.
+
+    :return: coordinates of a straight bundle. 3 coordinates, no radius
+
+    """
 
     #length after bundle end. necessary for myelinated axons
     bundleLength = bundleLength + overlapLength
@@ -333,7 +389,17 @@ def get_bundle_guide_straight(bundleLength, segmentLengthAxon, overlapLength=100
 
     return bundleCoords
 
-def get_bundle_guide_straight_radius(bundleLength, segmentLengthAxon, overlapLength=1000, radius=150):
+def get_bundle_guide_straight_radius(bundleLength, segmentLengthAxon, overlapLength=1000, radius=200):
+    """Like ``get_bundle_guide_straight`` but with a radius as 4th coordinate.
+
+    :param bundleLength: length of bundle
+    :param segmentLengthAxon: length of straight axon segment. Important for this function as the bundle segment length needs to be longer than the axon segment length for ``create_random_axon`` to work properly.
+    :param overlapLength: additional length of the bundle trajectory to finish myelinated axons.
+    :param radius: radius of the nerve
+
+    :return: coordinates of a straight bundle. Nx4, 4th coordinate for radius.
+
+    """
 
     #length after bundle end. necessary for myelinated axons
     bundleLength = bundleLength + overlapLength
@@ -348,6 +414,16 @@ def get_bundle_guide_straight_radius(bundleLength, segmentLengthAxon, overlapLen
     return bundleCoords
 
 def get_bundle_guide_straight_2radii(bundleLength, segmentLengthAxon, overlapLength=1000, radii=(150, 150)):
+    """Demo of a bundle with radius varying linearly along bundle length.
+
+    :param bundleLength: length of bundle
+    :param segmentLengthAxon: length of straight axon segment. Important for this function as the bundle segment length needs to be longer than the axon segment length for ``create_random_axon`` to work properly.
+    :param overlapLength: additional length of the bundle trajectory to finish myelinated axons.
+    :param radii: start and end radius of the nerve
+
+    :return: bundle coordinates including radius
+
+    """
 
     #length after bundle end. necessary for myelinated axons
     bundleLength = bundleLength + overlapLength

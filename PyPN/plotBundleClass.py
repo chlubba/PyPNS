@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 
 from axonClass import *
-from recordingMechanismClass2 import RecordingMechanism
+from recordingMechanismClass import RecordingMechanism
 from nameSetters import *
 
 
@@ -414,7 +414,7 @@ def voltage(bundle, maxNumberOfSubplots=10):
             nodeCounter = 0
             for j in nodePositions:
                 colorVal = scalarMap.to_rgba(int(nodeCounter * nodeDistance))
-                currentAxis.plot(np.array(timeRec), np.array(v[:,j]), color=colorVal)
+                currentAxis.plot(np.array(t), np.array(v[:,j]), color=colorVal)
                 nodeCounter += 1
 
             currentAxis.set_title('Voltage of nodes of myelinated axon with diameter ' + str(axonDiameter) + ' um')

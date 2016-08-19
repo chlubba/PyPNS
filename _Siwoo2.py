@@ -20,7 +20,7 @@ electricalStimulusOn = True
 
 # ----------------------------- simulation params ---------------------------
 
-tStop=60
+tStop=30
 timeRes=0.0025
 
 # ----------------------------- bundle params -------------------------------
@@ -33,7 +33,7 @@ numberOfAxons = 1
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
 # 5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.
 myelinatedDiam =  0.7 # {'distName' : 'normal', 'params' : (1.0, 0.7)} # (2.0, 0.7)
-unmyelinatedDiam = 5 # {'distName' : 'normal', 'params' : (0.7, 0.3)}
+unmyelinatedDiam = 0.4 # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
 # axon definitions
 myelinatedParameters = {'fiberD': myelinatedDiam}
@@ -46,7 +46,7 @@ bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segm
 # ----------------------------- stimulation params ---------------------------
 
 # parameters of signals for stimulation
-rectangularSignalParams = {'amplitude': 50.,  # Pulse amplitude (mA)
+rectangularSignalParams = {'amplitude': .5,  # Pulse amplitude (mA)
                            'frequency': 20.,  # Frequency of the pulse (kHz)
                            'dutyCycle': 0.5,  # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                            'stimDur': 0.05,  # Stimulus duration (ms)
@@ -63,7 +63,7 @@ intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectang
 
 recordingParametersNew = {'bundleGuide': bundleGuide,
                           'radius': 200,
-                          'positionAlongBundle': 7000,
+                          'positionAlongBundle': 3000,
                           'numberOfPoles': 2,
                           'poleDistance': 1000,
                         }
@@ -107,14 +107,14 @@ if calculationFlag:
                             'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
 
                             'tStop': tStop,
-                            'timeRes': 'variable', #timeRes, #
+                            'timeRes': 0.0025, #'variable', #
 
                             # 'saveI':True,
                             # 'saveV': False,
+                            'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
 
                             'numberOfSavedSegments': 50,
                             # number of segments of which the membrane potential is saved to disk
-                            'downsamplingFactor': 100
                             }
 
         # create the bundle with all properties of axons and recording setup
@@ -138,6 +138,10 @@ if calculationFlag:
 
         # run the simulation
         bundle.simulate()
+
+        t, v = bundle.get_voltage_from_file_one_axon(0)
+        plt.plot(t,v[:,30])
+        plt.show()
 
         # # get SFAP
         # time, CAP = bundle.get_CAP_from_file()

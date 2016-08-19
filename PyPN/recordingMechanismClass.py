@@ -4,6 +4,12 @@ import matplotlib.pyplot as plt
 class RecordingMechanism(object):
 
     def __init__(self, electrodePositions, extracellularPotentialMechanism, polarities=()):
+        """``RecordingMechanism`` calculates the extracellular potental as picked up by an electrode.
+
+        :param electrodePositions: Positions of the recording electrodes. 3D numpy array for (electrode points) x (position in space of each electrode point ) x (poles)
+        :param extracellularPotentialMechanism: ``ExtracellularMechanism`` to convert membrane current into voltage
+        :param polarities: Signs of recording poles
+        """
 
         self.electrodePositions = electrodePositions
 
@@ -24,6 +30,9 @@ class RecordingMechanism(object):
 
 
     def compute_overall_CAP(self):
+        """Simply sum over single fibre contributions. Result saved in ``self.CAP``.
+
+        """
 
         arrayd_axonwise_CAPs = np.array(self.CAP_axonwise)
 
@@ -34,12 +43,10 @@ class RecordingMechanism(object):
 
     def compute_single_axon_CAP(self, axon):
         """
-        1. Calculate extracellular potential (LFP) for every electrode point defined in self.electrodePositions
+        1. Calculate extracellular potential (LFP) for every electrode point defined in ``self.electrodePositions``
         2. Sum over points of single electrodes
-        Args:
-            axon:
 
-        Returns: none
+        :param axon: The axon for which the single fibre action potential is computed.
 
         """
 

@@ -13,20 +13,23 @@ from extracellularBackend import *
 
 
 class StimIntra(ExcitationMechanism):
-    """
-    stimType: INTRA or EXTRA cellular stimulation
-    axon: axon object on which the stimulation is applied
-    pos: position of the stimulus
-    sect: section being stimulated
-    delay: pulse delay (ms)
-    stimDur: pulse duration (ms)
-    amp: pulse amplitude (nA)
-    freq: frequency of the sin pulse (Hz)
-    duty_cycle: Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-    stim_coord=[xe,ye,ze]: spatial coordinates  of the stimulating electrode
-    waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-    """
+    # stimType: INTRA or EXTRA cellular stimulation
+    # axon: axon object on which the stimulation is applied
+    # pos: position of the stimulus
+    # sect: section being stimulated
+    # delay: pulse delay (ms)
+    # stimDur: pulse duration (ms)
+    # amp: pulse amplitude (nA)
+    # freq: frequency of the sin pulse (Hz)
+    # duty_cycle: Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+    # stim_coord=[xe,ye,ze]: spatial coordinates  of the stimulating electrode
+    # waveform: Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+
     def __init__(self, stimulusSignal):
+        """Intracellular stimulation is effectively a current injection into each axon.
+
+        :param stimulusSignal: signal to stimulate the axons with. Unit nA
+        """
 
         self.stimulusSignal = stimulusSignal
         self.svec = h.Vector(self.stimulusSignal)
@@ -34,6 +37,11 @@ class StimIntra(ExcitationMechanism):
         super(StimIntra, self).__init__()
 
     def connect_axon(self, axon):
+        """ An IClamp is placed on the first section of the axon.
+
+        :param axon: The axon the mechanism is connected to.
+
+        """
 
         # Place an IClamp on the first element of the allseclist
         # In unmyelinated axon case allseclist is directly the unique axon section
@@ -110,8 +118,14 @@ class SimpleIClamp(ExcitationMechanism):
 
 
 class StimFieldQuasistatic(ExcitationMechanism):
-
     def __init__(self, stimulusSignal, electrodePositions, extPotMech, polarities = ()):
+        """A field is calulated from the current on stimulation electrodes and then applied to the axon as the extracellular membrane voltage.
+
+        :param stimulusSignal: Current signal on the electrodes [nA]. If electrode is composed of many point electrodes, the signal is divided by the number of those.
+        :param electrodePositions: Positions of the electrodes as for RecordingMechanisms 3D
+        :param extPotMech: ``ExtracellularMechansim`` used to calculate the voltage at the axon membrane caused by the stimulation current.
+        :param polarities: Signs of the stimulation electrodes.
+        """
         super(StimFieldQuasistatic, self).__init__()
 
         # electrode setup: positions and polarities

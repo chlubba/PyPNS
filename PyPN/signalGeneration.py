@@ -2,26 +2,23 @@ import numpy as np
 from scipy import signal
 import constants
 
-def biphasic_decaying(timeRes=constants.timeResStim, tDelay=0, tC=1, aC=0.05, tExp=1, cExp=-5, tD=2, aD=-0.01):
+def biphasic_decaying(tDelay=0, tC=1, aC=0.05, tExp=1, cExp=-5, tD=2, aD=-0.01):
     """
     Defines stimulus signal shape as in <name paper>
 
-    Args:
-        timeRes: time resolution of the simulation
-        tDelay: length of first zero phase [ms]
-        tC: length of up phase [ms]
-        aC: amplitude of up phase [mA]
-        tExp: length of decaying phase
-        cExp: decaying coefficient
-        tD: length down time
-        aD: amplitude down time
+    :param tDelay: length of first zero phase [ms]
+    :param tC: length of up phase [ms]
+    :param aC: amplitude of up phase [mA]
+    :param tExp: length of decaying phase
+    :param cExp: decaying coefficient
+    :param tD: length down time
+    :param aD: amplitude down time
 
-    Returns:
-        t: time array
-        overallSignal: signal array
+    :return: signal array
 
     """
 
+    timeRes = constants.timeResStim
 
     signal0 = np.zeros(int(tDelay / timeRes))
     signal1 = np.ones(int(tC / timeRes)) * aC
@@ -38,8 +35,22 @@ def biphasic_decaying(timeRes=constants.timeResStim, tDelay=0, tC=1, aC=0.05, tE
 
     return overallSignal
 
-def rectangular(stimDur, amplitude, frequency, dutyCycle, waveform, timeRes=constants.timeResStim, delay=0, invert=False):
+def rectangular(stimDur, amplitude, frequency, dutyCycle, waveform, delay=0, invert=False):
+    """ Return rectangular signal (uses SciPy)
 
+    :param stimDur: duration of stimulus signal
+    :param amplitude: peak amplitude (not peak-to-peak)
+    :param frequency: frequency
+    :param dutyCycle: fraction of a period that is 'up'
+    :param waveform: 'MONOPHASIC' or 'BIPHASIC'
+    :param delay: onset of the stimulus in ms
+    :param invert: invert the stimulus signal or not
+
+    :return: rectangular stimulus signal
+
+    """
+
+    timeRes = constants.timeResStim
     tGen = np.arange(0, stimDur, timeRes)
 
     if waveform == 'MONOPHASIC':
