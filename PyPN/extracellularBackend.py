@@ -125,7 +125,9 @@ def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, 
         sourceZs = []
 
         sourcePosition = sourcePositions[sourceInd,:]  # why oh why, no do-while
+        # print 'bundleSegEndPoint_ ' + str(bundleSegEndPoint)
         while np.inner(sourcePosition - bundleSegEndPoint, n) < 0:  # while in bundle guide segment
+            # print 'sourcePosition ' + str(sourcePosition)
 
             sourcePosition = sourcePositions[sourceInd,:]
             sourcePosPar = np.inner(sourcePosition - bundleSegStartPoint,
@@ -200,13 +202,17 @@ def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, 
                                    sourceCurrents[imemAxonSegInd, :]
                                    * (10)**(currentUnitSource-currentUnitFEM)) * 1000
 
+            # import matplotlib.pyplot as plt
+            # plt.plot(receiverPotTemp.T)
+            # plt.show()
+
             # add contributions
             receiverPotentials = np.add(receiverPotentials, receiverPotTemp)
 
         bundleSegInd += 1
 
     # import matplotlib.pyplot as plt
-    # plt.plot(elecPotentials.T)
+    # plt.plot(receiverPotentials.T, linewidth=2, color='r')
     # plt.show()
 
     return receiverPotentials

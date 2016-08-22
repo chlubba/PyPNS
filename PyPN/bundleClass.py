@@ -4,14 +4,14 @@ import os
 # TODO: Then the working directory of the script needs to be changed.
 PyPNDir = os.path.realpath(__file__)
 PyPNDir = os.path.dirname(PyPNDir)
-os.chdir(PyPNDir)
+# os.chdir(PyPNDir)
 
 from axonClass import *
 
 h('load_file("noload.hoc")')
-# for processorSpecificFolderName in ['x86_64', 'i686', 'powerpc']:
-#     neuronCommand = 'nrn_load_dll("'+os.path.join(PyPNDir,processorSpecificFolderName,'.libs','libnrnmech.so')+'")'
-#     h(neuronCommand)
+for processorSpecificFolderName in ['x86_64', 'i686', 'powerpc']:
+    neuronCommand = 'nrn_load_dll("'+os.path.join(PyPNDir,processorSpecificFolderName,'.libs','libnrnmech.so')+'")'
+    h(neuronCommand)
 
 import createGeometry
 
@@ -585,8 +585,12 @@ class Bundle(object):
         # generate axon specific file name (a little clumsy, directory
         filename = get_file_name("I" + str(axonIndex), self.basePath, directoryType='I')
 
+        # add time
+        dataOut = np.row_stack((np.array(self.axons[axonIndex].trec), self.axons[axonIndex].imem))
+
         # np.savetxt(filename, self.axons[axonIndex].imem)
-        np.save(filename, self.axons[axonIndex].imem)
+        # np.save(filename, self.axons[axonIndex].imem)
+        np.save(filename, dataOut)
 
     def get_imem_from_file_axonwise(self, axonIndex):
 
@@ -595,8 +599,10 @@ class Bundle(object):
 
         try:
             # imem = np.loadtxt(filename)
-            imem = np.load(filename)
-            return imem
+            imemRaw = np.load(filename)
+            t = imemRaw[0, :]
+            imem = imemRaw[1:,:]
+            return t, imem
         except:
             raise Exception('imem-file not found for axon ' + str(axonIndex))
 
@@ -680,7 +686,7 @@ class Bundle(object):
         recMechName = self.recordingMechanisms[recordingMechanismIndex].__class__.__name__
         directory = get_directory_name('CAP1A_' + recMechName + '_recMech' + str(recordingMechanismIndex), self.basePath)
         try:
-            newestFile = max(glob.iglob(os.path.join(directory, '') + '*.[Dd][Aa][Tt]'), key=os.path.getctime)
+            newestFile = max(glob.iglob(os.path.join(directory, '') + '*.[Nn][Pp][Yy]'), key=os.path.getctime)
         except ValueError:
             print 'No CAP calculation has been performed yet with this set of parameters.'
             return
@@ -690,7 +696,7 @@ class Bundle(object):
         time = SFAPsraw[0, :]
         SFAPs = SFAPsraw[1:, :]
 
-        return time, SFAPs
+        return time, SFAPs.T
 
     def get_voltage_from_file(self):
 

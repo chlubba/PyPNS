@@ -732,7 +732,7 @@ class Myelinated(Axon):
             deltax=500
             paralength2=35
             nl=80
-        if (fiberD==7.3):
+        elif (fiberD==7.3):
             g=0.630
             axonD=4.6
             nodeD=2.4
@@ -741,7 +741,7 @@ class Myelinated(Axon):
             deltax=750
             paralength2=38
             nl=100
-        if (fiberD==8.7):
+        elif (fiberD==8.7):
             g=0.661
             axonD=5.8
             nodeD=2.8
@@ -750,7 +750,7 @@ class Myelinated(Axon):
             deltax=1000
             paralength2=40
             nl=110
-        if (fiberD==10.0):
+        elif (fiberD==10.0):
             g=0.690
             axonD=6.9
             nodeD=3.3
@@ -759,7 +759,7 @@ class Myelinated(Axon):
             deltax=1150
             paralength2=46
             nl=120
-        if (fiberD==11.5):
+        elif (fiberD==11.5):
             g=0.700
             axonD=8.1
             nodeD=3.7
@@ -768,7 +768,7 @@ class Myelinated(Axon):
             deltax=1250
             paralength2=50
             nl=130
-        if (fiberD==12.8):
+        elif (fiberD==12.8):
             g=0.719
             axonD=9.2
             nodeD=4.2
@@ -777,7 +777,7 @@ class Myelinated(Axon):
             deltax=1350
             paralength2=54
             nl=135
-        if (fiberD==14.0):
+        elif (fiberD==14.0):
             g=0.739
             axonD=10.4
             nodeD=4.7
@@ -786,7 +786,7 @@ class Myelinated(Axon):
             deltax=1400
             paralength2=56
             nl=140
-        if (fiberD==15.0):
+        elif (fiberD==15.0):
             g=0.767
             axonD=11.5
             nodeD=5.0
@@ -795,7 +795,7 @@ class Myelinated(Axon):
             deltax=1450
             paralength2=58
             nl=145
-        if (fiberD==16.0):
+        else: #  (fiberD==16.0):
             g=0.791
             axonD=12.7
             nodeD=5.5
@@ -807,7 +807,7 @@ class Myelinated(Axon):
 
         return axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g
 
-    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=37, name="myelinated_axonA", layout3D="PT3D", rec_v=True):
+    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=37, name="myelinated_axonA", layout3D="PT3D", rec_v=True, gkbar_axnode=0.12):
         super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments)
 
         self.v_init = -81
@@ -827,6 +827,8 @@ class Myelinated(Axon):
         self.rhoa=0.7e6 #Ohm-um
         self.mycm=0.1 #uF/cm2/lamella membrane
         self.mygm=0.001 #S/cm2/lamella membrane
+
+        self.gkbar_axnode = gkbar_axnode
 
 
         axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getFittedMcIntyreParams(self.fiberD) # interlength,
@@ -1125,6 +1127,11 @@ class Myelinated(Axon):
         self.interpxyz()
         self.collect_geometry()
         self.calc_midpoints()
+
+        # here we correct the conductance of the slow potassium channel from 0.08 S/cm2 to 0.12 S/cm2 to prevent
+        # multiple action potentials for thin fibers
+        hString = 'forall for (x,0) if (ismembrane("axnode")) gkbar_axnode(x) = %2.3f' % self.gkbar_axnode
+        h(hString)
 
     def delete_neuron_object(self):
         for sec in self.allseclist:

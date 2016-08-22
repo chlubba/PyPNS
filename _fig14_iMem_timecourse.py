@@ -37,7 +37,7 @@ bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segm
 # ----------------------------- stimulation params ---------------------------
 
 # parameters of signals for stimulation
-rectangularSignalParams = {'amplitude': 100., #50,  # Pulse amplitude (mA)
+rectangularSignalParams = {'amplitude': 10., # 100. #50,  # Pulse amplitude (mA)
                            'frequency': 20.,  # Frequency of the pulse (kHz)
                            'dutyCycle': 0.5,  # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                            'stimDur': 0.05,  # Stimulus duration (ms)
@@ -64,11 +64,14 @@ recordingParametersNew = {'bundleGuide': bundleGuide,
 # ---------------------------------- CALCULATION -------------------------------
 # ------------------------------------------------------------------------------
 
-diameters = np.flipud(np.arange(.2, 4., .5))
-diameter = 0.8
+diametersUnmyel = [1] # [0.2, 1, 3] # np.arange(0.2, 2, 0.3)
+diametersMyel = [1] # [0.2, 1, 3] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)
+diametersBothTypes = [diametersUnmyel, diametersMyel]
+
 temperatures = np.arange(5, 46, 5)
 Ras = [70] # np.arange(50, 300, 50)
 Cms = [0.1, 0.3, 1.] # np.arange(0.15, 0.2, 0.01)
+gkbars = np.arange(0.1, 0.2, 0.02) # [1.2] #
 
 # saveDict = {'axonType': 'unmyelinated',
 #             'diameters': diameters,
@@ -79,16 +82,16 @@ if calculationFlag:
 
     firstAP = []
 
-    # for temperatureInd, temperature in enumerate(temperatures):
-    for CmInd, Cm in enumerate(Cms):
+    (f,axarr) = plt.subplots(1,2,sharey=True)
 
-        for RaInd, Ra in enumerate(Ras):
+    typeLegendStrings = ['unmyelinated', 'myelinated']
+    for typeInd in [0, 1]:
 
-            LFPMech = PyPN.Extracellular.homogeneous(sigma=1)
+        diameters = diametersBothTypes[typeInd]
 
-            electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
+        # for temperatureInd, temperature in enumerate(temperatures):
+        for diameterInd, diameter in enumerate(diameters):
 
-            modularRecMech = PyPN.RecordingMechanism(electrodePos, LFPMech)
 
             # set the diameter distribution or fixed value
             # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -97,8 +100,8 @@ if calculationFlag:
             unmyelinatedDiam = diameter  # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
             # axon definitions
-            myelinatedParameters = {'fiberD': myelinatedDiam} # , 'temperature': temperature}
-            unmyelinatedParameters = {'fiberD': unmyelinatedDiam, 'cm': Cm, 'Ra': Ra} # , 'temperature': temperature}
+            myelinatedParameters = {'fiberD': myelinatedDiam} # , 'gkbar_axnode': gkbar} # , 'temperature': temperature}
+            unmyelinatedParameters = {'fiberD': unmyelinatedDiam} # , 'temperature': temperature}
 
             # set all properties of the bundle
             bundleParameters = {'radius': 300,  # 150, #um Radius of the bundle (typically 0.5-1.5mm)
@@ -107,16 +110,17 @@ if calculationFlag:
                                 # 'bundleGuide': bundleGuide,
 
                                 'numberOfAxons': numberOfAxons,  # Number of axons in the bundle
-                                'pMyel': 0.,  # Percentage of myelinated fiber type A
-                                'pUnmyel': 1.,  # Percentage of unmyelinated fiber type C
+                                'pMyel': typeInd,  # Percentage of myelinated fiber type A
+                                'pUnmyel': 1 - typeInd,  # Percentage of unmyelinated fiber type C
                                 'paramsMyel': myelinatedParameters,  # parameters for fiber type A
                                 'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
 
                                 'tStop': tStop,
-                                'timeRes': 'variable', #0.0025, #
+                                'timeRes': 0.0025, #'variable', #
 
-                                # 'saveI':True,
-                                # 'saveV': False,
+                                'saveI':True,
+                                'saveV': False,
+                                'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
 
                                 'numberOfSavedSegments': 50,
                                 # number of segments of which the membrane potential is saved to disk
@@ -130,136 +134,75 @@ if calculationFlag:
             if electricalStimulusOn:
                 bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
 
-            # bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParameters))
-            # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParameters))
-            # bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParametersBip))
-            # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
-
-            # bundle.add_recording_mechanism(modularRecMech1)
-            bundle.add_recording_mechanism(modularRecMech)
-            # bundle.add_recording_mechanism(modularRecMech3)
-
-            # PyPN.plot.geometry_definition(bundle)
-            # plt.show()
-
             # run the simulation
             bundle.simulate()
 
-            # # get SFAP
-            time, CAP = bundle.get_CAP_from_file()
-            # plt.plot(time, CAP)
-            #
-            # # plt.plot(time, CAP)
-            # plt.figure()
-            # PyPN.plot.voltage(bundle)
+            t, imem = bundle.get_imem_from_file_axonwise(0)
+
+            # t,v = bundle.get_voltage_from_file_one_axon(0)
+            # plt.plot(t,v)
             # plt.show()
 
-            # membrane voltage approach
-
-            t, v = bundle.get_voltage_from_file_one_axon(0)
-
-            from scipy.interpolate import interp1d
-            f = interp1d(t, v[:,30])
-
-            tReg = np.arange(0,max(t),0.0025)
-            vReg = f(tReg)
-
-            # plt.subplot(len(Ras), len(Cms), RaInd * len(Cms) + CmInd)
-
-            if CmInd == 0 and RaInd == 0:
-                firstAP = vReg
-                plt.plot(tReg, vReg, label='Ra='+str(Ra)+' Cm='+str(Cm))
+            if typeInd == 1:
+                nodeIndex = np.floor(bundle.axons[0].totnsegs / 11 * 0.8) * 11
+                iSignal = np.sum(imem[nodeIndex:nodeIndex+3, :], axis=0)
             else:
-                correlation = np.correlate(firstAP-np.mean(firstAP), vReg-np.mean(vReg), 'full')
-                # plt.plot(correlation)
-                # plt.show()
-                lag = len(firstAP) - np.argmax(correlation)
+                nodeIndex = 10
+                iSignal = imem[nodeIndex, :]
 
-                # plt.plot(tReg, firstAP)
-                # plt.plot(tReg, vReg)
-                # plt.title('lag' + str(lag*0.0025))
-                # plt.show()
-
-                plt.plot(tReg[:-lag], vReg[lag:], label='Ra='+str(Ra)+' Cm='+str(Cm))
-                # plt.plot(tReg, vReg)
-
-
-
-            # plt.title('Ra ' + str(Ra) + ' Cm ' + str(Cm))
-            # plt.show()
-
-            # plt.figure()
-            # plt.plot(t, v[:,30])
-            # plt.show()
-
-
-            currentNumberOfSegments = np.shape(v)[1]
-            currentAxonLength = bundle.axons[0].L
-
-            from PyPN.axonClass import *
-            if not type(bundle.axons[0]) == Myelinated:
-                iMaxFirstSegment = np.argmax(v[:, 0])
-                iMaxLastSegment = np.argmax(v[:, -1])
-
-                # plt.plot(v[:,0])
-                # plt.show()
-
-                tMinFirstSegment = t[iMaxFirstSegment]
-                tMinLastSegment = t[iMaxLastSegment]
-
-                distance = currentAxonLength
-
-                vel = distance/1000/(tMinLastSegment - tMinFirstSegment)
-
-            else:
-                Nnodes = bundle.axons[0].axonnodes
-                numberOfRecordingSites = np.shape(v)[1]
-                nodePositions = range(0, (Nnodes - 1) * 11, 11)
-
-                nodeDistance = bundle.axons[0].lengthOneCycle
-                distance = Nnodes * nodeDistance
-
-                iMaxFirstSegment = np.argmax(v[:, nodePositions[0]])
-                iMaxLastSegment = np.argmax(v[:, nodePositions[-1]])
-
-                # plt.plot(v[:,0])
-                # plt.show()
-
-                tMinFirstSegment = t[iMaxFirstSegment]
-                tMinLastSegment = t[iMaxLastSegment]
-
-                vel = distance/1000/(tMinLastSegment - tMinFirstSegment)
-
-
-            # iAP = np.argmin(CAP)
-            # tAP = time[iAP]
+            # from scipy.interpolate import interp1d
+            # f = interp1d(t, iSignal)
+            # tReg = np.arange(0,max(t),0.0025)
+            # vReg = f(tReg)
             #
-            # vAP = recordingParametersNew['positionAlongBundle']/1000/tAP
+            # sp = np.fft.fft(iSignal)
+            # freq = np.fft.fftfreq(tReg.shape[-1], d=0.0025/1000)
+            # plt.semilogy(freq, np.abs(sp[1:]), label=typeLegendStrings[typeInd] + ', ' + str(diameter)+ ' $\mu$m') # len(freq) #  / max(np.abs(sp[1:]))
 
-            # vAPs.append(vel)
+            # plt.plot(t, iOneSegment)
+            if typeInd == 1:
+                labelStringsSections = ['node', 'MYSA', 'FLUT']
+                axarr[typeInd].plot(t, np.sum(imem[nodeIndex:nodeIndex + 3, :], axis=0), label='Sum of all',
+                                    linewidth=1.5) # , color='k'
+                for ii in range(3):
+                    axarr[typeInd].plot(t, imem[nodeIndex + ii, :], label=labelStringsSections[ii])
 
-            # print tAP, vAP
-        # saveDict['velocityArray'].append(np.array(vAPs))
+                axarr[typeInd].set_title('Myelinated')
+                axarr[typeInd].legend(loc='best')
+                axarr[typeInd].set_xlim((0.85, 1.7))
+            else:
+                axarr[typeInd].plot(t, imem[nodeIndex, :])
+                axarr[typeInd].set_title('Unmyelinated')
+                axarr[typeInd].set_xlim((0, 1.2))
+                axarr[typeInd].set_ylabel('$I_m$ [nA]')
 
-        # import matplotlib.cm as cm
-        # import matplotlib.colors as colors
-        # jet = plt.get_cmap('jet')
-        # cNorm = colors.Normalize(vmin=0, vmax=len(temperatures)-1)
-        # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
-        # colorVal = scalarMap.to_rgba(CmInd)
-        # plt.plot(diameters, vAPs, label=str(Cm) + ' $\mu$F/cm$^2$', color=colorVal)
+            axarr[typeInd].set_xlabel('time [ms]')
+            axarr[typeInd].grid()
 
-            # # save the bundle to disk
-            # PyPN.save_bundle(bundle)
+            # plt.xlim((0.15, 0.9))
 
-    # plt.plot(np.arange(0,3.7,0.2), np.sqrt(np.arange(0,3.7,0.2))*2, linestyle='--', color=np.array([1, 1, 1])*0.7, label='theory')
-    # plt.xlabel('diameter [um]')
-    # plt.ylabel('conduction velocity [m/s]')
-    # plt.title('Unmyelinated Axon with Ra = 50 Ohm cm')
-    # plt.legend(loc='best')
+            # print np.sum(iOneSegment)
+            # print np.max(iOneSegment)
+
+
+            # nodeIndex = np.floor(bundle.axons[0].totnsegs/11*0.8)*11
+            #
+            # from scipy.interpolate import interp1d
+            # f = interp1d(t, v[:,nodeIndex])
+            #
+            # tReg = np.arange(0,max(t),0.0025)
+            # vReg = f(tReg)
+            #
+            # plt.plot(tReg, vReg, label=str(gkbar))
+
+
+    # plt.xlim((0,20000))
     # plt.grid()
-
-    plt.legend()
+    # plt.xlabel('Frequency [Hz]')
+    # plt.ylabel('Fourier coeff [nA]')
+    # plt.title('FFT of the membrane current')
+    # plt.xlim((0, 50000))
+    # plt.legend(loc='best')
 
 else:
 

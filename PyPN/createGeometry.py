@@ -264,7 +264,7 @@ def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, 
 
     bundleGuide = bundleGuide[:, 0:3]
 
-    # first find the bundle guide segment index that corresponds to the intendet bundle length (overlap for
+    # first find the bundle guide segment index that corresponds to the intended bundle length (overlap for
     # myelinated axons gives longer bundle than specified by user)
     segmentIndex = np.shape(bundleGuide)[0]-1
     distanceTemp = length_from_coords(bundleGuide)
@@ -284,6 +284,8 @@ def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, 
     segmentOrientation = segmentEndPos - segmentStartingPos
     segmentOrientation = segmentOrientation / np.linalg.norm(segmentOrientation)
 
+    electrodeProjectionOnBundleGuide = segmentStartingPos + (positionAlongBundle - distanceTemp)*segmentOrientation
+
     # get one random orthogonal vector
     orthogonalVector = random_perpendicular_vectors(segmentOrientation)[0, :]
 
@@ -291,7 +293,7 @@ def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, 
     for j in range(numberOfPoints):
         # generate the coordinates for one ring for the first pole of the electrode
         pointPosition = np.dot(rotation_matrix(segmentOrientation, 2 * np.pi / numberOfPoints * j),
-                               (orthogonalVector * radius)) + segmentMiddle
+                               (orthogonalVector * radius)) + electrodeProjectionOnBundleGuide
 
         # append it to the list of coordinates for this pole
         electrodePositions = np.vstack([electrodePositions, pointPosition])
