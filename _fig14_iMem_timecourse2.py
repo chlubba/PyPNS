@@ -21,7 +21,7 @@ electricalStimulusOn = True
 
 # ----------------------------- simulation params ---------------------------
 
-tStop=50
+tStop=100
 timeRes=0.0025
 
 # ----------------------------- bundle params -------------------------------
@@ -32,11 +32,12 @@ numberOfAxons = 1
 
 # bundle guide
 segmentLengthAxon = 30
+bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segmentLengthAxon)
 
 # ----------------------------- stimulation params ---------------------------
 
 # parameters of signals for stimulation
-rectangularSignalParams = {'amplitude': 10., #50,  # Pulse amplitude (mA)
+rectangularSignalParams = {'amplitude': 10., # 100. #50,  # Pulse amplitude (mA)
                            'frequency': 20.,  # Frequency of the pulse (kHz)
                            'dutyCycle': 0.5,  # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
                            'stimDur': 0.05,  # Stimulus duration (ms)
@@ -49,61 +50,48 @@ rectangularSignalParams = {'amplitude': 10., #50,  # Pulse amplitude (mA)
 
 intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParams)}
 
+# ----------------------------- recording params -------------------------------
+
+recordingParametersNew = {'bundleGuide': bundleGuide,
+                          'radius': 200,
+                          'positionAlongBundle': 40000,
+                          'numberOfPoles': 1,
+                          'poleDistance': 1000,
+                        }
 
 
 # ------------------------------------------------------------------------------
 # ---------------------------------- CALCULATION -------------------------------
 # ------------------------------------------------------------------------------
 
-diametersUnmyel = (0.120, 0.17,  0.21,  0.26,  0.32,  0.37,  0.41,  0.47,  0.51,  0.56,  0.62,  0.67,  0.72,  0.77,  0.84,  0.92,  0.97,  1.02,  1.07,  1.12,  1.17,  1.22,  1.27,  1.32, 1.36, 1.41, 1.48, 1.52)# [0.12, 1.52] # np.arange(0.2, 2, 0.3)
-diametersMyel = (1.01,    1.19,  1.22,  1.40,  1.41,  1.58,  1.61,  1.78,  1.81,  1.99,  2.01,  2.18,  2.22, 2.39,    2.41,  2.58,  2.61,  2.79,  2.81,  2.99,  3.01,  3.19,  3.61,  3.79,  3.81,  3.99,  4.02,  4.20, 4.5, 5) # [1.1, 4.2] # [4.2] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)]
-
-# diametersMyel = np.arange(0.4, 1.1, 0.02)
-
+diametersUnmyel = [0.2] # [0.2, 1, 3] # np.arange(0.2, 2, 0.3)
+diametersMyel = [0.2] # [0.2, 1, 3] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)
 diametersBothTypes = [diametersUnmyel, diametersMyel]
 
-tStartPlots = [0.2, 0.05]
-
-diameters = np.arange(0.2, 4, 0.7) # [1, 2, 4] # [4, 3, 2, 1, 0.5, 0.2] # np.flipud(np.arange(.2, 4., .3))
 temperatures = np.arange(5, 46, 5)
-Ras = np.arange(50, 300, 50)
+Ras = [70] # np.arange(50, 300, 50)
+Cms = [0.1, 0.3, 1.] # np.arange(0.15, 0.2, 0.01)
+gkbars = np.arange(0.1, 0.2, 0.02) # [1.2] #
 
-RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
-
-simTimes = [40, 10]
-
-saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
-            'unmyelinatedSFAPsHomo': [],
-            'unmyelinatedSFAPsFEM': [],
-            'unmyelinatedCV' : [],
-            't': [],
-            'myelinatedDiameters': diametersMyel,
-            'myelinatedSFAPsHomo': [],
-            'myelinatedSFAPsFEM': [],
-            'myelinatedCV' : [],
-            }
+# saveDict = {'axonType': 'unmyelinated',
+#             'diameters': diameters,
+#             'temperatures': temperatures,
+#             'velocityArray': []}
 
 if calculationFlag:
 
-    # variables to safe SFAPs in
-    SFAPsFEM = []
-    SFAPsHomo = []
+    firstAP = []
 
-    legends = ['Unmyelinated', 'Myelinated']
-    bundleLengths = [5000, 15000]
-    for i in [0,1]:
+    (f,axarr) = plt.subplots(1,2,sharey=True)
 
-        vAPCollection = []
+    typeLegendStrings = ['unmyelinated', 'myelinated']
+    for typeInd in [0, 1]:
 
-        diameters = diametersBothTypes[i]
+        diameters = diametersBothTypes[typeInd]
 
-        recMechLegends = ['homogeneous', 'FEM']
-        recMechMarkers = ['o', 'v']
-
-        SFAPsHomo = []
-        SFAPsFEM = []
-
+        # for temperatureInd, temperature in enumerate(temperatures):
         for diameterInd, diameter in enumerate(diameters):
+
 
             # set the diameter distribution or fixed value
             # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -112,145 +100,109 @@ if calculationFlag:
             unmyelinatedDiam = diameter  # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
             # axon definitions
-            myelinatedParameters = {'fiberD': myelinatedDiam}
-            unmyelinatedParameters = {'fiberD': unmyelinatedDiam}
+            myelinatedParameters = {'fiberD': myelinatedDiam} # , 'gkbar_axnode': gkbar} # , 'temperature': temperature}
+            unmyelinatedParameters = {'fiberD': unmyelinatedDiam} # , 'temperature': temperature}
 
             # set all properties of the bundle
             bundleParameters = {'radius': 300,  # 150, #um Radius of the bundle (typically 0.5-1.5mm)
-                                'length': bundleLengths[i],  # um Axon length
-                                # 'randomDirectionComponent': RDC,
+                                'length': lengthOfBundle,  # um Axon length
+                                # 'randomDirectionComponent': .9,
                                 # 'bundleGuide': bundleGuide,
 
                                 'numberOfAxons': numberOfAxons,  # Number of axons in the bundle
-                                'pMyel': i,  # Percentage of myelinated fiber type A
-                                'pUnmyel': 1 - i,  # Percentage of unmyelinated fiber type C
+                                'pMyel': typeInd,  # Percentage of myelinated fiber type A
+                                'pUnmyel': 1 - typeInd,  # Percentage of unmyelinated fiber type C
                                 'paramsMyel': myelinatedParameters,  # parameters for fiber type A
                                 'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
 
-                                'tStop': simTimes[i],
+                                'tStop': tStop,
                                 'timeRes': 0.0025, #'variable', #
 
-                                # 'saveI':True,
-                                # 'saveV': False,
+                                'saveI':True,
+                                'saveV': False,
                                 'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
 
                                 'numberOfSavedSegments': 50,
                                 # number of segments of which the membrane potential is saved to disk
+                                # 'downsamplingFactor': 100
                                 }
 
             # create the bundle with all properties of axons and recording setup
             bundle = PyPN.Bundle(**bundleParameters)
 
-            LFPMech = []
-            LFPMech.append(PyPN.Extracellular.homogeneous(sigma=1))
-            LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords))
-
-
             # spiking through a single electrical stimulation
             if electricalStimulusOn:
                 bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
 
-
-            if i == 1:
-
-                recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
-                                          'radius': 200,
-                                          'positionAlongBundle': np.floor(bundleLengths[i]*0.8 / bundle.axons[0].lengthOneCycle) *
-                                                                 bundle.axons[0].lengthOneCycle,
-                                          'numberOfPoles': 1,
-                                          'poleDistance': 1000,
-                                          }
-
-            else:
-                recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
-                                          'radius': 200,
-                                          'positionAlongBundle': 3000,
-                                          'numberOfPoles': 1,
-                                          'poleDistance': 1000,
-                                          }
-
-            electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
-
-            modularRecMechs = []
-            for recMechIndex in [0,1]:
-                modularRecMechs.append(PyPN.RecordingMechanism(electrodePos, LFPMech[recMechIndex]))
-                bundle.add_recording_mechanism(modularRecMechs[-1])
-
             # run the simulation
             bundle.simulate()
 
-            # PyPN.plot.voltage(bundle)
+            t, imem = bundle.get_imem_from_file_axonwise(0)
 
-            # t, SFAPs = bundle.get_SFAPs_from_file()
-            # plt.plot(t[t>tStartPlots[i]], SFAPs[t>tStartPlots[i]])
-            # t, SFAPs = bundle.get_SFAPs_from_file(1)
-            # plt.plot(t[t>tStartPlots[i]], SFAPs[t>tStartPlots[i]])
+            # t,v = bundle.get_voltage_from_file_one_axon(0)
+            # plt.plot(t,v)
             # plt.show()
 
-            t, v = bundle.get_voltage_from_file_one_axon(0)
-
-            currentNumberOfSegments = np.shape(v)[1]
-            currentAxonLength = bundle.axons[0].L
-
-            from PyPN.axonClass import *
-
-            if not type(bundle.axons[0]) == Myelinated:
-                iMaxFirstSegment = np.argmax(v[:, 0])
-                iMaxLastSegment = np.argmax(v[:, -1])
-
-                # plt.plot(v[:,0])
-                # plt.show()
-
-                tMinFirstSegment = t[iMaxFirstSegment]
-                tMinLastSegment = t[iMaxLastSegment]
-
-                distance = currentAxonLength
-
-                vel = distance / 1000 / (tMinLastSegment - tMinFirstSegment)
-
+            if typeInd == 1:
+                nodeIndex = np.floor(bundle.axons[0].totnsegs / 11 * 0.8) * 11
+                iSignal = np.sum(imem[nodeIndex:nodeIndex+3, :], axis=0)
             else:
-                Nnodes = bundle.axons[0].axonnodes
-                numberOfRecordingSites = np.shape(v)[1]
-                nodePositions = range(0, (Nnodes - 1) * 11, 11)
+                nodeIndex = 10
+                iSignal = imem[nodeIndex, :]
 
-                nodeDistance = bundle.axons[0].lengthOneCycle
-                distance = Nnodes * nodeDistance
+            # from scipy.interpolate import interp1d
+            # f = interp1d(t, iSignal)
+            # tReg = np.arange(0,max(t),0.0025)
+            # vReg = f(tReg)
+            #
+            # sp = np.fft.fft(iSignal)
+            # freq = np.fft.fftfreq(tReg.shape[-1], d=0.0025/1000)
+            # plt.semilogy(freq, np.abs(sp[1:]), label=typeLegendStrings[typeInd] + ', ' + str(diameter)+ ' $\mu$m') # len(freq) #  / max(np.abs(sp[1:]))
 
-                iMaxFirstSegment = np.argmax(v[:, nodePositions[0]])
-                iMaxLastSegment = np.argmax(v[:, nodePositions[-1]])
+            # plt.plot(t, iOneSegment)
+            if typeInd == 1:
+                labelStringsSections = ['node', 'MYSA', 'FLUT']
+                axarr[typeInd].plot(t, np.sum(imem[nodeIndex:nodeIndex + 3, :], axis=0), label='Sum of all',
+                                    linewidth=1.5) # , color='k'
+                for ii in range(3):
+                    axarr[typeInd].plot(t, imem[nodeIndex + ii, :], label=labelStringsSections[ii])
 
-                # plt.plot(v[:,0])
-                # plt.show()
-
-                tMinFirstSegment = t[iMaxFirstSegment]
-                tMinLastSegment = t[iMaxLastSegment]
-
-                vel = distance / 1000 / (tMinLastSegment - tMinFirstSegment)
-
-            t, SFAPs = bundle.get_SFAPs_from_file(0)
-            SFAPsHomo.append(np.squeeze(SFAPs))
-            _, SFAPs = bundle.get_SFAPs_from_file(1)
-            SFAPsFEM.append(np.squeeze(SFAPs))
-
-        # saveDict = {'unmyelinatedDiameters': diametersUnmyel,
-        #             'unmyelinatedSFAPs': [],
-        #             't': [],
-        #             'myelinatedDiameters': diametersMyel,
-        #             'myelinatedSFAPs': [],
-        #             }
-            if i == 0:
-                saveDict['unmyelinatedCV'].append(vel)
+                axarr[typeInd].set_title('Myelinated')
+                axarr[typeInd].legend(loc='best')
+                # axarr[typeInd].set_xlim((0.85, 1.7))
             else:
-                saveDict['myelinatedCV'].append(vel)
+                axarr[typeInd].plot(t, imem[nodeIndex, :])
+                axarr[typeInd].set_title('Unmyelinated')
+                # axarr[typeInd].set_xlim((0, 1.2))
+                axarr[typeInd].set_ylabel('$I_m$ [nA]')
 
-        if i == 0:
-            saveDict['t'] = t
-            saveDict['unmyelinatedSFAPsHomo'] = SFAPsHomo
-            saveDict['unmyelinatedSFAPsFEM'] = SFAPsFEM
-        else:
-            saveDict['myelinatedSFAPsHomo'] = SFAPsHomo
-            saveDict['myelinatedSFAPsFEM'] = SFAPsFEM
+            axarr[typeInd].set_xlabel('time [ms]')
+            axarr[typeInd].grid()
 
+            # plt.xlim((0.15, 0.9))
+
+            # print np.sum(iOneSegment)
+            # print np.max(iOneSegment)
+
+
+            # nodeIndex = np.floor(bundle.axons[0].totnsegs/11*0.8)*11
+            #
+            # from scipy.interpolate import interp1d
+            # f = interp1d(t, v[:,nodeIndex])
+            #
+            # tReg = np.arange(0,max(t),0.0025)
+            # vReg = f(tReg)
+            #
+            # plt.plot(tReg, vReg, label=str(gkbar))
+
+
+    # plt.xlim((0,20000))
+    # plt.grid()
+    # plt.xlabel('Frequency [Hz]')
+    # plt.ylabel('Fourier coeff [nA]')
+    # plt.title('FFT of the membrane current')
+    # plt.xlim((0, 50000))
+    # plt.legend(loc='best')
 
 else:
 
@@ -266,7 +218,7 @@ else:
 # ------------------------------------------------------------------------------
 
 
-pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelOriginal.dict'), "wb"))
+# pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/condVel', 'conductionVelocitiesUnmyelinatedCm.dict'), "wb"))
 
 print '\nStarting to plot'
 

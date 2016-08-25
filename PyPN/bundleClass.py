@@ -49,7 +49,7 @@ class Bundle(object):
     # umyelinated:  parameters for fiber type C
 
     def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=None,
-                 segmentLengthAxon = 10, randomDirectionComponent = 0.3, tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation=''): # , downsamplingFactor=1
+                 segmentLengthAxon = 10, randomDirectionComponent = 0., tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation=''): # , downsamplingFactor=1
 
         """Constructor of the Bundle class, the main object in `PyPN`.
 

@@ -66,7 +66,7 @@ recordingParametersNew = {'bundleGuide': bundleGuide,
 
 diameters = np.flipud(np.arange(.2, 4., .5))
 temperatures = np.arange(5, 46, 5)
-Ras = np.arange(50, 300, 50)
+Ras = [10, 50, 100, 200] # np.arange(50, 300, 50)
 
 saveDict = {'axonType': 'unmyelinated',
             'diameters': diameters,
@@ -118,7 +118,7 @@ if calculationFlag:
 
                                 'numberOfSavedSegments': 50,
                                 # number of segments of which the membrane potential is saved to disk
-                                'downsamplingFactor': 100
+                                # 'downsamplingFactor': 100
                                 }
 
             # create the bundle with all properties of axons and recording setup

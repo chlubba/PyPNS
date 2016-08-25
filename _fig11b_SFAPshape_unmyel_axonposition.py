@@ -67,6 +67,7 @@ recordingParametersNew = {'bundleGuide': bundleGuide,
 diametersUnmyel = [3] # np.arange(0.2, 2, 0.3)
 diametersMyel = [3] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)
 diametersBothTypes = [diametersUnmyel, diametersMyel]
+diameter = 1
 
 tStartPlots = [0.2, 0.05]
 
@@ -75,10 +76,11 @@ temperatures = np.arange(5, 46, 5)
 Ras = np.arange(50, 300, 50)
 
 RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
+axonXPositions = [0,180]
 
 if calculationFlag:
 
-    (f, axarr) = plt.subplots(1, 2, sharey=True)
+    (f, ax) = plt.subplots()
 
     legends = ['Unmyelinated', 'Myelinated']
     bundleLengths = [5000, 15000]
@@ -96,7 +98,7 @@ if calculationFlag:
             vAPs2 = []
 
             LFPMech = []
-            for diameterInd, diameter in enumerate(diameters):
+            for axonXPosInd, axonXPos in enumerate(axonXPositions):
 
                 # set the diameter distribution or fixed value
                 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -178,6 +180,8 @@ if calculationFlag:
 
                     bundle.add_recording_mechanism(modularRecMech[0])
 
+                bundle.axons[0].coord[:, 1] = bundle.axons[0].coord[:,1] + axonXPos
+
                 # run the simulation
                 bundle.simulate()
 
@@ -215,23 +219,28 @@ if calculationFlag:
                 # # plt.title(recMechLegends[recMechIndex] + ' ' + legends[i])
                 # # plt.show()
 
-            t, SFAPs = bundle.get_SFAPs_from_file()
+                t, SFAPs = bundle.get_SFAPs_from_file()
 
-            axarr[i].plot(t,SFAPs, label=recMechLegends[recMechIndex])
-            axarr[i].set_xlabel('time [ms]')
 
-            if i == 0:
-                axarr[i].set_xlim((1.8, 7.))
-                axarr[i].set_ylabel('$V_{ext}$ [mV]')
-                axarr[i].set_title('Unmyelinated')
-            else:
-                axarr[i].set_xlim((.4, 1.4))
-                # axarr[i].legend()
-                axarr[i].set_title('Myelinated')
+                ax.plot(t,SFAPs, label=recMechLegends[recMechIndex] + '\naxonXPos = ' + str(axonXPos) + ' $\mu$m')
+                ax.set_xlabel('time [ms]')
 
-        axarr[i].grid()
-        axarr[i].set_ylim((-0.0003, 0.00035))
-        plt.legend()
+                if i == 0:
+                    # ax.set_xlim((1.8, 7.))
+                    ax.set_ylabel('$V_{ext}$ [mV]')
+                    ax.set_title('Unmyelinated SFAP shape for different axon positions inside the nerve')
+                else:
+                    # ax.set_xlim((.4, 1.4))
+                    # ax.legend()
+                    ax.set_title('Myelinated')
+
+        ax.legend()
+        ax.grid()
+        ax.set_ylim((-0.0003, 0.00035))
+        ax.set_xlim((4, 15))
+        ax.set_ylabel('$V_{ext}$ [mV]')
+
+        plt.legend(loc='best')
         # plt.figure()
         # plt.plot(diameters, np.divide(vAPCollection[0], vAPCollection[1]))
 

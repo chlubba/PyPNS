@@ -10,6 +10,10 @@ data = np.loadtxt('/home/carl/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
 
 # print np.shape(data)
 
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
 
 
 t = data[:,0]
@@ -78,7 +82,12 @@ plt.figure(),
 sp = np.fft.fft(sWindowed)
 spN = np.fft.fft(sWindowedNorm)
 freq = np.fft.fftfreq(tWindowed.shape[-1], d=timeStep)
-plt.semilogy(freq, np.abs(sp)/max(np.abs(sp)))
+
+sortedInds = sorted(range(len(freq)), key=lambda k: freq[k])
+absSp = np.abs(sp)
+absSp = absSp[sortedInds]
+freq = freq[sortedInds]
+plt.semilogy(freq, smooth(absSp,100)/max(absSp), label='experimental recording')
 # plt.plot(freq, abs(spN))
 # plt.xlim([0,max(freq)])
 
@@ -97,9 +106,19 @@ plt.semilogy(freq, np.abs(sp)/max(np.abs(sp)))
 spSim = np.fft.fft(signalSimSiwoo)
 # spSimN = np.fft.fft(signalSimNorm)
 freqSim = np.fft.fftfreq(timeSimSiwoo.shape[-1], d=timeStepSimSiwoo)
-plt.semilogy(freqSim, np.abs(spSim)/max(np.abs(spSim)))
 
+sortedInds = sorted(range(len(freqSim)), key=lambda k: freqSim[k])
+absSpSim = np.abs(spSim)
+absSpSim = absSpSim[sortedInds]
+freqSim = freqSim[sortedInds]
+
+plt.semilogy(freqSim, smooth(absSpSim,100)/max(absSpSim), label='simulation')
 plt.xlim([0,max(freq)]) # max(max(freqSim), max(freq))])
+plt.grid()
+plt.legend()
+plt.title('FFT of simulated and recorded CAP')
+plt.xlabel('frequency [Hz]')
+plt.ylabel('smoothed Fourier coefficients of voltage, normed to max=1')
 plt.show()
 
 # plt.plot(timeSim, CAP[:,1])

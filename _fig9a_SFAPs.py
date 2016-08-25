@@ -12,12 +12,19 @@ locationUnmyelinated = '/media/carl/4ECC-1C44/Siwoo Data/Unmyel/bundle00000'
 
 locations = [locationUnmyelinated, locationMyelinated]
 
-folderName = 'CAP_RecordingMechanism_recMech'
-filename = 'CAP_RecordingMechanism_recMech' # .dat
+# # CAP
+# folderName = 'CAP_RecordingMechanism_recMech'
+# filename = 'CAP_RecordingMechanism_recMech' # .dat
+
+# SFAP
+folderName = 'CAP1A_RecordingMechanism_recMech'
+filename = 'CAP1A_RecordingMechanism_recMech' # .dat
 
 startTimePlot = 1
 
 colors = ['r', 'b']
+
+axonInd = 0
 
 for recMechIndex in [0,1]:
     for myelInd in [1]:
@@ -30,6 +37,6 @@ for recMechIndex in [0,1]:
         time = data_raw[0, :]
         CAP = np.squeeze(data_raw[1:, :])
 
-        plt.plot(time[time>startTimePlot], CAP[time>startTimePlot], color=colors[recMechIndex])
+        plt.plot(time[time>startTimePlot], np.transpose(CAP[axonInd, time>startTimePlot]), color=colors[recMechIndex])
 
 plt.show()

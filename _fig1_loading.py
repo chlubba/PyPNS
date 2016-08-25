@@ -33,7 +33,8 @@ plt.plot([0, 4.7], [0, 23.5], linestyle='--', color=np.array([1, 1, 1])*0.7, lab
 plt.xlabel('diameter [um]')
 plt.ylabel('conduction velocity [m/s]')
 plt.title('Myelinated Axon')
-plt.legend(loc='best')
+# plt.legend(loc='best')
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
 plt.grid()
 
 plt.show()

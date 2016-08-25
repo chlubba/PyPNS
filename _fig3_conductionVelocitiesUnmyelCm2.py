@@ -67,7 +67,7 @@ recordingParametersNew = {'bundleGuide': bundleGuide,
 diameters = np.flipud(np.arange(.1, 4., .5))
 temperatures = np.arange(5, 46, 5)
 Ra = 70 # np.arange(50, 300, 50)
-Cms = np.arange(0.2, 0.51, 0.1)
+Cms = np.concatenate((np.arange(0.1, 0.51, 0.1), [1]))
 
 saveDict = {'axonType': 'unmyelinated',
             'diameters': diameters,
@@ -116,10 +116,11 @@ if calculationFlag:
 
                                 # 'saveI':True,
                                 # 'saveV': False,
+                                'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
 
                                 'numberOfSavedSegments': 50,
                                 # number of segments of which the membrane potential is saved to disk
-                                'downsamplingFactor': 100
+                                # 'downsamplingFactor': 100
                                 }
 
             # create the bundle with all properties of axons and recording setup
@@ -224,8 +225,8 @@ if calculationFlag:
     plt.plot(np.arange(0,3.7,0.2), np.sqrt(np.arange(0,3.7,0.2))*2, linestyle='--', color=np.array([1, 1, 1])*0.7, label='theory')
     plt.xlabel('diameter [um]')
     plt.ylabel('conduction velocity [m/s]')
-    plt.title('Unmyelinated Axon with Ra = 50 Ohm cm')
-    plt.legend(loc='best')
+    plt.title('Unmyelinated Axon with Ra = ' + str(Ra) + ' Ohm cm')
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
     plt.grid()
 
 else:

@@ -80,7 +80,7 @@ if calculationFlag:
 
     legends = ['Unmyelinated', 'Myelinated']
     bundleLengths = [5000, 15000]
-    for i in [0, 1]:
+    for i in [1]:
 
         vAPCollection = []
 
@@ -189,6 +189,10 @@ if calculationFlag:
                 selectionArray = np.logical_and(t>tStartPlot, t<tStopPlot)
                 tNoArt = t[selectionArray]
                 SFAPNoArtScaled = SFAPs[selectionArray]
+
+                plt.plot(SFAPNoArtScaled)
+                plt.title(str(diameter))
+                plt.show()
 
                 vAPs.append(np.max(SFAPNoArtScaled) - np.min(SFAPNoArtScaled))
                 print vAPs

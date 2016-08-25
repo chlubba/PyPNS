@@ -172,7 +172,7 @@ def open_bundle_from_location(bundleSaveLocation):
         bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))
         return bundle
     except:
-        # print("Unexpected error:", sys.exc_info()[0])
-        # raise
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
         print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
 

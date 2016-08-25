@@ -76,6 +76,8 @@ Ras = np.arange(50, 300, 50)
 
 RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
 
+sigmas = np.arange(0.1, 0.6, 0.1) # [0.01, 0.05, 0.1, 0.5, 1, 5]
+
 if calculationFlag:
 
     (f, axarr) = plt.subplots(1, 2, sharey=True)
@@ -228,6 +230,22 @@ if calculationFlag:
                 axarr[i].set_xlim((.4, 1.4))
                 # axarr[i].legend()
                 axarr[i].set_title('Myelinated')
+
+            if recMechIndex == 0:
+
+                for sigma in sigmas:
+                    # caution, convolving!
+                    # sigma = 0.1
+                    gx = np.arange(-3 * sigma, 3 * sigma, 0.0025)
+                    gaussian = np.exp(-(gx / sigma) ** 2 / 2)
+                    gaussianN = gaussian/np.sum(gaussian)*3
+                    # print np.sum(gaussian)
+                    smoothedSFAP = np.convolve(np.squeeze(SFAPs), gaussianN, mode="same")
+
+                    smoothedSFAPScaled = smoothedSFAP/(np.abs(np.min(smoothedSFAP)))*np.abs(np.min(SFAPs[t>tStartPlots[i]]))
+
+                    axarr[i].plot(t, smoothedSFAPScaled, label='gaussian with sigma = ' + str(sigma))
+            axarr[i].legend()
 
         axarr[i].grid()
         axarr[i].set_ylim((-0.0003, 0.00035))
