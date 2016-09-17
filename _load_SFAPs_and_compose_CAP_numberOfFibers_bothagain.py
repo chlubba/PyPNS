@@ -96,11 +96,11 @@ sigma = 0.25
 mu = .7
 wantedNumbersOfFibers[1] =  1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (diametersMyel - mu)**2 / (2 * sigma**2) )
 
-wantedNumberOfFibersUnmyelNorm = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0]))
-
 wantedNumbersOfFibersNormed = []
 wantedNumbersOfFibersNormed.append(np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0])))
 wantedNumbersOfFibersNormed.append(np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[0])))
+
+wantedNumberOfFibersUnmyelNorm = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0]))
 
 wantedNumbersOfFibers[0] = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0]))*numUnmyel
 wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[0]))*numMyel
@@ -119,47 +119,53 @@ wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNum
 
 (f, axarr) = plt.subplots(2, 1, sharex=True)
 
-jitterDists = np.arange(0,electrodeDistance*0.3,electrodeDistance*0.05) # np.arange(0,electrodeDistance*0.1,electrodeDistance*0.01)
-for jitterInd, jitterDist in enumerate(jitterDists):
-    print ' '
-    print 'jitterInd: ' + str(jitterInd),
+for typeInd in [0,1]:
 
-    meanAmpArrayMatrix = []
-    amplitudeArrayMatrix = []
+    diameters = np.array(saveDict[stringsDiam[typeInd]])
+    CVs = np.array(saveDict[stringsCV[typeInd]])
+    t = ts[typeInd]
+    numFibers = len(diameters)
 
-    for runInd in range(3):
-        print 'runInd: ' + str(runInd),
 
-        amplitudeArray = []
-        meanAmpArray = []
-        numMyels = [10, 100, 1000, 10000, 100000]
-        numUnmyels = [10, 100, 1000, 10000, 100000]
-        # numUnmyels = [100, 1000]
+    jitterDists = np.arange(0,electrodeDistance*0.3,electrodeDistance*0.05) # np.arange(0,electrodeDistance*0.1,electrodeDistance*0.01)
+    for jitterInd, jitterDist in enumerate(jitterDists):
+        print ' '
+        print 'jitterInd: ' + str(jitterInd),
 
-        for numUnmyelInd, numUnmyel in enumerate(numUnmyels):
-            print 'numMyel: ' + str(numMyel),
+        meanAmpArrayMatrix = []
+        amplitudeArrayMatrix = []
 
-            wantedNumbersOfFibers[0] = wantedNumberOfFibersUnmyelNorm * numUnmyel
+        for runInd in range(3):
+            print 'runInd: ' + str(runInd),
 
-            wantedNumbersOfFibers[1] = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(- (diametersMyel - mu) ** 2 / (2 * sigma ** 2))
-            wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1], np.sum(wantedNumbersOfFibers[1])) * numMyel
+            amplitudeArray = []
+            meanAmpArray = []
+            numMyels = [10, 100, 1000, 10000, 100000]
+            numUnmyels = numMyels
+            # numMyels = [100, 1000]
 
-            tCAP = np.arange(0,lengthOfRecording,0.0025)
+            for numMyelInd, numMyel in enumerate(numMyels):
+                print 'numMyel: ' + str(numMyel),
 
-            fieldStrings = ['Homogeneous', 'FEM']
-            for fieldTypeInd in [0]: # fieldTypes:
-                CAP = np.zeros(nRecording)
+                # wantedNumbersOfFibers[0] = wantedNumberOfFibersUnmyelNorm * numUnmyel
 
-                for typeInd in [0]:
+                wantedNumbersOfFibers[1] = 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(- (diametersMyel - mu) ** 2 / (2 * sigma ** 2))
+                wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1], np.sum(wantedNumbersOfFibers[1])) * numMyel
 
-                    diameters = np.array(saveDict[stringsDiam[typeInd]])
-                    CVs = np.array(saveDict[stringsCV[typeInd]])
-                    t = ts[typeInd]
-                    numFibers = len(diameters)
+                wantedNumbersOfFibers[0] = wantedNumbersOfFibersNormed[0]*numMyel
+                wantedNumbersOfFibers[1] = wantedNumbersOfFibersNormed[1] * numMyel
 
-                    # wanted number of fibers per diameter
-                    # wantedNums = np.ones(numFibers)*1000
-                    wantedNums = wantedNumbersOfFibers[typeInd]
+                # wanted number of fibers per diameter
+                # wantedNums = np.ones(numFibers)*1000
+                wantedNums = wantedNumbersOfFibers[typeInd]
+
+                tCAP = np.arange(0,lengthOfRecording,0.0025)
+
+                fieldStrings = ['Homogeneous', 'FEM']
+                for fieldTypeInd in [0]: # fieldTypes:
+                    CAP = np.zeros(nRecording)
+
+
 
                     if fieldTypeInd == 0:
                         SFAP = np.transpose(np.array(saveDict[stringsSFAPHomo[typeInd]]))
@@ -213,34 +219,35 @@ for jitterInd, jitterDist in enumerate(jitterDists):
 
                                 CAP = np.add(CAP, polePolarities[poleInd] * paddedSignal)
 
-                amplitudeArray.append(np.max(CAP) - np.min(CAP))
-                meanAmpArray.append(np.mean(abs(CAP)))
-                # print 'mean: ' + str(np.mean(CAP))
+                    amplitudeArray.append(np.max(CAP) - np.min(CAP))
+                    meanAmpArray.append(np.mean(abs(CAP)))
+                    # print 'mean: ' + str(np.mean(CAP))
 
-                # plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd] + ' jitterAmpDist=' + str(jitterDist))
-                # # for cutoffFreq in [1000, 2000, 5000]:
-                # #     plt.plot(tCAP, butter_lowpass_filter(CAP, cutoffFreq, fs, order=4), label=fieldStrings[fieldTypeInd] + ' filtered at ' + str(cutoffFreq) + ' Hz', linewidth=2)
+                    # plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd] + ' jitterAmpDist=' + str(jitterDist))
+                    # # for cutoffFreq in [1000, 2000, 5000]:
+                    # #     plt.plot(tCAP, butter_lowpass_filter(CAP, cutoffFreq, fs, order=4), label=fieldStrings[fieldTypeInd] + ' filtered at ' + str(cutoffFreq) + ' Hz', linewidth=2)
 
-        amplitudeArrayMatrix.append(amplitudeArray)
-        meanAmpArrayMatrix.append(meanAmpArray)
+            amplitudeArrayMatrix.append(amplitudeArray)
+            meanAmpArrayMatrix.append(meanAmpArray)
 
-    amplitudeMeans = np.mean(amplitudeArrayMatrix, axis=0)
-    amplitudeStd = np.std(amplitudeArrayMatrix, axis=0)
+        amplitudeMeans = np.mean(amplitudeArrayMatrix, axis=0)
+        amplitudeStd = np.std(amplitudeArrayMatrix, axis=0)
 
-    amplitudeMeanMeans = np.mean(meanAmpArrayMatrix, axis=0)
-    amplitudeMeanStd = np.std(meanAmpArrayMatrix, axis=0)
+        amplitudeMeanMeans = np.mean(meanAmpArrayMatrix, axis=0)
+        amplitudeMeanStd = np.std(meanAmpArrayMatrix, axis=0)
 
-    axarr[0].errorbar(numUnmyels, amplitudeMeans, yerr=amplitudeStd, label='dist. var. ' + str(jitterDist/electrodeDistance) + ' %') # , label=str(numMyel) + ' fibers')
-    axarr[1].errorbar(numUnmyels, amplitudeMeanMeans, yerr=amplitudeMeanStd, label='dist. var. ' + str(jitterDist/electrodeDistance) + ' %') # , label=str(numMyel) + ' fibers')
+        # axarr[0].errorbar(numMyels, amplitudeMeans, yerr=amplitudeStd, label='dist. var. ' + str(jitterDist/electrodeDistance) + ' %') # , label=str(numMyel) + ' fibers')
+        axarr[typeInd].errorbar(numMyels, amplitudeMeanMeans, yerr=amplitudeMeanStd, label='dist. var. ' + str(jitterDist/electrodeDistance*100) + ' %') # , label=str(numMyel) + ' fibers')
 
 
 axarr[0].set_ylabel('mean(|$V_{ext}$|) [mV]')
-axarr[0].set_title('CAP mean absolute amplitude')
+axarr[0].set_title('Unmyelinated')
 axarr[0].grid()
-axarr[0].legend(loc='best')
+# axarr[0].legend(loc='best')
+axarr[0].legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
 
-axarr[1].set_title('CAP peak to peak amplitude')
-axarr[1].set_ylabel('$V_{ext, pp}$ [mV]')
+axarr[1].set_title('Myelinated')
+axarr[1].set_ylabel('mean(|$V_{ext}$|) [mV]')
 axarr[1].set_xlabel('number of fibers')
 axarr[1].grid()
 # axarr[1].legend(loc='best')

@@ -37,7 +37,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
 # plt.xlabel('Frequency [Hz]')
 # plt.grid()
 
-saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordings2.dict'), "rb" )) # thinnerMyelDiam
+saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordingsNewCurr.dict'), "rb" )) # thinnerMyelDiam # SFAPsPowleyMyelAsRecordings2.dict
 
 
 # saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
@@ -66,9 +66,9 @@ cutoff = 1000  # desired cutoff frequency of the filter, Hz
 
 electrodeDistance = 70. # mm
 jitterAmp = 5 #ms
-jitterDist = 3 # 0.0*electrodeDistance # 0.03
-numMyel = 100000
-numUnmyel = 10000
+jitterDist = 3 # 0.3*electrodeDistance # 0.03
+numMyel = 10
+numUnmyel = 1
 poles = 2
 poleDistance = 1 # mm
 polePolarities = [1, -1]
@@ -78,8 +78,13 @@ stringsDiam = ['unmyelinatedDiameters', 'myelinatedDiameters']
 stringsSFAPHomo = ['unmyelinatedSFAPsHomo', 'myelinatedSFAPsHomo']
 stringsSFAPFEM = ['unmyelinatedSFAPsFEM', 'myelinatedSFAPsFEM']
 stringsCV = ['unmyelinatedCV', 'myelinatedCV']
-tHomo = saveDict['t']
-ts = [tHomo, np.arange(0,10,0.0025)]
+
+tUnmyel = saveDict['unmyelinatedT']
+tMyel = saveDict['myelinatedT']
+ts = [tUnmyel, tMyel]
+
+# tHomo = saveDict['t']
+# ts = [tHomo, np.arange(0,10,0.0025)]
 
 wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.429980837522710, 0.632957475186409, 2.05015339910575,
                           3.10696898591111,  4.54590886074274,  7.22064649366380,  7.60343269800399,  8.61543655035694,
@@ -97,19 +102,19 @@ mu = .7
 wantedNumbersOfFibers[1] =  1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (diametersMyel - mu)**2 / (2 * sigma**2) )
 
 wantedNumbersOfFibers[0] = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0]))*numUnmyel
-wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[0]))*numMyel
+wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[1]))*numMyel
 
-# # -------------------- plot recorded data ---------------------------------
-# import testWaveletDenoising as w
-# data = np.loadtxt('/home/carl/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
-# denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
-#
-# tStart = 3.0245 # 3.024 #
-# time = data[:,0]
-# tCut = (time[time>tStart] - tStart)*1000
-# vDenCut = denoisedVoltage[time>tStart]
-#
-# plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
+# -------------------- plot recorded data ---------------------------------
+import testWaveletDenoising as w
+data = np.loadtxt('/home/carl/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
+denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
+
+tStart = 3.0245 # 3.024 #
+time = data[:,0]
+tCut = (time[time>tStart] - tStart)*1000
+vDenCut = denoisedVoltage[time>tStart]
+
+plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
 
 
 
@@ -137,6 +142,7 @@ for fieldTypeInd in [0]: # fieldTypes:
 
         SFAPNoArt = SFAP [t > tArtefact, :]
 
+        plottedFibers = 0
         for fiberInd in range(numFibers):
 
             currentSFAP = SFAPNoArt[:, fiberInd]
@@ -154,7 +160,7 @@ for fieldTypeInd in [0]: # fieldTypes:
             # print 'diameter : ' + str(diameters[fiberInd]) + 'CV = ' + str(CV)
 
             for ii in range(int(max(wantedNums[fiberInd], 1))):
-
+                plottedFibers += 1
 
 
                 for poleInd in range(poles):
@@ -178,10 +184,13 @@ for fieldTypeInd in [0]: # fieldTypes:
                         paddedSignal = paddedSignal[:nRecording]
 
                     CAP = np.add(CAP, polePolarities[poleInd] * paddedSignal)
+                    # plt.plot(tCAP, CAP)
+                    # plt.show()
+        print 'plottedFibers: ' + str(plottedFibers)
 
-    plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd])
-    # for cutoffFreq in [1000, 2000, 5000]:
-    #     plt.plot(tCAP, butter_lowpass_filter(CAP, cutoffFreq, fs, order=4), label=fieldStrings[fieldTypeInd] + ' filtered at ' + str(cutoffFreq) + ' Hz', linewidth=2)
+    # plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd])
+    for cutoffFreq in [300]: #, 2000, 5000]:
+        plt.plot(tCAP, butter_lowpass_filter(CAP, cutoffFreq, fs, order=4), label=fieldStrings[fieldTypeInd] + ' filtered at ' + str(cutoffFreq) + ' Hz')#, linewidth=2)
 
     plt.title('Comparison between experimental data and simulation')
     plt.ylabel('$V_{ext}$ [mV]')

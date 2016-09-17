@@ -10,7 +10,7 @@ import sys
 # ------------------------------- SCRIPT CONTROL -------------------------------
 # ------------------------------------------------------------------------------
 
-calculationFlag = False # run simulation or load latest bundle with this parameters (not all taken into account for identification)
+calculationFlag = True # run simulation or load latest bundle with this parameters (not all taken into account for identification)
 electricalStimulusOn = True
 
 

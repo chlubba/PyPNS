@@ -58,7 +58,7 @@ intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectang
 diametersUnmyel = (0.120, 0.17,  0.21,  0.26,  0.32,  0.37,  0.41,  0.47,  0.51,  0.56,  0.62,  0.67,  0.72,  0.77,  0.84,  0.92,  0.97,  1.02,  1.07,  1.12,  1.17,  1.22,  1.27,  1.32, 1.36, 1.41, 1.48, 1.52)# [0.12, 1.52] # np.arange(0.2, 2, 0.3)
 # diametersMyel = (1.01,    1.19,  1.22,  1.40,  1.41,  1.58,  1.61,  1.78,  1.81,  1.99,  2.01,  2.18,  2.22, 2.39,    2.41,  2.58,  2.61,  2.79,  2.81,  2.99,  3.01,  3.19,  3.61,  3.79,  3.81,  3.99,  4.02,  4.20) # [1.1, 4.2] # [4.2] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)]
 
-diametersMyel = [0.4, 1.1]# np.arange(0.4, 1.1, 0.02)
+diametersMyel = np.arange(0.4, 1.1, 0.02)
 
 diametersBothTypes = [diametersUnmyel, diametersMyel]
 
@@ -91,7 +91,7 @@ if calculationFlag:
 
     legends = ['Unmyelinated', 'Myelinated']
     bundleLengths = [5000, 10000]
-    for i in [1]:
+    for i in [0,1]:
 
         vAPCollection = []
 
@@ -181,12 +181,12 @@ if calculationFlag:
 
             # PyPN.plot.voltage(bundle)
 
-            t, SFAPs = bundle.get_SFAPs_from_file()
-            plt.plot(t[t>tStartPlots[i]], SFAPs[t>tStartPlots[i]])
-            t, SFAPs = bundle.get_SFAPs_from_file(1)
-            plt.plot(t[t>tStartPlots[i]], SFAPs[t>tStartPlots[i]])
-            plt.show()
-
+            # t, SFAPs = bundle.get_SFAPs_from_file()
+            # plt.plot(t[t>tStartPlots[i]], SFAPs[t>tStartPlots[i]])
+            # t, SFAPs = bundle.get_SFAPs_from_file(1)
+            # plt.plot(t[t>tStartPlots[i]], SFAPs[t>tStartPlots[i]])
+            # plt.show()
+            #
             t, v = bundle.get_voltage_from_file_one_axon(0)
             # plt.plot(t,v)
             # plt.show()
@@ -247,10 +247,11 @@ if calculationFlag:
                 saveDict['myelinatedCV'].append(vel)
 
         if i == 0:
-            saveDict['t'] = t
+            saveDict['unmyelinatedT'] = t
             saveDict['unmyelinatedSFAPsHomo'] = SFAPsHomo
             saveDict['unmyelinatedSFAPsFEM'] = SFAPsFEM
         else:
+            saveDict['myelinatedT'] = t
             saveDict['myelinatedSFAPsHomo'] = SFAPsHomo
             saveDict['myelinatedSFAPsFEM'] = SFAPsFEM
 
@@ -269,7 +270,7 @@ else:
 # ------------------------------------------------------------------------------
 
 
-# pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordings.dict'), "wb"))
+pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordingsNewCurr.dict'), "wb"))
 
 print '\nStarting to plot'
 

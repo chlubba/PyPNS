@@ -72,7 +72,7 @@ RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
 
 if calculationFlag:
 
-    (f, axarr) = plt.subplots(2, 3)
+    (f, axarr) = plt.subplots(2, 3, sharey=True)
 
     onsetInd = np.ones((2, 3)) * 100 / 0.0025
     lengthInInd = 0
@@ -169,7 +169,7 @@ if calculationFlag:
             tReg = np.arange(0, max(t), 0.0025)
             SFAPReg = f(tReg)
 
-            SFAPActive = np.where(np.abs(SFAPReg) > 0.000005)[0]
+            SFAPActive = np.where(np.abs(SFAPReg) > 0.01)[0]
             SFAPActive = SFAPActive[SFAPActive>1/0.0025]
 
             # find first
@@ -188,23 +188,22 @@ if calculationFlag:
 
             # axis.plot(tNoArt, SFAPNoArtScaled, color=colorVal)
             axis.plot(tReg, SFAPReg) # , color=colorVal)
-            axis.set_ylim((-0.0002, 0.0001))
+            # axis.set_ylim((-2, 1))
             # plt.show()
 
-            if plotColumn > 0:
-                # axis.yaxis.set_major_locator(plt.NullLocator())
-                axis.set_yticklabels([])
-            else:
+            if plotColumn == 0:
                 axis.set_ylabel('$V_{ext}$ [mV]')
-
-            if plotRow == 0:
-                axis.tick_params(
-                    axis='x',  # changes apply to the x-axis
-                    which='both',  # both major and minor ticks are affected
-                    bottom='off',  # ticks along the bottom edge are off
-                    top='off',  # ticks along the top edge are off
-                    labelbottom='off')  # labels along the bottom edge are off
-            else:
+            #
+            # if plotRow == 0:
+            #     axis.tick_params(
+            #         axis='x',  # changes apply to the x-axis
+            #         which='both',  # both major and minor ticks are affected
+            #         bottom='off',  # ticks along the bottom edge are off
+            #         top='off',  # ticks along the top edge are off
+            #         labelbottom='off')  # labels along the bottom edge are off
+            # else:
+            #     axis.set_xlabel('time [ms]')
+            if plotRow == 1:
                 axis.set_xlabel('time [ms]')
 
             # PyPN.plot.geometry_definition(bundle)

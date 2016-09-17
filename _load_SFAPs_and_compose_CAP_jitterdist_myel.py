@@ -158,7 +158,6 @@ for jitterInd, jitterDist in enumerate(jitterDists):
                 for ii in range(int(max(wantedNums[fiberInd], 1))):
 
 
-
                     for poleInd in range(poles):
 
                         # wantedPeakInd = (electrodeDistance + poleInd*poleDistance) / CV / dt + jitterAmp*np.random.uniform(-1,1) / dt

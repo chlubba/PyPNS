@@ -195,15 +195,17 @@ class Axon(object):
 
 
     def calc_imem(self):
+        """
+        Fetch the vectors from the memireclist and calculate self.imem
+        containing all the membrane currents. From LFPy
 
-        # Fetch the vectors from the memireclist and calculate self.imem
-        # containing all the membrane currents.
+        Returns: -
 
-        # TODO: transform time step
+        """
 
         self.imem = np.array(self.memireclist)
         for i in range(self.imem.shape[0]):
-            self.imem[i, ] *= self.area[i] * 1E-2
+            self.imem[i, ] *= self.area[i] * 1E-2 # * 1E2 #
         self.memireclist = None
         del self.memireclist
 

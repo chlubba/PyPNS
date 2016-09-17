@@ -33,7 +33,7 @@ p_A = [.5]#[0.175,0.1,1.0, 0.0] # share of myelinated fibers
 fiberD_A = 'draw' # um diameter myelinated axons 'draw' OR one of 5.7, 7.3, 8.7, 10.0, 11.5, 12.8, 14.0, 15.0, 16.0
 fiberD_C = 'draw' # um diameter unmyelinated axons 'draw' OR some value below 3. (don't forget the dot to make it a float)
 radiusBundle = 150.0 # um Radius of the bundle (typically 0.5-1.5mm)
-numberOfAxons = 4 # 25
+numberOfAxons = 1 # 25
 lengthOfBundle = 2000 # 8000
 
 randomDirectionComponent = .1 # curviness of the axon

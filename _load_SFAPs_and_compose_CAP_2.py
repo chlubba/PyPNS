@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
-saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordings2.dict'), "rb" )) # thinnerMyelDiam
+saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordings.dict'), "rb" )) # thinnerMyelDiam # SFAPsPowleyMyelAsRecordingsNewCurr
 
 
 # saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
@@ -29,7 +29,7 @@ nArtefact = tArtefact/dt
 
 electrodeDistance = 70. # mm
 jitterAmp = 5 #ms
-jitterDist = 0.*electrodeDistance # 0.03
+jitterDist = 0.03*electrodeDistance #
 numMyel = 1000
 numUnmyel = 10000
 poles = 2
@@ -41,6 +41,9 @@ stringsDiam = ['unmyelinatedDiameters', 'myelinatedDiameters']
 stringsSFAPHomo = ['unmyelinatedSFAPsHomo', 'myelinatedSFAPsHomo']
 stringsSFAPFEM = ['unmyelinatedSFAPsFEM', 'myelinatedSFAPsFEM']
 stringsCV = ['unmyelinatedCV', 'myelinatedCV']
+# tUnmyel = saveDict['unmyelinatedT']
+# tMyel = saveDict['myelinatedT']
+# ts = [tUnmyel, tMyel]
 tHomo = saveDict['t']
 ts = [tHomo, np.arange(0,10,0.0025)]
 
@@ -73,13 +76,13 @@ tCut = (time[time>tStart] - tStart)*1000
 vDenCut = denoisedVoltage[time>tStart]
 
 plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
-
+# plt.show()
 
 
 tCAP = np.arange(0,lengthOfRecording,0.0025)
 
 fieldStrings = ['Homogeneous', 'FEM']
-for fieldTypeInd in [0]: # fieldTypes:
+for fieldTypeInd in [0,1]: # fieldTypes:
     CAP = np.zeros(nRecording)
 
     for typeInd in [1]:
@@ -141,11 +144,11 @@ for fieldTypeInd in [0]: # fieldTypes:
                         paddedSignal = paddedSignal[:nRecording]
 
                     CAP = np.add(CAP, polePolarities[poleInd] * paddedSignal)
-                    plt.plot(paddedSignal)
-                    plt.title(str(diameters[fiberInd]))
-                    plt.show()
+                    # plt.plot(paddedSignal)
+                    # plt.title(str(diameters[fiberInd]))
+                    # plt.show()
 
-    plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd])
+    plt.plot(tCAP, CAP*100, label=fieldStrings[fieldTypeInd])
     plt.title('Comparison between experimental data and simulation')
     plt.ylabel('$V_{ext}$ [mV]')
 

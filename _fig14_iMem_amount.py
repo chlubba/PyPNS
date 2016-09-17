@@ -144,7 +144,7 @@ if calculationFlag:
 
             t, imem = bundle.get_imem_from_file_axonwise(0)
 
-            overallCurrent = np.sum(np.abs(imem))
+            overallCurrent = np.sum(np.abs(imem))/1000000000
             print typeLegendStrings[typeInd] + ' diameter ' + str(diameter) + ' : ' + str(np.sum(np.abs(imem)))
             amoutCurrent.append(overallCurrent)
 
@@ -230,7 +230,7 @@ if calculationFlag:
     # plt.xlim((0, 50000))
     plt.legend(loc='best')
     plt.xlabel('diameter [$\mu$m]')
-    plt.ylabel('sum of absolute current [nA]')
+    plt.ylabel('sum of absolute current [A]')
     plt.title('Overall Membrane Current')
 
 
