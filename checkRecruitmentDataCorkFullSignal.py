@@ -3,7 +3,7 @@ import matplotlib.pylab as plt
 
 import testWaveletDenoising as w
 
-data = np.loadtxt('/home/carl/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
+data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
 
 # print np.shape(data)
 
@@ -23,18 +23,20 @@ vDenCut = denoisedVoltage[time>tStart]
 # plt.plot(data[:,0], data[:,1], color=[0.6,0.6,0.6])
 # plt.plot(data[:,0], denoisedVoltage, color=[1,0,0], linewidth=2)
 f, ax = plt.subplots()
-plt.plot(tCut, vDenCut)
-
-timesTicks = np.arange(5,int(max(tCut)), 5)
-tickLabelStrings = []
-for tickTime in timesTicks:
-    tickLabelStrings.append('%2.3f' % (distance / tickTime))
-
-# ax.set_xticks(range(0,int(max(tCut)), 20))
-# ax.set_xticklabels(tickLabelStrings)
-
-plt.xticks(timesTicks, rotation='vertical')
-ax.set_xticklabels(tickLabelStrings)
-plt.xlabel('conduction velocity [m/s]')
-plt.grid()
+# plt.plot(tCut, vDenCut)
+plt.plot(time, denoisedVoltage )
 plt.show()
+
+# timesTicks = np.arange(5,int(max(tCut)), 5)
+# tickLabelStrings = []
+# for tickTime in timesTicks:
+#     tickLabelStrings.append('%2.3f' % (distance / tickTime))
+#
+# # ax.set_xticks(range(0,int(max(tCut)), 20))
+# # ax.set_xticklabels(tickLabelStrings)
+#
+# plt.xticks(timesTicks, rotation='vertical')
+# ax.set_xticklabels(tickLabelStrings)
+# plt.xlabel('conduction velocity [m/s]')
+# plt.grid()
+# plt.show()

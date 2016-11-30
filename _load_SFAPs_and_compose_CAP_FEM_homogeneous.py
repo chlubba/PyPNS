@@ -27,11 +27,11 @@ nRecording = lengthOfRecording/dt
 tArtefact = 0.1 # ms
 nArtefact = tArtefact/dt
 
-electrodeDistance = 3 # 200. # 70. # mm
+electrodeDistance = 200. # 70. # mm
 jitterAmp = 5 #ms
-jitterDist = 0.1*electrodeDistance # 0.03
-numMyel = 100
-numUnmyel = 100
+jitterDist = 0 # 0.1*electrodeDistance # 0.03
+numMyel = 1
+numUnmyel = 1
 poles = 2
 poleDistance = 1 # mm
 polePolarities = [1, -1]
@@ -62,17 +62,17 @@ wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.4299808375227
 wantedNumbersOfFibers[0] = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0]))*numUnmyel
 wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[0]))*numMyel
 
-# -------------------- plot recorded data ---------------------------------
-import testWaveletDenoising as w
-data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
-denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
-
-tStart = 3.0245 # 3.024 #
-time = data[:,0]
-tCut = (time[time>tStart] - tStart)*1000
-vDenCut = denoisedVoltage[time>tStart]
-
-plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
+# # -------------------- plot recorded data ---------------------------------
+# import testWaveletDenoising as w
+# data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
+# denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
+#
+# tStart = 3.0245 # 3.024 #
+# time = data[:,0]
+# tCut = (time[time>tStart] - tStart)*1000
+# vDenCut = denoisedVoltage[time>tStart]
+#
+# plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
 
 def shift_signal(signal, difference, length):
 
@@ -93,12 +93,12 @@ def shift_signal(signal, difference, length):
 tCAP = np.arange(0,lengthOfRecording,0.0025)
 
 fieldStrings = ['Homogeneous', 'FEM']
-for fieldTypeInd in [1]: # fieldTypes:
+for fieldTypeInd in [0,1]: # fieldTypes:
 
     CAP = np.zeros(nRecording)
     CAPSmoothed = np.zeros(nRecording)
 
-    for typeInd in [1]:
+    for typeInd in [0]:
 
         diameters = np.array(saveDict[stringsDiam[typeInd]])
         CVs = np.array(saveDict[stringsCV[typeInd]])
@@ -119,7 +119,8 @@ for fieldTypeInd in [1]: # fieldTypes:
         # plt.plot(SFAPNoArt)
         # plt.show()
 
-        for fiberInd in range(numFibers):
+        # todo: change back
+        for fiberInd in [27]:
 
             currentSFAP = SFAPNoArt[:, fiberInd]
 
@@ -145,6 +146,7 @@ for fieldTypeInd in [1]: # fieldTypes:
             # print 'diameter : ' + str(diameters[fiberInd]) + 'CV = ' + str(CV)
 
             for ii in range(int(max(wantedNums[fiberInd], 1))):
+            # for ii in range(wantedNums[fiberInd]):
 
 
 
@@ -171,9 +173,9 @@ for fieldTypeInd in [1]: # fieldTypes:
                 # plt.show()
 
     # plt.plot(tCAP, CAPSmoothed, label=fieldStrings[fieldTypeInd] + ' smoothed with sigma = ' + str(sigma) + ' ms')
-    plt.plot(tCAP, CAP*100, label=fieldStrings[fieldTypeInd])
+    plt.plot(tCAP, 1000*CAP, label=fieldStrings[fieldTypeInd])
     plt.title('Comparison between experimental data and simulation')
-    plt.ylabel('$V_{ext}$ [mV]')
+    plt.ylabel('$V_{ext}$ [$\mu$V]')
 
 
     # from scipy import signal
@@ -205,7 +207,7 @@ for fieldTypeInd in [1]: # fieldTypes:
     # plt.xlabel('conduction velocity [m/s]')
     plt.xlabel('time [ms]')
 
-plt.grid()
+# plt.grid()
 plt.legend()
 
 plt.show()

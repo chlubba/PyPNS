@@ -64,8 +64,8 @@ recordingParametersNew = {'bundleGuide': bundleGuide,
 # ---------------------------------- CALCULATION -------------------------------
 # ------------------------------------------------------------------------------
 
-diametersUnmyel = [3] # np.arange(0.2, 2, 0.3)
-diametersMyel = [3] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)
+diametersUnmyel = np.arange(0.2, 2, 0.3)
+diametersMyel = [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)
 diametersBothTypes = [diametersUnmyel, diametersMyel]
 
 tStartPlots = [0.2, 0.05]
@@ -78,11 +78,9 @@ RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
 
 if calculationFlag:
 
-    (f, axarr) = plt.subplots(1, 2, sharey=True)
-
     legends = ['Unmyelinated', 'Myelinated']
     bundleLengths = [5000, 15000]
-    for i in [0,1]:
+    for i in [1]:
 
         vAPCollection = []
 
@@ -90,13 +88,16 @@ if calculationFlag:
 
         recMechLegends = ['homogeneous', 'FEM']
         recMechMarkers = ['o', 'v']
-        for recMechIndex in [0, 1]:
+        for recMechIndex in [0,1]:
 
             vAPs = []
             vAPs2 = []
 
             LFPMech = []
             for diameterInd, diameter in enumerate(diameters):
+
+                LFPMech.append(PyPN.Extracellular.homogeneous(sigma=1))
+                LFPMech.append(PyPN.Extracellular.precomputedFEM(bundleGuide))
 
                 # set the diameter distribution or fixed value
                 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -105,7 +106,7 @@ if calculationFlag:
                 unmyelinatedDiam = diameter  # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
                 # axon definitions
-                myelinatedParameters = {'fiberD': myelinatedDiam}
+                myelinatedParameters = {'fiberD': myelinatedDiam} # , 'temperature': 25}
                 unmyelinatedParameters = {'fiberD': unmyelinatedDiam}
 
                 # set all properties of the bundle
@@ -134,9 +135,6 @@ if calculationFlag:
                 # create the bundle with all properties of axons and recording setup
                 bundle = PyPN.Bundle(**bundleParameters)
 
-                LFPMech.append(PyPN.Extracellular.homogeneous(sigma=1))
-                LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords))
-
                 # spiking through a single electrical stimulation
                 if electricalStimulusOn:
                     bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
@@ -146,7 +144,7 @@ if calculationFlag:
                 # bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParametersBip))
                 # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
 
-                relPositions = [0] # np.arange(0, 0.5, 0.05)
+                relPositions = np.arange(0, 0.5, 0.05)
                 modularRecMech = [[] for jj in range(len(relPositions))]
                 if i == 1:
 
@@ -168,7 +166,7 @@ if calculationFlag:
                 else:
                     recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
                                               'radius': 200,
-                                              'positionAlongBundle': 3000,
+                                              'positionAlongBundle': 1000,
                                               'numberOfPoles': 1,
                                               'poleDistance': 1000,
                                               }
@@ -181,64 +179,78 @@ if calculationFlag:
                 # run the simulation
                 bundle.simulate()
 
-                # import matplotlib.cm as cm
-                # import matplotlib.colors as colors
-                #
-                # jet = plt.get_cmap('jet')
-                # cNorm = colors.Normalize(vmin=0, vmax=len(relPositions) - 1)
-                # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
-                #
-                # for i in range(len(bundle.recordingMechanisms)):
-                #
-                #     colorVal = scalarMap.to_rgba(i)
-                #
-                #     t, SFAPs = bundle.get_SFAPs_from_file(i)
-                #     plt.plot(t, SFAPs, label=str(relPositions[i]*100)+'%', color=colorVal)
-                # # plt.legend(loc='best')
-                # plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
-                # plt.xlabel('time [ms]')
-                # plt.ylabel('$V_{ext}$ [mV]')
-                # plt.grid()
+                import matplotlib.cm as cm
+                import matplotlib.colors as colors
+
+                jet = plt.get_cmap('jet')
+                cNorm = colors.Normalize(vmin=0, vmax=len(relPositions) - 1)
+                scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+
+                for i in range(len(bundle.recordingMechanisms)):
+
+                    colorVal = scalarMap.to_rgba(i)
+
+                    t, SFAPs = bundle.get_SFAPs_from_file(i)
+                    plt.plot(t, SFAPs, label=str(relPositions[i]*100)+'%', color=colorVal)
+                # plt.legend(loc='best')
+                plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
+                plt.xlabel('time [ms]')
+                plt.ylabel('$V_{ext}$ [mV]')
+                plt.grid()
+                plt.show()
+
+
+                tStartPlot = tStartPlots[i] # 0.2
+                tStopPlot = 40
+                selectionArray = np.logical_and(t>tStartPlot, t<tStopPlot)
+                tNoArt = t[selectionArray]
+                SFAPNoArtScaled = SFAPs[selectionArray]
+
+                vAPs.append(np.max(SFAPNoArtScaled) - np.min(SFAPNoArtScaled))
+                print vAPs
+
+                plt.plot(tNoArt, SFAPNoArtScaled)
+                # plt.title(recMechLegends[recMechIndex] + ' ' + legends[i])
                 # plt.show()
-                #
-                #
-                # tStartPlot = tStartPlots[i] # 0.2
-                # tStopPlot = 40
-                # selectionArray = np.logical_and(t>tStartPlot, t<tStopPlot)
-                # tNoArt = t[selectionArray]
-                # SFAPNoArtScaled = SFAPs[selectionArray]
-                #
-                # vAPs.append(np.max(SFAPNoArtScaled) - np.min(SFAPNoArtScaled))
-                # print vAPs
-                #
-                # plt.plot(tNoArt, SFAPNoArtScaled)
-                # # plt.title(recMechLegends[recMechIndex] + ' ' + legends[i])
-                # # plt.show()
 
-            t, SFAPs = bundle.get_SFAPs_from_file()
+                # bundle.simulate()
 
-            axarr[i].plot(t,SFAPs, label=recMechLegends[recMechIndex])
-            axarr[i].set_xlabel('time [ms]')
+                if i == 1:
+                    t, SFAPs = bundle.get_SFAPs_from_file(1)
 
+                    tStartPlot = 0.05
+                    tStopPlot = 40
+                    selectionArray = np.logical_and(t > tStartPlot, t < tStopPlot)
+                    tNoArt = t[selectionArray]
+                    SFAPNoArtScaled = SFAPs[selectionArray]
+
+                    # plt.plot(tNoArt, SFAPNoArtScaled)
+                    # plt.show()
+
+                    vAPs2.append(np.max(SFAPNoArtScaled) - np.min(SFAPNoArtScaled))
+
+                    # print vAPs
+                    # print vAPs2
+
+                    # plt.plot(t, SFAPs)
+                    # plt.show()
+
+            plt.show()
             if i == 0:
-                axarr[i].set_xlim((1.8, 7.))
-                axarr[i].set_ylabel('$V_{ext}$ [mV]')
-                axarr[i].set_title('Unmyelinated')
+                plt.semilogy(diameters, vAPs, marker=recMechMarkers[recMechIndex], color='b', label=legends[i] + ' ' + recMechLegends[recMechIndex])
             else:
-                axarr[i].set_xlim((.4, 1.4))
-                # axarr[i].legend()
-                axarr[i].set_title('Myelinated')
+                plt.semilogy(diameters, vAPs, marker=recMechMarkers[recMechIndex], color='darkgreen', label=legends[i] + ' at nodes' + ' ' + recMechLegends[recMechIndex])
+                # plt.plot(diameters, vAPs2, marker=recMechMarkers[recMechIndex], color='r', label=legends[i]+ ' between nodes' + ' ' + recMechLegends[recMechIndex])
 
-        axarr[i].grid()
-        axarr[i].set_ylim((-0.0003, 0.00035))
-        plt.legend()
+            vAPCollection.append(vAPs)
+
         # plt.figure()
         # plt.plot(diameters, np.divide(vAPCollection[0], vAPCollection[1]))
 
 
-    # plt.xlabel('diameter [$\mu$m]')
-    # plt.ylabel('$V_{ext}$ [mV]')
-    # plt.legend(loc='best')
+    plt.xlabel('diameter [$\mu$m]')
+    plt.ylabel('$V_{ext}$ [mV]')
+    plt.legend(loc='best')
     plt.show()
 else:
 

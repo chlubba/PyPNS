@@ -58,6 +58,166 @@ def _interpolateFromImage(fieldDict, points, order=3):
     # then with new coords to the interpolation
     return ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=order)
 
+def compute_relative_positions_and_interpolate_symmetric_inhomogeneity(sourcePositions, sourceCurrents, receiverPositions, fieldDict, bundleGuide, receiverDisplacement=0, currentUnitFEM=-9, currentUnitSource=-9):
+
+    """
+
+    Structure as follows
+
+    for bs in bundleSegments:
+        for s in sources on this bundle segment:
+            calculate distance of s from axon guide and distance along axon guide
+        for r in all receivers calculate:
+            for s in sources on this bundle segment:
+                  calculate receiver position and interpolate potential based on spatial relation between source
+                  and receiver and source and bundle
+
+    Args:
+        axon: needed for segment positions and membrane currents
+
+    Returns:
+
+    """
+
+    # calculate mean receiver position to project it on the bundle guide segments and obtain a reference for
+    # electrode-symmetry axis displacement
+    receiverPositionsMean = np.mean(receiverPositions, axis=0)
+
+    nSourcePoints = np.shape(sourcePositions)[0]
+
+
+    bundleCoords = bundleGuide[:, 0:3]
+
+    # first go through all bundle segments, find the associated source positions and calculate the needed
+    # quantities for all sources
+    receiverPotentials = np.zeros((receiverPositions.shape[0], np.shape(sourceCurrents)[1]))
+
+    # # TODO: delete this again, only for testing
+    # lastElectrodeSignal = []
+    # f, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
+    # jet = plt.get_cmap('jet')
+    # cNorm = colors.Normalize(vmin=0, vmax=int(nSourcePoints) - 1)
+    # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+
+    t0 = time.time()
+
+    bundleSegInd = 1
+    sourceInd = 0
+    sourcesFinishedFlag = False
+    while bundleSegInd < bundleCoords.shape[
+        0] and not sourcesFinishedFlag:  # bundleSegInd points to endpoint of current bundle segment
+
+        bundleSegEndPoint = bundleCoords[bundleSegInd, :]
+        bundleSegStartPoint = bundleCoords[bundleSegInd - 1, :]
+
+        # find the normal to the terminating surface of the bundle guide segment
+        dir0 = bundleSegEndPoint - bundleSegStartPoint
+        dir0norm = dir0 / np.linalg.norm(dir0)
+        if bundleSegInd < bundleCoords.shape[0] - 1:
+            dir1 = bundleCoords[bundleSegInd + 1, :] - bundleSegEndPoint
+            n = (dir0 + dir1) / 2
+        else:
+            n = dir0
+
+        # process axons associated with the current bundle segment
+        # and store axon segment properties in these lists
+        sourceDir2Ds = []
+        sourceXDists = []
+        sourceZs = []
+
+        sourcePosition = sourcePositions[sourceInd,:]  # why oh why, no do-while
+        # print 'bundleSegEndPoint_ ' + str(bundleSegEndPoint)
+        while np.inner(sourcePosition - bundleSegEndPoint, n) < 0:  # while in bundle guide segment
+            # print 'sourcePosition ' + str(sourcePosition)
+
+            sourcePosition = sourcePositions[sourceInd,:]
+            sourcePosPar = np.inner(sourcePosition - bundleSegStartPoint,
+                                  dir0norm)  # compontent parallel to bundle direction
+
+            # normal from bundle guide to axon position
+            sourceDir2D = sourcePosition - (bundleSegStartPoint + sourcePosPar * dir0norm)
+            sourceXDist = np.linalg.norm(sourceDir2D)
+            if not sourceXDist == 0:
+                sourceDir2DNorm = sourceDir2D / sourceXDist
+            else:
+                sourceDir2DNorm = -1
+
+            # save all computed values of axon into these lists, they are used when iterating over electrodes
+            sourceXDists.append(sourceXDist)
+            sourceDir2Ds.append(sourceDir2DNorm)
+            sourceZs.append(sourcePosPar)
+
+            sourceInd += 1
+
+            if sourceInd >= nSourcePoints:
+                sourcesFinishedFlag = True
+                break
+
+        # now process receivers
+
+        # compontent parallel to bundle direction
+        bundleSegStartPointTiled = np.tile(bundleSegStartPoint, (receiverPositions.shape[0], 1))
+        receiverPosPar = np.inner(receiverPositions - bundleSegStartPointTiled, dir0norm)
+
+        # electrode shifted to origin
+        receiverVector = receiverPositions - (bundleSegStartPointTiled + np.tile(dir0norm,
+                                                                                  (
+                                                                                      receiverPositions.shape[
+                                                                                       0], 1)) * receiverPosPar[
+                                                                                                 :,
+                                                                                                 np.newaxis])
+
+        for sourceLoc in range(len(sourceDir2Ds)):
+            sourceDir2D = sourceDir2Ds[sourceLoc]
+
+            if isinstance(sourceDir2D, int):  # if the axon segment lies on the bundle middle exactly
+                receiverX = np.ones(receiverPositions.shape[0]) * np.linalg.norm(receiverVector[0, :])
+                receiverY = np.zeros(receiverPositions.shape[0])
+            else:
+                sourceDir2DTiled = np.tile(sourceDir2D, (receiverVector.shape[0], 1))
+
+                # electrode coordinates projected onto new base vectors
+                receiverX = np.inner(receiverVector, sourceDir2D)
+
+                receiverYVec = receiverVector - sourceDir2DTiled * receiverX[:, np.newaxis]
+                receiverY = np.linalg.norm(receiverYVec, axis=1)
+
+            sourceZ = sourceZs[sourceLoc]
+            receiverZ = np.add(receiverPosPar, -sourceZ)
+
+            sourceXDist = np.tile(sourceXDists[sourceLoc], (1, len(receiverZ)))
+
+            interpolationPoints = np.vstack([receiverX, receiverY, receiverZ, sourceXDist])
+            interpolationPoints = np.divide(interpolationPoints,
+                                            1000000)  # from um to m TODO: numercal problem?
+
+            # now interpolate from fieldImage
+            receiverPotTempStatic = _interpolateFromImage(fieldDict, interpolationPoints, order=1)
+
+            imemAxonSegInd = sourceInd - len(sourceDir2Ds) + sourceLoc
+
+            # scale potential-voltage-relation with current to obtain temporal signal
+            # COMSOL gave V, we need mV, therefore multiply with 1000
+            # also there can be a mismatch in current unit of the source, eliminate
+            receiverPotTemp = np.outer(receiverPotTempStatic,
+                                   sourceCurrents[imemAxonSegInd, :]
+                                   * (10)**(currentUnitSource-currentUnitFEM)) * 1000
+
+            # import matplotlib.pyplot as plt
+            # plt.plot(receiverPotTemp.T)
+            # plt.show()
+
+            # add contributions
+            receiverPotentials = np.add(receiverPotentials, receiverPotTemp)
+
+        bundleSegInd += 1
+
+    # import matplotlib.pyplot as plt
+    # plt.plot(receiverPotentials.T, linewidth=2, color='r')
+    # plt.show()
+
+    return receiverPotentials
+
 def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions, fieldDict, bundleGuide, currentUnitFEM=-9, currentUnitSource=-9):
 
     """

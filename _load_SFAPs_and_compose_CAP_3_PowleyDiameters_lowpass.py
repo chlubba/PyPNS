@@ -20,6 +20,19 @@ saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SF
 #             'myelinatedCV' : [],
 #             }
 
+from scipy.signal import butter, lfilter, freqz
+
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
 # parameters
 lengthOfRecording = 200 #ms
 dt = 0.0025 #ms
@@ -27,7 +40,7 @@ nRecording = lengthOfRecording/dt
 tArtefact = 0.1 # ms
 nArtefact = tArtefact/dt
 
-electrodeDistance = 3 # 200. # 70. # mm
+electrodeDistance = 200. # 70. # mm
 jitterAmp = 5 #ms
 jitterDist = 0.1*electrodeDistance # 0.03
 numMyel = 100
@@ -70,9 +83,11 @@ denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
 tStart = 3.0245 # 3.024 #
 time = data[:,0]
 tCut = (time[time>tStart] - tStart)*1000
-vDenCut = denoisedVoltage[time>tStart]
+vDenCut = denoisedVoltage[time>tStart]/1000
 
-plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
+vDenCutMax = np.max(vDenCut[tCut>4])
+
+plt.plot(tCut, vDenCut, color='black', linewidth=2, label='Experimental data')
 
 def shift_signal(signal, difference, length):
 
@@ -98,7 +113,7 @@ for fieldTypeInd in [1]: # fieldTypes:
     CAP = np.zeros(nRecording)
     CAPSmoothed = np.zeros(nRecording)
 
-    for typeInd in [1]:
+    for typeInd in [0,1]:
 
         diameters = np.array(saveDict[stringsDiam[typeInd]])
         CVs = np.array(saveDict[stringsCV[typeInd]])
@@ -171,9 +186,19 @@ for fieldTypeInd in [1]: # fieldTypes:
                 # plt.show()
 
     # plt.plot(tCAP, CAPSmoothed, label=fieldStrings[fieldTypeInd] + ' smoothed with sigma = ' + str(sigma) + ' ms')
-    plt.plot(tCAP, CAP*100, label=fieldStrings[fieldTypeInd])
+
+    unfilteredScaling = vDenCutMax/np.max(CAP)
+
+    plt.plot(tCAP, CAP*unfilteredScaling, label=fieldStrings[fieldTypeInd]+ ' scaled by ' + str(unfilteredScaling))
     plt.title('Comparison between experimental data and simulation')
     plt.ylabel('$V_{ext}$ [mV]')
+
+    cutoff = 300 # 2800/(2*np.pi)
+
+    for order in [2,3]:
+        filteredCAP = butter_lowpass_filter(CAP, cutoff, 1000./dt, order=order)
+        scaling = vDenCutMax / np.max(filteredCAP)
+        plt.plot(tCAP, filteredCAP*scaling, label='order='+str(order) + ' scaled by ' + str(scaling))
 
 
     # from scipy import signal
@@ -205,7 +230,7 @@ for fieldTypeInd in [1]: # fieldTypes:
     # plt.xlabel('conduction velocity [m/s]')
     plt.xlabel('time [ms]')
 
-plt.grid()
+# plt.grid()
 plt.legend()
 
 plt.show()

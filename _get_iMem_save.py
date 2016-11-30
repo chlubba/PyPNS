@@ -73,10 +73,12 @@ Ras = [70] # np.arange(50, 300, 50)
 Cms = [0.1, 0.3, 1.] # np.arange(0.15, 0.2, 0.01)
 gkbars = np.arange(0.1, 0.2, 0.02) # [1.2] #
 
-# saveDict = {'axonType': 'unmyelinated',
-#             'diameters': diameters,
-#             'temperatures': temperatures,
-#             'velocityArray': []}
+diameters = [0.5, 1., 2.] #
+
+saveDict = {'axonType': 'unmyelinated',
+            'diameters': diameters,
+            'imems': [],
+            't': []}
 
 if calculationFlag:
 
@@ -85,9 +87,9 @@ if calculationFlag:
     (f,axarr) = plt.subplots(1,3)
 
     typeLegendStrings = ['unmyelinated', 'myelinated']
-    for typeInd in [1]:
+    for typeInd in [0]:
 
-        diameters = diametersBothTypes[typeInd]
+
 
         LFPMech = []
         recMechIndex = 0
@@ -187,8 +189,14 @@ if calculationFlag:
                 nodeIndex = np.floor(bundle.axons[0].totnsegs / 11 * 0.8) * 11
                 iSignal = np.sum(imem[nodeIndex:nodeIndex+3, :], axis=0)
             else:
-                nodeIndex = 10
+                nodeIndex = 100
                 iSignal = imem[nodeIndex, :]
+
+            saveDict['imems'].append(iSignal)
+            saveDict['t'] = t
+
+            # plt.plot(t, iSignal)
+            # plt.show()
 
             # iSignal = iSignal/100/bundle.axons[0].area[nodeIndex]
 
@@ -202,87 +210,87 @@ if calculationFlag:
             # plt.semilogy(freq, np.abs(sp[1:]), label=typeLegendStrings[typeInd] + ', ' + str(diameter)+ ' $\mu$m') # len(freq) #  / max(np.abs(sp[1:]))
 
             # plt.plot(t, iOneSegment)
-            if typeInd == 1:
-                labelStringsSections = ['node', 'MYSA', 'FLUT']
-
-                # first plot voltage
-                axarr[0].plot(t, np.mean(v[:, nodeIndex:nodeIndex+3], axis=1), label='mean of all', linewidth=1.5)
-                for ii in range(3):
-                    axarr[0].plot(t, v[:, nodeIndex + ii], label=labelStringsSections[ii])
-                axarr[0].set_ylabel('$V_m$ [mv]')
-                axarr[0].set_title('Membrane Voltage')
-                axarr[0].legend(loc='best')
-                axarr[0].set_xlim((1.6, 2.8))
-                axarr[0].set_ylim((-90, 40))
-
-                # plot membrane current in second subplot
-                axarr[1].plot(t, np.sum(imem[nodeIndex:nodeIndex + 3, :], axis=0), label='Sum of all',
-                                    linewidth=1.5) # , color='k'
-                for ii in range(3):
-                    axarr[1].plot(t, imem[nodeIndex + ii, :], label=labelStringsSections[ii])
-
-                axarr[1].set_title('Membrane Current')
-                axarr[1].legend(loc='best')
-                axarr[1].set_ylabel('$I_m$ [nA]') # '$I_m$ [mA/cm$^2$]'
-                # axarr[1].grid()
-                axarr[1].set_xlim((1.6, 2.8))
-                axarr[1].set_ylim((-6500, 2000))
-                # axarr[typeInd].set_xlim((0.85, 1.7))
-
-                # plot CAP in third one
-                import matplotlib.cm as cm
-                import matplotlib.colors as colors
-
-                jet = plt.get_cmap('jet')
-                cNorm = colors.Normalize(vmin=0, vmax=len(relPositions) - 1)
-                scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
-
-                for i in range(len(bundle.recordingMechanisms)):
-                    colorVal = scalarMap.to_rgba(i)
-
-                    t, SFAPs = bundle.get_SFAPs_from_file(i)
-                    plt.plot(t, SFAPs*1000, label=str(relPositions[i] * 100) + '%', color=colorVal)
-                # plt.legend(loc='best')
-                axarr[2].legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
-                axarr[2].set_ylabel('$V_{ext}$ [$\mu$V]')
-                axarr[2].set_title('Extracellular Potential')
-                axarr[2].set_xlim((1.4, 2.6))
-                axarr[2].set_ylim((-350, 250))
-
-
-            else:
-
-                axarr[0].plot(t, v[:, nodeIndex])
-                # axarr[0].plot(t, v)
-                axarr[0].set_ylabel('$V_m$ [mv]')
-                axarr[0].set_title('Membrane Voltage')
-                # # axarr[0].legend(loc='best')
-                axarr[0].set_xlim((0, 3))
-                axarr[0].set_ylim((-70, -10))
-
-                # plot membrane current in second subplot
-                imem = imem.T
-                axarr[1].plot(t, imem[:, nodeIndex])
-                # axarr[1].plot(t, np.transpose(imem))
-
-                axarr[1].set_title('Membrane Current')
-                axarr[1].set_ylabel('$I_m$ [nA]')
-                # axarr[1].grid()
-                axarr[1].set_xlim((0, 3))
-                axarr[1].set_ylim((-3500, 1500))
-
-                t, SFAPs = bundle.get_SFAPs_from_file()
-                plt.plot(t, SFAPs * 1000)
-                # plt.legend(loc='best')
-                # axarr[2].legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
-                axarr[2].set_ylabel('$V_{ext}$ [$\mu$V]')
-                axarr[2].set_title('Extracellular Potential')
-                axarr[2].set_xlim((16, 25))
-                axarr[2].set_ylim((-200, 100))
-
-            for i in range(3):
-                axarr[i].set_xlabel('time [ms]')
-                axarr[i].grid()
+            # if typeInd == 1:
+            #     labelStringsSections = ['node', 'MYSA', 'FLUT']
+            #
+            #     # first plot voltage
+            #     axarr[0].plot(t, np.mean(v[:, nodeIndex:nodeIndex+3], axis=1), label='mean of all', linewidth=1.5)
+            #     for ii in range(3):
+            #         axarr[0].plot(t, v[:, nodeIndex + ii], label=labelStringsSections[ii])
+            #     axarr[0].set_ylabel('$V_m$ [mv]')
+            #     axarr[0].set_title('Membrane Voltage')
+            #     axarr[0].legend(loc='best')
+            #     axarr[0].set_xlim((1.6, 2.8))
+            #     axarr[0].set_ylim((-90, 40))
+            #
+            #     # plot membrane current in second subplot
+            #     axarr[1].plot(t, np.sum(imem[nodeIndex:nodeIndex + 3, :], axis=0), label='Sum of all',
+            #                         linewidth=1.5) # , color='k'
+            #     for ii in range(3):
+            #         axarr[1].plot(t, imem[nodeIndex + ii, :], label=labelStringsSections[ii])
+            #
+            #     axarr[1].set_title('Membrane Current')
+            #     axarr[1].legend(loc='best')
+            #     axarr[1].set_ylabel('$I_m$ [nA]') # '$I_m$ [mA/cm$^2$]'
+            #     # axarr[1].grid()
+            #     axarr[1].set_xlim((1.6, 2.8))
+            #     axarr[1].set_ylim((-6500, 2000))
+            #     # axarr[typeInd].set_xlim((0.85, 1.7))
+            #
+            #     # plot CAP in third one
+            #     import matplotlib.cm as cm
+            #     import matplotlib.colors as colors
+            #
+            #     jet = plt.get_cmap('jet')
+            #     cNorm = colors.Normalize(vmin=0, vmax=len(relPositions) - 1)
+            #     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+            #
+            #     for i in range(len(bundle.recordingMechanisms)):
+            #         colorVal = scalarMap.to_rgba(i)
+            #
+            #         t, SFAPs = bundle.get_SFAPs_from_file(i)
+            #         plt.plot(t, SFAPs*1000, label=str(relPositions[i] * 100) + '%', color=colorVal)
+            #     # plt.legend(loc='best')
+            #     axarr[2].legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
+            #     axarr[2].set_ylabel('$V_{ext}$ [$\mu$V]')
+            #     axarr[2].set_title('Extracellular Potential')
+            #     axarr[2].set_xlim((1.4, 2.6))
+            #     axarr[2].set_ylim((-350, 250))
+            #
+            #
+            # else:
+            #
+            #     axarr[0].plot(t, v[:, nodeIndex])
+            #     # axarr[0].plot(t, v)
+            #     axarr[0].set_ylabel('$V_m$ [mv]')
+            #     axarr[0].set_title('Membrane Voltage')
+            #     # # axarr[0].legend(loc='best')
+            #     axarr[0].set_xlim((0, 3))
+            #     axarr[0].set_ylim((-70, -10))
+            #
+            #     # plot membrane current in second subplot
+            #     imem = imem.T
+            #     axarr[1].plot(t, imem[:, nodeIndex])
+            #     # axarr[1].plot(t, np.transpose(imem))
+            #
+            #     axarr[1].set_title('Membrane Current')
+            #     axarr[1].set_ylabel('$I_m$ [nA]')
+            #     # axarr[1].grid()
+            #     axarr[1].set_xlim((0, 3))
+            #     axarr[1].set_ylim((-3500, 1500))
+            #
+            #     t, SFAPs = bundle.get_SFAPs_from_file()
+            #     plt.plot(t, SFAPs * 1000)
+            #     # plt.legend(loc='best')
+            #     # axarr[2].legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
+            #     axarr[2].set_ylabel('$V_{ext}$ [$\mu$V]')
+            #     axarr[2].set_title('Extracellular Potential')
+            #     axarr[2].set_xlim((16, 25))
+            #     axarr[2].set_ylim((-200, 100))
+            #
+            # for i in range(3):
+            #     axarr[i].set_xlabel('time [ms]')
+            #     axarr[i].grid()
 
 
 
@@ -314,9 +322,9 @@ else:
 # ------------------------------------------------------------------------------
 
 
-# pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/condVel', 'conductionVelocitiesUnmyelinatedCm.dict'), "wb"))
+pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/imem', 'imem.dict'), "wb"))
 
-print '\nStarting to plot'
+# print '\nStarting to plot'
 
 # # pp = pprint.PrettyPrinter(indent=4)
 # # pp.pprint(bundle)
@@ -384,6 +392,6 @@ print '\nStarting to plot'
 # PyPN.plot.CAP1D(bundle, recMechIndex=1)
 # PyPN.plot.voltage(bundle)
 # PyPN.plot.diameterHistogram(bundle)
-plt.show()
+# plt.show()
 
 bundle = None

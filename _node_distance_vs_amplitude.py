@@ -78,11 +78,9 @@ RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
 
 if calculationFlag:
 
-    (f, axarr) = plt.subplots(1, 2, sharey=True)
-
     legends = ['Unmyelinated', 'Myelinated']
     bundleLengths = [5000, 15000]
-    for i in [0,1]:
+    for i in [1]:
 
         vAPCollection = []
 
@@ -217,20 +215,20 @@ if calculationFlag:
 
             t, SFAPs = bundle.get_SFAPs_from_file()
 
-            axarr[i].plot(t,SFAPs, label=recMechLegends[recMechIndex])
-            axarr[i].set_xlabel('time [ms]')
+            plt.plot(t,SFAPs, label=recMechLegends[recMechIndex])
+            plt.xlabel('time [ms]')
 
             if i == 0:
-                axarr[i].set_xlim((1.8, 7.))
-                axarr[i].set_ylabel('$V_{ext}$ [mV]')
-                axarr[i].set_title('Unmyelinated')
+                plt.xlim((1.8, 7.))
+                plt.ylabel('$V_{ext}$ [mV]')
+                plt.title('Unmyelinated')
             else:
-                axarr[i].set_xlim((.4, 1.4))
+                plt.xlim((.4, 1.4))
                 # axarr[i].legend()
-                axarr[i].set_title('Myelinated')
+                plt.title('Myelinated')
 
-        axarr[i].grid()
-        axarr[i].set_ylim((-0.0003, 0.00035))
+        plt.grid()
+        plt.ylim((-0.0003, 0.00035))
         plt.legend()
         # plt.figure()
         # plt.plot(diameters, np.divide(vAPCollection[0], vAPCollection[1]))

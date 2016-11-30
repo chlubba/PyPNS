@@ -21,13 +21,13 @@ electricalStimulusOn = True
 
 # ----------------------------- simulation params ---------------------------
 
-tStop=50
+tStop=120
 timeRes=0.0025
 
 # ----------------------------- bundle params -------------------------------
 
 # set length of bundle and number of axons
-lengthOfBundle = 5000 # 20000 # 400000
+lengthOfBundle = 7000 # 20000 # 400000
 numberOfAxons = 1
 
 # bundle guide
@@ -50,59 +50,76 @@ rectangularSignalParams = {'amplitude': 50., #50,  # Pulse amplitude (mA)
 
 intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParams)}
 
-# ----------------------------- recording params -------------------------------
-
-recordingParametersNew = {'bundleGuide': bundleGuide,
-                          'radius': 100,
-                          'positionAlongBundle': 10000,
-                          'numberOfPoles': 1,
-                          'poleDistance': 1000,
-                        }
-
 
 # ------------------------------------------------------------------------------
 # ---------------------------------- CALCULATION -------------------------------
 # ------------------------------------------------------------------------------
 
-diametersUnmyel = [3] # np.arange(0.2, 2, 0.3)
-diametersMyel = [3] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)
-diametersBothTypes = [diametersUnmyel, diametersMyel]
-
-tStartPlots = [0.2, 0.05]
-
-diameters = np.arange(0.2, 4, 0.7) # [1, 2, 4] # [4, 3, 2, 1, 0.5, 0.2] # np.flipud(np.arange(.2, 4., .3))
+diameters = np.flipud(np.arange(.2, 4., .5))
 temperatures = np.arange(5, 46, 5)
 Ras = np.arange(50, 300, 50)
 
 RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
 
+signalsSave = []
+RDCSave = []
+elecDistSave = []
+
 if calculationFlag:
 
-    (f, axarr) = plt.subplots(1, 2, sharey=True)
+    (f, axarr) = plt.subplots(2, 3, sharey=True)
 
-    legends = ['Unmyelinated', 'Myelinated']
-    bundleLengths = [5000, 15000]
-    for i in [0,1]:
+    onsetInd = np.ones((2, 3)) * 100 / 0.0025
+    lengthInInd = 0
 
-        vAPCollection = []
+    maxAmp = 0
+    minAmp = 0
 
-        diameters = diametersBothTypes[i]
 
-        recMechLegends = ['homogeneous', 'FEM']
-        recMechMarkers = ['o', 'v']
-        for recMechIndex in [0, 1]:
+    for elecInd, elecRadius in enumerate([400, 500, 600, 700, 1000]): # [50, 100, 150, 200, 250, 300]
 
-            vAPs = []
-            vAPs2 = []
+        print 'radius ' + str(elecRadius)
 
-            LFPMech = []
-            for diameterInd, diameter in enumerate(diameters):
+        # ----------------------------- recording params -------------------------------
+
+        recordingParametersNew = {'bundleGuide': bundleGuide,
+                                  'radius': elecRadius, # 250,
+                                  'positionAlongBundle': 4000,
+                                  'numberOfPoles': 1,
+                                  'poleDistance': 1000,
+                                  }
+
+        plotRow = int(elecInd / 3)
+        plotColumn = np.mod(elecInd, 3)
+        axis = axarr[plotRow][plotColumn]
+
+        for RDCInd, RDC in enumerate(RDCs):
+
+            print 'RDC number ' + str(RDCInd)
+
+            # plotRow = int(RDCInd/3)
+            # plotColumn = np.mod(RDCInd, 3)
+            # axis = axarr[plotRow][plotColumn]
+
+            # for temperatureInd, temperature in enumerate(temperatures):
+            numRuns = 10
+            for runInd in range(numRuns):
+                print 'run ' + str(runInd)
+
+                vAPs = []
+
+                LFPMech = PyPN.Extracellular.homogeneous(sigma=1)
+                LFPMech2 = PyPN.Extracellular.precomputedFEM(bundleGuide)
+
+                electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
+
+                modularRecMech = PyPN.RecordingMechanism(electrodePos, LFPMech)
 
                 # set the diameter distribution or fixed value
                 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
                 # 5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.
-                myelinatedDiam = diameter  # {'distName' : 'normal', 'params' : (1.0, 0.7)} # (2.0, 0.7)
-                unmyelinatedDiam = diameter  # {'distName' : 'normal', 'params' : (0.7, 0.3)}
+                myelinatedDiam = 1.  # {'distName' : 'normal', 'params' : (1.0, 0.7)} # (2.0, 0.7)
+                unmyelinatedDiam = 1.  # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
                 # axon definitions
                 myelinatedParameters = {'fiberD': myelinatedDiam}
@@ -110,18 +127,18 @@ if calculationFlag:
 
                 # set all properties of the bundle
                 bundleParameters = {'radius': 300,  # 150, #um Radius of the bundle (typically 0.5-1.5mm)
-                                    'length': bundleLengths[i],  # um Axon length
-                                    # 'randomDirectionComponent': RDC,
+                                    'length': lengthOfBundle,  # um Axon length
+                                    'randomDirectionComponent': RDC,
                                     # 'bundleGuide': bundleGuide,
 
                                     'numberOfAxons': numberOfAxons,  # Number of axons in the bundle
-                                    'pMyel': i,  # Percentage of myelinated fiber type A
-                                    'pUnmyel': 1 - i,  # Percentage of unmyelinated fiber type C
+                                    'pMyel': 0.,  # Percentage of myelinated fiber type A
+                                    'pUnmyel': 1.,  # Percentage of unmyelinated fiber type C
                                     'paramsMyel': myelinatedParameters,  # parameters for fiber type A
                                     'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
 
                                     'tStop': tStop,
-                                    'timeRes': 0.0025, #'variable', #
+                                    'timeRes': 'variable', #0.0025, #
 
                                     # 'saveI':True,
                                     # 'saveV': False,
@@ -134,9 +151,6 @@ if calculationFlag:
                 # create the bundle with all properties of axons and recording setup
                 bundle = PyPN.Bundle(**bundleParameters)
 
-                LFPMech.append(PyPN.Extracellular.homogeneous(sigma=1))
-                LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords))
-
                 # spiking through a single electrical stimulation
                 if electricalStimulusOn:
                     bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
@@ -146,100 +160,111 @@ if calculationFlag:
                 # bundle.add_recording_mechanism(PyPN.FEMRecCuff2D(**recordingParametersBip))
                 # bundle.add_recording_mechanism(PyPN.RecCuff2D(**recordingParametersBip))
 
-                relPositions = [0] # np.arange(0, 0.5, 0.05)
-                modularRecMech = [[] for jj in range(len(relPositions))]
-                if i == 1:
+                # bundle.add_recording_mechanism(modularRecMech1)
+                bundle.add_recording_mechanism(modularRecMech)
+                # bundle.add_recording_mechanism(modularRecMech3)
 
-                    for ii, relPos in enumerate(relPositions):
-
-                        recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
-                                                  'radius': 200,
-                                                  'positionAlongBundle': np.floor(10000. / bundle.axons[0].lengthOneCycle) *
-                                                                         bundle.axons[0].lengthOneCycle + bundle.axons[0].lengthOneCycle*relPos,
-                                                  'numberOfPoles': 1,
-                                                  'poleDistance': 1000,
-                                                  }
-                        electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
-
-                        modularRecMech[ii] = PyPN.RecordingMechanism(electrodePos, LFPMech[recMechIndex])
-
-                        bundle.add_recording_mechanism(modularRecMech[ii])
-
-                else:
-                    recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
-                                              'radius': 200,
-                                              'positionAlongBundle': 3000,
-                                              'numberOfPoles': 1,
-                                              'poleDistance': 1000,
-                                              }
-                    electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
-
-                    modularRecMech[0] = PyPN.RecordingMechanism(electrodePos, LFPMech[recMechIndex])
-
-                    bundle.add_recording_mechanism(modularRecMech[0])
+                # PyPN.plot.geometry_definition(bundle)
+                # plt.show()
 
                 # run the simulation
                 bundle.simulate()
+
+                t, SFAPs = bundle.get_SFAPs_from_file()
+
+                RDCSave.append(RDC)
+                elecDistSave.append(elecRadius)
+                signalsSave.append(SFAPs)
+
+                # plt.figure()
+                # plt.plot(t, SFAPs)
+                # plt.show()
 
                 # import matplotlib.cm as cm
                 # import matplotlib.colors as colors
                 #
                 # jet = plt.get_cmap('jet')
-                # cNorm = colors.Normalize(vmin=0, vmax=len(relPositions) - 1)
+                # cNorm = colors.Normalize(vmin=0, vmax=numRuns - 1)
                 # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
-                #
-                # for i in range(len(bundle.recordingMechanisms)):
-                #
-                #     colorVal = scalarMap.to_rgba(i)
-                #
-                #     t, SFAPs = bundle.get_SFAPs_from_file(i)
-                #     plt.plot(t, SFAPs, label=str(relPositions[i]*100)+'%', color=colorVal)
-                # # plt.legend(loc='best')
-                # plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
-                # plt.xlabel('time [ms]')
-                # plt.ylabel('$V_{ext}$ [mV]')
-                # plt.grid()
-                # plt.show()
-                #
-                #
-                # tStartPlot = tStartPlots[i] # 0.2
+                # colorVal = scalarMap.to_rgba(runInd)
+
+                from scipy.interpolate import interp1d
+                f = interp1d(t, np.squeeze(SFAPs))
+                tReg = np.arange(0, max(t), 0.0025)
+                SFAPReg = f(tReg)
+
+                SFAPActive = np.where(np.abs(SFAPReg) > 0.00000001)[0]
+                SFAPActive = SFAPActive[SFAPActive>1/0.0025]
+
+                # find first
+                onsetInd[plotRow, plotColumn] = np.min((np.min(SFAPActive), onsetInd[plotRow, plotColumn]))
+                lengthInInd = np.max((np.max(SFAPActive) - onsetInd[plotRow, plotColumn], lengthInInd))
+
+                maxAmp = np.max((np.max(SFAPReg[SFAPActive]), maxAmp))
+                minAmp = np.min((np.min(SFAPReg[SFAPActive]), minAmp))
+
+                # tStartPlot = 1
                 # tStopPlot = 40
-                # selectionArray = np.logical_and(t>tStartPlot, t<tStopPlot)
-                # tNoArt = t[selectionArray]
-                # SFAPNoArtScaled = SFAPs[selectionArray]
+                # selectionArray = np.logical_and(tReg>tStartPlot, tReg<tStopPlot)
+                # tNoArt = tReg[selectionArray]
+                # SFAPNoArtScaled = SFAPReg[selectionArray]
+
+
+                # axis.plot(tNoArt, SFAPNoArtScaled, color=colorVal)
+                axis.plot(tReg, SFAPReg) # , color=colorVal)
+                # axis.set_ylim((-2, 1))
+                # plt.show()
+
+                if plotColumn == 0:
+                    axis.set_ylabel('$V_{ext}$ [mV]')
                 #
-                # vAPs.append(np.max(SFAPNoArtScaled) - np.min(SFAPNoArtScaled))
-                # print vAPs
-                #
-                # plt.plot(tNoArt, SFAPNoArtScaled)
-                # # plt.title(recMechLegends[recMechIndex] + ' ' + legends[i])
-                # # plt.show()
+                # if plotRow == 0:
+                #     axis.tick_params(
+                #         axis='x',  # changes apply to the x-axis
+                #         which='both',  # both major and minor ticks are affected
+                #         bottom='off',  # ticks along the bottom edge are off
+                #         top='off',  # ticks along the top edge are off
+                #         labelbottom='off')  # labels along the bottom edge are off
+                # else:
+                #     axis.set_xlabel('time [ms]')
+                if plotRow == 1:
+                    axis.set_xlabel('time [ms]')
 
-            t, SFAPs = bundle.get_SFAPs_from_file()
+                # PyPN.plot.geometry_definition(bundle)
 
-            axarr[i].plot(t,SFAPs, label=recMechLegends[recMechIndex])
-            axarr[i].set_xlabel('time [ms]')
+                # # get SFAP
+                # time, CAP = bundle.get_CAP_from_file()
+                # plt.plot(time, CAP, label='RDC = ' + str(RDC))
+                # plt.show()
+            axis.set_title(str(RDC))
+            axis.grid()
 
-            if i == 0:
-                axarr[i].set_xlim((1.8, 7.))
-                axarr[i].set_ylabel('$V_{ext}$ [mV]')
-                axarr[i].set_title('Unmyelinated')
-            else:
-                axarr[i].set_xlim((.4, 1.4))
-                # axarr[i].legend()
-                axarr[i].set_title('Myelinated')
-
-        axarr[i].grid()
-        axarr[i].set_ylim((-0.0003, 0.00035))
-        plt.legend()
-        # plt.figure()
-        # plt.plot(diameters, np.divide(vAPCollection[0], vAPCollection[1]))
+        for rowI in [0,1]:
+            for columnI in [0,1,2]:
+                axarr[rowI][columnI].set_xlim((onsetInd[rowI][columnI] * 0.0025 - 1, (onsetInd[rowI][columnI] + lengthInInd) * 0.0025 + 1))
+                axarr[rowI][columnI].set_ylim((minAmp*1.1, maxAmp*1.1))
 
 
-    # plt.xlabel('diameter [$\mu$m]')
-    # plt.ylabel('$V_{ext}$ [mV]')
+    # plt.legend()
+
+    # import matplotlib.cm as cm
+    # import matplotlib.colors as colors
+    # jet = plt.get_cmap('jet')
+    # cNorm = colors.Normalize(vmin=0, vmax=len(temperatures)-1)
+    # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+    # colorVal = scalarMap.to_rgba(RaInd)
+    # plt.plot(diameters, vAPs, label=str(Ra) + ' Ohm cm', color=colorVal)
+    #
+    #         # # save the bundle to disk
+    #         # PyPN.save_bundle(bundle)
+    #
+    # plt.plot(np.arange(0,3.7,0.2), np.sqrt(np.arange(0,3.7,0.2))*2, linestyle='--', color=np.array([1, 1, 1])*0.7, label='theory')
+    # plt.xlabel('diameter [um]')
+    # plt.ylabel('conduction velocity [m/s]')
+    # plt.title('Unmyelinated Axon')
     # plt.legend(loc='best')
-    plt.show()
+    # plt.grid()
+
 else:
 
     # try to open a bundle with the parameters set above
@@ -253,8 +278,13 @@ else:
 # ---------------------------------- PLOTTING ----------------------------------
 # ------------------------------------------------------------------------------
 
+saveDict = {'signals': signalsSave,
+            'RDCs': RDCSave,
+            'radius': elecDistSave}
 
-# pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/condVel', 'conductionVelocitiesUnmyelinatedRa.dict'), "wb"))
+
+
+pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/tortuous', 'toruousSignals_400_1000_moreRuns.dict'), "wb"))
 
 print '\nStarting to plot'
 

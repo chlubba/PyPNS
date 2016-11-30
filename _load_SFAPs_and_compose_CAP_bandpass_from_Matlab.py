@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
-saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelOriginal.dict'), "rb" )) # thinnerMyelDiam
+saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordings.dict'), "rb" )) # thinnerMyelDiam # SFAPsPowleyMyelAsRecordingsNewCurr
 
 
 # saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
@@ -20,6 +20,19 @@ saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SF
 #             'myelinatedCV' : [],
 #             }
 
+from scipy.signal import butter, lfilter, freqz
+
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
 # parameters
 lengthOfRecording = 200 #ms
 dt = 0.0025 #ms
@@ -27,20 +40,26 @@ nRecording = lengthOfRecording/dt
 tArtefact = 0.1 # ms
 nArtefact = tArtefact/dt
 
-electrodeDistance = 3 # 200. # 70. # mm
+electrodeDistance = 70. # mm
 jitterAmp = 5 #ms
-jitterDist = 0.1*electrodeDistance # 0.03
-numMyel = 100
-numUnmyel = 100
+jitterDist = 0.03*electrodeDistance #
+numMyel = 10
+numUnmyel = 10
 poles = 2
 poleDistance = 1 # mm
 polePolarities = [1, -1]
 fieldTypes = [0, 1] # 0: homo, 1: FEM
 
+timePlotMin = 10
+timePlotMax = 35
+
 stringsDiam = ['unmyelinatedDiameters', 'myelinatedDiameters']
 stringsSFAPHomo = ['unmyelinatedSFAPsHomo', 'myelinatedSFAPsHomo']
 stringsSFAPFEM = ['unmyelinatedSFAPsFEM', 'myelinatedSFAPsFEM']
 stringsCV = ['unmyelinatedCV', 'myelinatedCV']
+# tUnmyel = saveDict['unmyelinatedT']
+# tMyel = saveDict['myelinatedT']
+# ts = [tUnmyel, tMyel]
 tHomo = saveDict['t']
 ts = [tHomo, np.arange(0,10,0.0025)]
 
@@ -54,10 +73,10 @@ wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.4299808375227
                           15.503, 15.506, 9.26, 9.234, 5.993, 5.961, 2.272, 2.275, 2.138, 2.106, 1.734, 1.634, 1.151,
                           1.189, 0.948, 0.917, 2.1, 2.1)]
 
-# diametersMyel = np.array(saveDict[stringsDiam[1]])
-# sigma = 0.25
-# mu = .7
-# wantedNumbersOfFibers[1] =  1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (diametersMyel - mu)**2 / (2 * sigma**2) )
+diametersMyel = np.array(saveDict[stringsDiam[1]])
+sigma = 0.25
+mu = .7
+wantedNumbersOfFibers[1] = 1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (diametersMyel - mu)**2 / (2 * sigma**2) )
 
 wantedNumbersOfFibers[0] = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0]))*numUnmyel
 wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[0]))*numMyel
@@ -72,31 +91,17 @@ time = data[:,0]
 tCut = (time[time>tStart] - tStart)*1000
 vDenCut = denoisedVoltage[time>tStart]
 
-plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
+# plt.plot(tCut, vDenCut/np.max(vDenCut), color='red', label='Experimental data')
+# plt.show()
 
-def shift_signal(signal, difference, length):
-
-    # make peak come earlier
-    if difference > 0:
-        paddedSignal = signal[difference:]
-    else:
-        paddedSignal = np.concatenate((np.zeros(np.abs(difference)), signal))
-
-    if len(paddedSignal) < length:
-        paddedSignal = np.concatenate((paddedSignal, np.zeros(length - len(paddedSignal))))
-    else:
-        paddedSignal = paddedSignal[:length]
-
-    return paddedSignal
-
+plt.plot(tCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)], vDenCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)]/np.max(vDenCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)]), color='black', linewidth=2, label='Experimental data')
+# plt.show()
 
 tCAP = np.arange(0,lengthOfRecording,0.0025)
 
 fieldStrings = ['Homogeneous', 'FEM']
-for fieldTypeInd in [1]: # fieldTypes:
-
+for fieldTypeInd in [0]: # fieldTypes:
     CAP = np.zeros(nRecording)
-    CAPSmoothed = np.zeros(nRecording)
 
     for typeInd in [1]:
 
@@ -116,21 +121,9 @@ for fieldTypeInd in [1]: # fieldTypes:
 
         SFAPNoArt = SFAP [t > tArtefact, :]
 
-        # plt.plot(SFAPNoArt)
-        # plt.show()
-
         for fiberInd in range(numFibers):
 
             currentSFAP = SFAPNoArt[:, fiberInd]
-
-
-            # caution, convolving!
-            sigma = 0.6
-            gx = np.arange(-3 * sigma, 3 * sigma, dt)
-            gaussian = np.exp(-(gx / sigma) ** 2 / 2)
-            # gaussianN = gaussian/np.sum(gaussian)
-            print np.sum(gaussian)
-            smoothedSFAP = np.convolve(currentSFAP, gaussian, mode="same")
 
             # first find maximum position in signal
             peakInd = np.argmax(currentSFAP)
@@ -157,21 +150,72 @@ for fieldTypeInd in [1]: # fieldTypes:
 
                     difference = peakInd - wantedPeakInd
 
-                    paddedSignal = shift_signal(currentSFAP, difference, nRecording)
-                    paddedSignalSmoothed = shift_signal(smoothedSFAP, difference, nRecording)
+                    # make peak come earlier
+                    if difference > 0:
+                        paddedSignal = currentSFAP[difference:]
+                    else:
+                        paddedSignal = np.concatenate((np.zeros(np.abs(difference)), currentSFAP))
+
+                    if len(paddedSignal) < nRecording:
+                        paddedSignal = np.concatenate((paddedSignal, np.zeros(nRecording - len(paddedSignal))))
+                    else:
+                        paddedSignal = paddedSignal[:nRecording]
 
                     CAP = np.add(CAP, polePolarities[poleInd] * paddedSignal)
-                    CAPSmoothed = np.add(CAPSmoothed, polePolarities[poleInd] * paddedSignalSmoothed)
-
                     # plt.plot(paddedSignal)
                     # plt.title(str(diameters[fiberInd]))
                     # plt.show()
 
-                #     plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd])
-                # plt.show()
+    # plt.plot(tCAP, CAP/np.max(CAP), label=fieldStrings[fieldTypeInd])
 
-    # plt.plot(tCAP, CAPSmoothed, label=fieldStrings[fieldTypeInd] + ' smoothed with sigma = ' + str(sigma) + ' ms')
-    plt.plot(tCAP, CAP*100, label=fieldStrings[fieldTypeInd])
+    # get the poles and zeros from matlab
+    # num = [1/6053445140625000000000000,-1/74733890625000000000,+1/2214337500000000,-1/123018750000,+1/12150000,-1/2250,+1]
+    # denum = [1/15625000000000000000000,-3/1562500000000000000,+3/125000000000000,-1/6250000000, 3/5000000,-3/2500, 1]
+
+    num = [1./9938375000000,-(3.)/462250000,+(3.)/21500,-1]
+    denum = [1./27000000000,-1./3000000,+1./1000,-1]
+
+    # num = [-18160993481857.9]
+    # denum = [1, 1.14384031490999e-06, -6960.76247988057, -0.00799087266204879, 173188542.754159, 17.6610164642334,
+    #          -289826464890.561]
+
+    # denum = [1]
+    # num = [1, 100]
+    #
+    # from scipy import signal
+    #
+    # w, h = freqz(num, denum)
+    # fs = 1./dt
+    # f = fs * w / (2 * np.pi)
+
+    # # w, h = signal.freqz(num, denum)
+    # plt.plot(f, 20 * np.log10(abs(h)))
+    # plt.xscale('log')
+    # plt.title('Butterworth filter frequency response')
+    # plt.xlabel('Frequency [radians / second]')
+    # plt.ylabel('Amplitude [dB]')
+    # plt.show()
+
+    # b = (1./7840000, 1./ 1400, 1)
+    #
+    # filteredCAP = lfilter(b, 1, CAP)
+    # plt.plot(tCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)], filteredCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)]/np.max(filteredCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)]), label='Matlab')
+    # plt.plot(tCAP[np.logical_and(tCAP > timePlotMin, tCAP < timePlotMax)],
+    #          CAP[np.logical_and(tCAP > timePlotMin, tCAP < timePlotMax)] / np.max(
+    #              CAP[np.logical_and(tCAP > timePlotMin, tCAP < timePlotMax)]), label='non filtered')
+    # plt.title('matlab filtered')
+    # plt.show()
+
+    # filter
+    cutoff = 2800/(2*np.pi) # 300 #
+
+    # plt.plot(tCAP[np.logical_and(tCAP > timePlotMin, tCAP < timePlotMax)],
+    #          CAP[np.logical_and(tCAP > timePlotMin, tCAP < timePlotMax)] / np.max(
+    #              CAP[np.logical_and(tCAP > timePlotMin, tCAP < timePlotMax)]), ':', label='no filter')
+    for order in [2,3]:
+        filteredCAP = butter_lowpass_filter(CAP, cutoff, 1000./dt, order=order)
+        plt.plot(tCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)], filteredCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)]/np.max(filteredCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)]), label='order='+str(order))
+
     plt.title('Comparison between experimental data and simulation')
     plt.ylabel('$V_{ext}$ [mV]')
 

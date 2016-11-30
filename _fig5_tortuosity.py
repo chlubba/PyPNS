@@ -156,6 +156,10 @@ if calculationFlag:
 
             t, SFAPs = bundle.get_SFAPs_from_file()
 
+            # plt.figure()
+            # plt.plot(t, SFAPs)
+            # plt.show()
+
             # import matplotlib.cm as cm
             # import matplotlib.colors as colors
             #

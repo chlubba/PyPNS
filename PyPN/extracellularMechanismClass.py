@@ -2,7 +2,7 @@ from abc import abstractmethod, ABCMeta
 import numpy as np
 import os
 import silencer
-import LFPy
+# import LFPy
 import time
 from extracellularBackend import *
 

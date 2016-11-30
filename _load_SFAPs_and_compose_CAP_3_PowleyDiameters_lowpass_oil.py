@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
-saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelOriginal.dict'), "rb" )) # thinnerMyelDiam
+# saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsOil.dict'), "rb" )) # thinnerMyelDiam
+saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsOilMicroscopyDiams.dict'), "rb" )) # originalMyelDiam
 
 
 # saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
@@ -20,6 +21,19 @@ saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SF
 #             'myelinatedCV' : [],
 #             }
 
+from scipy.signal import butter, lfilter, freqz
+
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
 # parameters
 lengthOfRecording = 200 #ms
 dt = 0.0025 #ms
@@ -27,11 +41,11 @@ nRecording = lengthOfRecording/dt
 tArtefact = 0.1 # ms
 nArtefact = tArtefact/dt
 
-electrodeDistance = 3 # 200. # 70. # mm
+electrodeDistance = 70.*2.2 # 70. # mm
 jitterAmp = 5 #ms
 jitterDist = 0.1*electrodeDistance # 0.03
-numMyel = 100
-numUnmyel = 100
+numMyel = 150
+numUnmyel = 10000
 poles = 2
 poleDistance = 1 # mm
 polePolarities = [1, -1]
@@ -54,25 +68,33 @@ wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.4299808375227
                           15.503, 15.506, 9.26, 9.234, 5.993, 5.961, 2.272, 2.275, 2.138, 2.106, 1.734, 1.634, 1.151,
                           1.189, 0.948, 0.917, 2.1, 2.1)]
 
-# diametersMyel = np.array(saveDict[stringsDiam[1]])
-# sigma = 0.25
-# mu = .7
-# wantedNumbersOfFibers[1] =  1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (diametersMyel - mu)**2 / (2 * sigma**2) )
+diametersMyel = np.array(saveDict[stringsDiam[1]])
+sigma = 0.3 # 0.25
+mu = 2.1 # .7
+wantedNumbersOfFibers[1] =  1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (diametersMyel - mu)**2 / (2 * sigma**2) )
+
+plt.plot(diametersMyel, wantedNumbersOfFibers[1])
+plt.title('Myelinated fiber diameter distribution')
+plt.ylabel('probability density')
+plt.xlabel('diameter in $\mu$m')
+plt.show()
 
 wantedNumbersOfFibers[0] = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0]))*numUnmyel
-wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[0]))*numMyel
+wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[1]))*numMyel
 
 # -------------------- plot recorded data ---------------------------------
 import testWaveletDenoising as w
 data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
 denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
 
-tStart = 3.0245 # 3.024 #
+tStart = 3.026 # 3.0245
 time = data[:,0]
 tCut = (time[time>tStart] - tStart)*1000
-vDenCut = denoisedVoltage[time>tStart]
+vDenCut = denoisedVoltage[time>tStart]/1000
 
-plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
+vDenCutMax = np.max(vDenCut[tCut>4])
+
+plt.plot(tCut, vDenCut, color='black', linewidth=2, label='Experimental data')
 
 def shift_signal(signal, difference, length):
 
@@ -122,6 +144,8 @@ for fieldTypeInd in [1]: # fieldTypes:
         for fiberInd in range(numFibers):
 
             currentSFAP = SFAPNoArt[:, fiberInd]
+            if typeInd == 0:
+                currentSFAP = currentSFAP[3000:]
 
 
             # caution, convolving!
@@ -138,13 +162,14 @@ for fieldTypeInd in [1]: # fieldTypes:
             # plt.plot(diameters, CVs)
             # plt.show()
             if typeInd == 1:
-                CV = CVs[fiberInd]
+                # g_ratio = 0.6
+                CV = 5*diameters[fiberInd] # *g_ratio # CVs[fiberInd]
             else:
                 CV = np.sqrt(diameters[fiberInd]) * 2
 
             # print 'diameter : ' + str(diameters[fiberInd]) + 'CV = ' + str(CV)
 
-            for ii in range(int(max(wantedNums[fiberInd], 1))):
+            for ii in range(int(wantedNums[fiberInd])): # range(int(max(wantedNums[fiberInd], 1))):
 
 
 
@@ -156,6 +181,10 @@ for fieldTypeInd in [1]: # fieldTypes:
 
 
                     difference = peakInd - wantedPeakInd
+
+                    # plt.figure()
+                    # plt.plot(currentSFAP)
+                    # plt.show()
 
                     paddedSignal = shift_signal(currentSFAP, difference, nRecording)
                     paddedSignalSmoothed = shift_signal(smoothedSFAP, difference, nRecording)
@@ -171,9 +200,19 @@ for fieldTypeInd in [1]: # fieldTypes:
                 # plt.show()
 
     # plt.plot(tCAP, CAPSmoothed, label=fieldStrings[fieldTypeInd] + ' smoothed with sigma = ' + str(sigma) + ' ms')
-    plt.plot(tCAP, CAP*100, label=fieldStrings[fieldTypeInd])
+
+    # unfilteredScaling = vDenCutMax/np.max(CAP)
+
+    plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd])
     plt.title('Comparison between experimental data and simulation')
     plt.ylabel('$V_{ext}$ [mV]')
+
+    cutoff = 3000 # 2800/(2*np.pi)
+
+    # for order in [2,3]:
+    #     filteredCAP = butter_lowpass_filter(CAP, cutoff, 1000./dt, order=order)
+    #     scaling = vDenCutMax / np.max(filteredCAP)
+    #     plt.plot(tCAP, filteredCAP*scaling, label='order='+str(order) + ' scaled by ' + str(scaling))
 
 
     # from scipy import signal
@@ -205,7 +244,7 @@ for fieldTypeInd in [1]: # fieldTypes:
     # plt.xlabel('conduction velocity [m/s]')
     plt.xlabel('time [ms]')
 
-plt.grid()
+# plt.grid()
 plt.legend()
 
 plt.show()

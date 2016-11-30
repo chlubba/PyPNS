@@ -21,13 +21,13 @@ electricalStimulusOn = True
 
 # ----------------------------- simulation params ---------------------------
 
-tStop=40
+tStop=100
 timeRes=0.0025
 
 # ----------------------------- bundle params -------------------------------
 
 # set length of bundle and number of axons
-lengthOfBundle = 10000 # 20000 # 400000
+lengthOfBundle = 5000 # 20000 # 400000
 numberOfAxons = 1
 
 # bundle guide
@@ -64,8 +64,8 @@ recordingParametersNew = {'bundleGuide': bundleGuide,
 # ---------------------------------- CALCULATION -------------------------------
 # ------------------------------------------------------------------------------
 
-diametersUnmyel = [1] # [0.2, 1, 3] # np.arange(0.2, 2, 0.3)
-diametersMyel = [1] # [0.2, 1, 3] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)
+diametersUnmyel = [0.2, 1, 3] # np.arange(0.2, 2, 0.3)
+diametersMyel = [0.2, 1, 3] # [2.3, 2.6, 2.9] # np.arange(0.2, 4, 0.3)
 diametersBothTypes = [diametersUnmyel, diametersMyel]
 
 temperatures = np.arange(5, 46, 5)
@@ -82,15 +82,12 @@ if calculationFlag:
 
     firstAP = []
 
-    (f,axarr) = plt.subplots(1,3)
-
     typeLegendStrings = ['unmyelinated', 'myelinated']
     for typeInd in [1]:
 
         diameters = diametersBothTypes[typeInd]
+        diameters = [1]
 
-        LFPMech = []
-        recMechIndex = 0
         # for temperatureInd, temperature in enumerate(temperatures):
         for diameterInd, diameter in enumerate(diameters):
 
@@ -102,7 +99,7 @@ if calculationFlag:
             unmyelinatedDiam = diameter  # {'distName' : 'normal', 'params' : (0.7, 0.3)}
 
             # axon definitions
-            myelinatedParameters = {'fiberD': myelinatedDiam} # , 'gkbar_axnode': gkbar} # , 'temperature': temperature}
+            myelinatedParameters = {'fiberD': myelinatedDiam, 'temperature': 25} # , 'gkbar_axnode': gkbar} # , 'temperature': temperature}
             unmyelinatedParameters = {'fiberD': unmyelinatedDiam} # , 'temperature': temperature}
 
             # set all properties of the bundle
@@ -120,11 +117,11 @@ if calculationFlag:
                                 'tStop': tStop,
                                 'timeRes': 0.0025, #'variable', #
 
-                                'saveI':True,
+                                # 'saveI':True,
                                 # 'saveV': False,
                                 'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
 
-                                'numberOfSavedSegments': 1000,
+                                'numberOfSavedSegments': 50,
                                 # number of segments of which the membrane potential is saved to disk
                                 # 'downsamplingFactor': 100
                                 }
@@ -132,173 +129,66 @@ if calculationFlag:
             # create the bundle with all properties of axons and recording setup
             bundle = PyPN.Bundle(**bundleParameters)
 
-            LFPMech.append(PyPN.Extracellular.homogeneous(sigma=1))
-            LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords))
-
             # spiking through a single electrical stimulation
             if electricalStimulusOn:
                 bundle.add_excitation_mechanism(PyPN.StimIntra(**intraParameters))
 
-            relPositions = np.arange(0, 0.5, 0.05)
-            modularRecMech = [[] for jj in range(len(relPositions))]
-            if typeInd == 1:
-
-                for ii, relPos in enumerate(relPositions):
-                    recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
-                                              'radius': 200,
-                                              'positionAlongBundle': np.floor(8000. / bundle.axons[0].lengthOneCycle) *
-                                                                     bundle.axons[0].lengthOneCycle + bundle.axons[
-                                                                                                          0].lengthOneCycle * relPos,
-                                              'numberOfPoles': 1,
-                                              'poleDistance': 1000,
-                                              }
-                    electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
-
-                    modularRecMech[ii] = PyPN.RecordingMechanism(electrodePos, LFPMech[recMechIndex])
-
-                    bundle.add_recording_mechanism(modularRecMech[ii])
-
-            else:
-                recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
-                                          'radius': 200,
-                                          'positionAlongBundle': 8000,
-                                          'numberOfPoles': 1,
-                                          'poleDistance': 1000,
-                                          }
-                electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
-
-                modularRecMech[0] = PyPN.RecordingMechanism(electrodePos, LFPMech[recMechIndex])
-
-                bundle.add_recording_mechanism(modularRecMech[0])
-
             # run the simulation
             bundle.simulate()
 
-            t, imem = bundle.get_imem_from_file_axonwise(0)
-            # for i in range(np.shape(imem)[0]):
-            #     imem[i,:] *= 1./100./bundle.axons[0].area[i]
-            # imem = np.dot(imem, bundle.axons[0].area)
+            # t, imem = bundle.get_imem_from_file_axonwise(0)
 
             t,v = bundle.get_voltage_from_file_one_axon(0)
+            v = v.T
             # plt.plot(t,v)
             # plt.show()
 
             if typeInd == 1:
                 nodeIndex = np.floor(bundle.axons[0].totnsegs / 11 * 0.8) * 11
-                iSignal = np.sum(imem[nodeIndex:nodeIndex+3, :], axis=0)
+                vSignal = np.sum(v[nodeIndex:nodeIndex + 3, :], axis=0)
             else:
                 nodeIndex = 10
-                iSignal = imem[nodeIndex, :]
-
-            # iSignal = iSignal/100/bundle.axons[0].area[nodeIndex]
+                vSignal = v[nodeIndex, :]
 
             # from scipy.interpolate import interp1d
-            # f = interp1d(t, iSignal)
+            # f = interp1d(t, vSignal)
             # tReg = np.arange(0,max(t),0.0025)
             # vReg = f(tReg)
             #
-            # sp = np.fft.fft(iSignal)
+            # sp = np.fft.fft(vSignal)
             # freq = np.fft.fftfreq(tReg.shape[-1], d=0.0025/1000)
             # plt.semilogy(freq, np.abs(sp[1:]), label=typeLegendStrings[typeInd] + ', ' + str(diameter)+ ' $\mu$m') # len(freq) #  / max(np.abs(sp[1:]))
 
             # plt.plot(t, iOneSegment)
-            if typeInd == 1:
-                labelStringsSections = ['node', 'MYSA', 'FLUT']
+            labelStringsSections = ['node', 'MYSA', 'FLUT']
+            for ii in range(3):
+                plt.plot(t, v[nodeIndex + ii, :], label=labelStringsSections[ii])
+            # plt.plot(t, np.sum(v[nodeIndex:nodeIndex+3, :], axis=0), label='Sum of all', linewidth=1.5, color='k')
 
-                # first plot voltage
-                axarr[0].plot(t, np.mean(v[:, nodeIndex:nodeIndex+3], axis=1), label='mean of all', linewidth=1.5)
-                for ii in range(3):
-                    axarr[0].plot(t, v[:, nodeIndex + ii], label=labelStringsSections[ii])
-                axarr[0].set_ylabel('$V_m$ [mv]')
-                axarr[0].set_title('Membrane Voltage')
-                axarr[0].legend(loc='best')
-                axarr[0].set_xlim((1.6, 2.8))
-                axarr[0].set_ylim((-90, 40))
+            # plt.xlim((0.15, 0.9))
 
-                # plot membrane current in second subplot
-                axarr[1].plot(t, np.sum(imem[nodeIndex:nodeIndex + 3, :], axis=0), label='Sum of all',
-                                    linewidth=1.5) # , color='k'
-                for ii in range(3):
-                    axarr[1].plot(t, imem[nodeIndex + ii, :], label=labelStringsSections[ii])
-
-                axarr[1].set_title('Membrane Current')
-                axarr[1].legend(loc='best')
-                axarr[1].set_ylabel('$I_m$ [nA]') # '$I_m$ [mA/cm$^2$]'
-                # axarr[1].grid()
-                axarr[1].set_xlim((1.6, 2.8))
-                axarr[1].set_ylim((-6500, 2000))
-                # axarr[typeInd].set_xlim((0.85, 1.7))
-
-                # plot CAP in third one
-                import matplotlib.cm as cm
-                import matplotlib.colors as colors
-
-                jet = plt.get_cmap('jet')
-                cNorm = colors.Normalize(vmin=0, vmax=len(relPositions) - 1)
-                scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
-
-                for i in range(len(bundle.recordingMechanisms)):
-                    colorVal = scalarMap.to_rgba(i)
-
-                    t, SFAPs = bundle.get_SFAPs_from_file(i)
-                    plt.plot(t, SFAPs*1000, label=str(relPositions[i] * 100) + '%', color=colorVal)
-                # plt.legend(loc='best')
-                axarr[2].legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
-                axarr[2].set_ylabel('$V_{ext}$ [$\mu$V]')
-                axarr[2].set_title('Extracellular Potential')
-                axarr[2].set_xlim((1.4, 2.6))
-                axarr[2].set_ylim((-350, 250))
+            # print np.sum(iOneSegment)
+            # print np.max(iOneSegment)
 
 
-            else:
-
-                axarr[0].plot(t, v[:, nodeIndex])
-                # axarr[0].plot(t, v)
-                axarr[0].set_ylabel('$V_m$ [mv]')
-                axarr[0].set_title('Membrane Voltage')
-                # # axarr[0].legend(loc='best')
-                axarr[0].set_xlim((0, 3))
-                axarr[0].set_ylim((-70, -10))
-
-                # plot membrane current in second subplot
-                imem = imem.T
-                axarr[1].plot(t, imem[:, nodeIndex])
-                # axarr[1].plot(t, np.transpose(imem))
-
-                axarr[1].set_title('Membrane Current')
-                axarr[1].set_ylabel('$I_m$ [nA]')
-                # axarr[1].grid()
-                axarr[1].set_xlim((0, 3))
-                axarr[1].set_ylim((-3500, 1500))
-
-                t, SFAPs = bundle.get_SFAPs_from_file()
-                plt.plot(t, SFAPs * 1000)
-                # plt.legend(loc='best')
-                # axarr[2].legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=1)
-                axarr[2].set_ylabel('$V_{ext}$ [$\mu$V]')
-                axarr[2].set_title('Extracellular Potential')
-                axarr[2].set_xlim((16, 25))
-                axarr[2].set_ylim((-200, 100))
-
-            for i in range(3):
-                axarr[i].set_xlabel('time [ms]')
-                axarr[i].grid()
-
-
-
-
-            # plt.tight_layout(pad=1.4)
-
-
+            # nodeIndex = np.floor(bundle.axons[0].totnsegs/11*0.8)*11
+            #
+            # from scipy.interpolate import interp1d
+            # f = interp1d(t, v[:,nodeIndex])
+            #
+            # tReg = np.arange(0,max(t),0.0025)
+            # vReg = f(tReg)
+            #
+            # plt.plot(tReg, vReg, label=str(gkbar))
 
 
     # plt.xlim((0,20000))
-    # plt.grid()
-    # plt.xlabel('Frequency [Hz]')
-    # plt.ylabel('Fourier coeff [nA]')
-    # plt.title('FFT of the membrane current')
-    # plt.xlim((0, 50000))
-    # plt.legend(loc='best')
+    plt.grid()
+    plt.xlabel('time [ms]')
+    plt.ylabel('membrane voltage [mV]')
+    plt.title('membrane voltage of a myelinated axon')
+    plt.xlim((0, 6))
+    plt.legend(loc='best')
 
 else:
 

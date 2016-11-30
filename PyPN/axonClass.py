@@ -1,6 +1,6 @@
 import neuron
 from neuron import h
-import LFPy
+# import LFPy
 import numpy as np # for arrays managing
 import math
 import os
@@ -137,6 +137,7 @@ class Axon(object):
                     diamvec[counter] = seg.diam
                     lengthvec[counter] = sec.L/nseg
                     counter += 1
+
         #set self attributes
         self.xstart = xstartvec
         self.ystart = ystartvec
@@ -204,6 +205,9 @@ class Axon(object):
         """
 
         self.imem = np.array(self.memireclist)
+
+        print 'test. maximum current density: ' + str(np.max(self.imem))
+
         for i in range(self.imem.shape[0]):
             self.imem[i, ] *= self.area[i] * 1E-2 # * 1E2 #
         self.memireclist = None
@@ -860,7 +864,7 @@ class Myelinated(Axon):
 
 
         # length from the middle of one node to the middle of the next
-        self.lengthOneCycle = self.nodelength + self.interlength*6 + 2*self.paralength1 + 2*self.paralength2
+        self.lengthOneCycle = self.deltax # self.nodelength + self.interlength*6 + 2*self.paralength1 + 2*self.paralength2
 
         # length of the whole axon
         self.L = createGeometry.length_from_coords(coord)

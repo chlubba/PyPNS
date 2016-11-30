@@ -29,8 +29,8 @@ timeRes=0.0025
 # ----------------------------- bundle params -------------------------------
 
 # set length of bundle and number of axons
-lengthOfBundle = 3000 # 20000 # 400000
-numberOfAxons = 3
+lengthOfBundle = 1000 # 20000 # 400000
+numberOfAxons = 30
 
 # set the diameter distribution or fixed value
 # see http://docs.scipy.org/doc/numpy/reference/routines.random.html
@@ -85,7 +85,7 @@ modularRecMech2 = PyPN.RecordingMechanism(electrodePos, LFPMech2)
 
 fig = plt.figure()
 
-randomComponents = np.arange(0, 1.1, 0.2, )
+randomComponents = (0, 0.4, 0.8) # np.arange(0, 1.1, 0.2, )
 numberOfRandomComponents = len(randomComponents)
 
 for compInd, randomComponent in enumerate(randomComponents):
@@ -116,7 +116,7 @@ for compInd, randomComponent in enumerate(randomComponents):
     # create the bundle with all properties of axons and recording setup
     bundle = PyPN.Bundle(**bundleParameters)
 
-    ax = fig.add_subplot(numberOfRandomComponents/2, 2, compInd+1, projection='3d')
+    ax = fig.add_subplot(1, 3, compInd+1, projection='3d')
 
     for axonID, axon in enumerate(bundle.axons):
         ax.plot(axon.coord[:, 0], axon.coord[:, 1], axon.coord[:, 2],
@@ -138,7 +138,7 @@ for compInd, randomComponent in enumerate(randomComponents):
     #     top='off',  # ticks along the top edge are off
     #     labelbottom='off')  # labels along the bottom edge are off
 
-    if compInd < numberOfRandomComponents - 2:
+    if False: # compInd < numberOfRandomComponents - 2:
         ax.tick_params(
             axis='x',  # changes apply to the x-axis
             which='both',  # both major and minor ticks are affected
@@ -147,14 +147,18 @@ for compInd, randomComponent in enumerate(randomComponents):
             labelbottom='off')  # labels along the bottom edge are off
     else:
         # ax.set_xticktabels(rotation='vertical')
-        ax.set_xticks(range(0, 4001, 1000))
-        ax.set_xticklabels(range(0, 4001, 1000), rotation=-30)
+        ax.set_xticks(range(0, lengthOfBundle+1001, 1000))
+        ax.set_xticklabels(range(0, lengthOfBundle+1001, 1000), rotation=-30)
         # ax.set_xlabel('um')
 
     ax.set_zlim((-300, 300))
     ax.set_zticks((-300, 0, 300))
     ax.set_zticklabels((-300, 0, 300))#, rotation='vertical')
     # ax.set_zlabel('um')
+
+    # ax.set_xlim(0, lengthOfBundle+1000)
+    # ax.set_ylim(-(lengthOfBundle+1000), lengthOfBundle+1000)
+    # ax.set_zlim(-(lengthOfBundle+1000), lengthOfBundle+1000)
 
     # ax.view_init(30, 269)
     ax.view_init(30, 240)

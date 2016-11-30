@@ -20,6 +20,19 @@ saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SF
 #             'myelinatedCV' : [],
 #             }
 
+from scipy.signal import butter, lfilter, freqz
+
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
 # parameters
 lengthOfRecording = 200 #ms
 dt = 0.0025 #ms
@@ -27,11 +40,11 @@ nRecording = lengthOfRecording/dt
 tArtefact = 0.1 # ms
 nArtefact = tArtefact/dt
 
-electrodeDistance = 3 # 200. # 70. # mm
+electrodeDistance = 160 # 200. # 70. # mm
 jitterAmp = 5 #ms
 jitterDist = 0.1*electrodeDistance # 0.03
 numMyel = 100
-numUnmyel = 100
+numUnmyel = 1000
 poles = 2
 poleDistance = 1 # mm
 polePolarities = [1, -1]
@@ -62,6 +75,9 @@ wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.4299808375227
 wantedNumbersOfFibers[0] = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNumbersOfFibers[0]))*numUnmyel
 wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[0]))*numMyel
 
+tStartPlot = 65
+tEndPlot = 150
+
 # -------------------- plot recorded data ---------------------------------
 import testWaveletDenoising as w
 data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
@@ -70,9 +86,13 @@ denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
 tStart = 3.0245 # 3.024 #
 time = data[:,0]
 tCut = (time[time>tStart] - tStart)*1000
-vDenCut = denoisedVoltage[time>tStart]
+vDenCut = denoisedVoltage[time>tStart]/1000
 
-plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
+vDenCutMax = np.max(vDenCut[np.logical_and(tCut>tStartPlot, tCut<tEndPlot)])
+
+
+f, axarr = plt.subplots(2,2,sharex=True)
+axarr[0][0].plot(tCut[np.logical_and(tCut>tStartPlot, tCut<tEndPlot)], vDenCut[np.logical_and(tCut>tStartPlot, tCut<tEndPlot)], color='black', linewidth=2, label='Experimental data')
 
 def shift_signal(signal, difference, length):
 
@@ -93,12 +113,12 @@ def shift_signal(signal, difference, length):
 tCAP = np.arange(0,lengthOfRecording,0.0025)
 
 fieldStrings = ['Homogeneous', 'FEM']
-for fieldTypeInd in [1]: # fieldTypes:
+for fieldTypeInd in [0]: # fieldTypes:
 
     CAP = np.zeros(nRecording)
     CAPSmoothed = np.zeros(nRecording)
 
-    for typeInd in [1]:
+    for typeInd in [0]:
 
         diameters = np.array(saveDict[stringsDiam[typeInd]])
         CVs = np.array(saveDict[stringsCV[typeInd]])
@@ -129,7 +149,7 @@ for fieldTypeInd in [1]: # fieldTypes:
             gx = np.arange(-3 * sigma, 3 * sigma, dt)
             gaussian = np.exp(-(gx / sigma) ** 2 / 2)
             # gaussianN = gaussian/np.sum(gaussian)
-            print np.sum(gaussian)
+            # print np.sum(gaussian)
             smoothedSFAP = np.convolve(currentSFAP, gaussian, mode="same")
 
             # first find maximum position in signal
@@ -171,9 +191,22 @@ for fieldTypeInd in [1]: # fieldTypes:
                 # plt.show()
 
     # plt.plot(tCAP, CAPSmoothed, label=fieldStrings[fieldTypeInd] + ' smoothed with sigma = ' + str(sigma) + ' ms')
-    plt.plot(tCAP, CAP*100, label=fieldStrings[fieldTypeInd])
-    plt.title('Comparison between experimental data and simulation')
+
+    unfilteredScaling = vDenCutMax/np.max(CAP)
+    print 'scaling without filter = ' + str(unfilteredScaling)
+
+    axarr[0][1].plot(tCAP[np.logical_and(tCAP>tStartPlot, tCAP<tEndPlot)], CAP[np.logical_and(tCAP>tStartPlot, tCAP<tEndPlot)]*unfilteredScaling, label=fieldStrings[fieldTypeInd]+ ' scaled by ' + str(unfilteredScaling),color='b')
+    # plt.title('Comparison between experimental data and simulation')
     plt.ylabel('$V_{ext}$ [mV]')
+
+    cutoff = 300 # 2800/(2*np.pi)
+
+    colors = ['k', 'g']
+    for orderInd, order in enumerate([2,3]):
+        filteredCAP = butter_lowpass_filter(CAP, cutoff, 1000./dt, order=order)
+        scaling = vDenCutMax / np.max(filteredCAP)
+        print 'scaling at order ' + str(order) + ' = ' + str(scaling)
+        axarr[1][orderInd].plot(tCAP[np.logical_and(tCAP>tStartPlot, tCAP<tEndPlot)], filteredCAP[np.logical_and(tCAP>tStartPlot, tCAP<tEndPlot)]*scaling, label='order='+str(order) + ' scaled by ' + str(scaling), color=colors[orderInd])
 
 
     # from scipy import signal
@@ -205,8 +238,8 @@ for fieldTypeInd in [1]: # fieldTypes:
     # plt.xlabel('conduction velocity [m/s]')
     plt.xlabel('time [ms]')
 
-plt.grid()
-plt.legend()
+# plt.grid()
+# plt.legend()
 
 plt.show()
 

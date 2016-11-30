@@ -4,7 +4,7 @@ import PyPN
 
 import testWaveletDenoising as w
 
-data = np.loadtxt('/home/carl/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
+data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
 
 # print np.shape(data)
 

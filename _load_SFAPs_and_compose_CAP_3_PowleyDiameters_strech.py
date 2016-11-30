@@ -27,11 +27,11 @@ nRecording = lengthOfRecording/dt
 tArtefact = 0.1 # ms
 nArtefact = tArtefact/dt
 
-electrodeDistance = 3 # 200. # 70. # mm
+electrodeDistance = 200. # 70. # mm
 jitterAmp = 5 #ms
-jitterDist = 0.1*electrodeDistance # 0.03
-numMyel = 100
-numUnmyel = 100
+jitterDist = 0.05*electrodeDistance # 0.03
+numMyel = 1000
+numUnmyel = 10000
 poles = 2
 poleDistance = 1 # mm
 polePolarities = [1, -1]
@@ -70,9 +70,9 @@ denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
 tStart = 3.0245 # 3.024 #
 time = data[:,0]
 tCut = (time[time>tStart] - tStart)*1000
-vDenCut = denoisedVoltage[time>tStart]
+vDenCut = denoisedVoltage[time>tStart]/1000
 
-plt.plot(tCut, vDenCut/1000, color='red', label='Experimental data')
+plt.plot(tCut, vDenCut, color='red', label='Experimental data')
 
 def shift_signal(signal, difference, length):
 
@@ -89,6 +89,16 @@ def shift_signal(signal, difference, length):
 
     return paddedSignal
 
+def shift_and_strech_signal(signal, difference, length, stretch):
+
+    from scipy import interpolate
+    f = interpolate.interp1d(range(len(signal)), signal)
+
+    stretched_signal = f(np.arange(0,len(signal)-1,1./stretch))
+
+    return shift_signal(stretched_signal, difference, length)
+
+stretch = 5
 
 tCAP = np.arange(0,lengthOfRecording,0.0025)
 
@@ -123,6 +133,10 @@ for fieldTypeInd in [1]: # fieldTypes:
 
             currentSFAP = SFAPNoArt[:, fiberInd]
 
+            from scipy import interpolate
+            f = interpolate.interp1d(range(len(currentSFAP)), currentSFAP)
+            currentSFAP_streched = f(np.arange(0, len(currentSFAP) - 1, 1. / stretch))
+
 
             # caution, convolving!
             sigma = 0.6
@@ -134,6 +148,8 @@ for fieldTypeInd in [1]: # fieldTypes:
 
             # first find maximum position in signal
             peakInd = np.argmax(currentSFAP)
+
+            peakInd_stretched = np.argmax(currentSFAP_streched)
 
             # plt.plot(diameters, CVs)
             # plt.show()
@@ -156,9 +172,19 @@ for fieldTypeInd in [1]: # fieldTypes:
 
 
                     difference = peakInd - wantedPeakInd
+                    difference_stretched = peakInd_stretched - wantedPeakInd
 
                     paddedSignal = shift_signal(currentSFAP, difference, nRecording)
                     paddedSignalSmoothed = shift_signal(smoothedSFAP, difference, nRecording)
+
+                    # plt.figure()
+                    # plt.plot(paddedSignal)
+
+                    paddedSignal = shift_and_strech_signal(currentSFAP, difference, nRecording, stretch=stretch)
+                    paddedSignalSmoothed = shift_and_strech_signal(smoothedSFAP, difference_stretched, nRecording, stretch=stretch)
+
+                    # plt.plot(paddedSignal)
+                    # plt.show()
 
                     CAP = np.add(CAP, polePolarities[poleInd] * paddedSignal)
                     CAPSmoothed = np.add(CAPSmoothed, polePolarities[poleInd] * paddedSignalSmoothed)
@@ -171,7 +197,10 @@ for fieldTypeInd in [1]: # fieldTypes:
                 # plt.show()
 
     # plt.plot(tCAP, CAPSmoothed, label=fieldStrings[fieldTypeInd] + ' smoothed with sigma = ' + str(sigma) + ' ms')
-    plt.plot(tCAP, CAP*100, label=fieldStrings[fieldTypeInd])
+
+    scaling = np.max(vDenCut[tCut > 4])/np.max(CAP)
+
+    plt.plot(tCAP, CAP*scaling, label=fieldStrings[fieldTypeInd] + ' scaled by ' + str(scaling))
     plt.title('Comparison between experimental data and simulation')
     plt.ylabel('$V_{ext}$ [mV]')
 

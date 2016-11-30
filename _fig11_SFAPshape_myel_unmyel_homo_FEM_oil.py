@@ -34,28 +34,12 @@ numberOfAxons = 1
 segmentLengthAxon = 30
 bundleGuide = PyPN.createGeometry.get_bundle_guide_straight(lengthOfBundle, segmentLengthAxon)
 
-# ----------------------------- stimulation params ---------------------------
-
-# parameters of signals for stimulation
-rectangularSignalParams = {'amplitude': 50., #50,  # Pulse amplitude (mA)
-                           'frequency': 20.,  # Frequency of the pulse (kHz)
-                           'dutyCycle': 0.5,  # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
-                           'stimDur': 0.05,  # Stimulus duration (ms)
-                           'waveform': 'MONOPHASIC',  # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
-                           'delay': 0.,  # ms
-                           # 'invert': True,
-                           # 'timeRes': timeRes,
-                           }
-
-
-intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParams)}
-
 # ----------------------------- recording params -------------------------------
 
 recordingParametersNew = {'bundleGuide': bundleGuide,
                           'radius': 100,
                           'positionAlongBundle': 10000,
-                          'numberOfPoles': 1,
+                          'numberOfPoles': 2,
                           'poleDistance': 1000,
                         }
 
@@ -81,16 +65,16 @@ if calculationFlag:
     (f, axarr) = plt.subplots(1, 2, sharey=True)
 
     legends = ['Unmyelinated', 'Myelinated']
-    bundleLengths = [5000, 15000]
-    for i in [0,1]:
+    bundleLengths = [5000, 50000]
+    for i in [1]:
 
         vAPCollection = []
 
         diameters = diametersBothTypes[i]
 
-        recMechLegends = ['homogeneous', 'FEM']
+        recMechLegends = ['homogeneous', 'FEM Saline', 'FEM Oil 2cm .00001', 'FEM Oil 5cm .00001'] # , 'FEM Oil only .0000001', 'FEM Oil contact']
         recMechMarkers = ['o', 'v']
-        for recMechIndex in [0, 1]:
+        for recMechIndex in [2, 3]:
 
             vAPs = []
             vAPs2 = []
@@ -136,6 +120,27 @@ if calculationFlag:
 
                 LFPMech.append(PyPN.Extracellular.homogeneous(sigma=1))
                 LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords))
+                LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords, fieldName='oil_sigma_0.00001_xP0'))
+                # LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords, fieldName='oil_sigma_0.0000001_xP0'))
+                # LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords, fieldName='oil_sigma_0.0000001_contact_xP0'))
+                LFPMech.append(PyPN.Extracellular.precomputedFEM(bundle.bundleCoords, fieldName='oil_sigma_0.00001_Oil5cm_xP0'))
+
+                # ----------------------------- stimulation params ---------------------------
+
+                amplitudes = (50., .5)
+
+                # parameters of signals for stimulation
+                rectangularSignalParams = {'amplitude': amplitudes[i], # 50.,  # 50,  # Pulse amplitude (mA)
+                                           'frequency': 20.,  # Frequency of the pulse (kHz)
+                                           'dutyCycle': 0.5,  # Percentage stimulus is ON for one period (t_ON = duty_cyle*1/f)
+                                           'stimDur': 0.05,  # Stimulus duration (ms)
+                                           'waveform': 'MONOPHASIC',  # Type of waveform either "MONOPHASIC" or "BIPHASIC" symmetric
+                                           'delay': 0.,  # ms
+                                           # 'invert': True,
+                                           # 'timeRes': timeRes,
+                                           }
+
+                intraParameters = {'stimulusSignal': PyPN.signalGeneration.rectangular(**rectangularSignalParams)}
 
                 # spiking through a single electrical stimulation
                 if electricalStimulusOn:
@@ -154,10 +159,10 @@ if calculationFlag:
 
                         recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
                                                   'radius': 200,
-                                                  'positionAlongBundle': np.floor(10000. / bundle.axons[0].lengthOneCycle) *
+                                                  'positionAlongBundle': np.floor(bundleLengths[i]*0.8 / bundle.axons[0].lengthOneCycle) *
                                                                          bundle.axons[0].lengthOneCycle + bundle.axons[0].lengthOneCycle*relPos,
                                                   'numberOfPoles': 1,
-                                                  'poleDistance': 1000,
+                                                  'poleDistance': 2000,
                                                   }
                         electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
 
@@ -170,7 +175,7 @@ if calculationFlag:
                                               'radius': 200,
                                               'positionAlongBundle': 3000,
                                               'numberOfPoles': 1,
-                                              'poleDistance': 1000,
+                                              'poleDistance': 2000,
                                               }
                     electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
 
@@ -230,7 +235,7 @@ if calculationFlag:
                 axarr[i].set_title('Myelinated')
 
         axarr[i].grid()
-        axarr[i].set_ylim((-0.0003, 0.00035))
+        axarr[i].set_ylim((-0.008, 0.004))
         plt.legend()
         # plt.figure()
         # plt.plot(diameters, np.divide(vAPCollection[0], vAPCollection[1]))

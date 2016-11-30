@@ -8,7 +8,7 @@ class UpstreamSpiking(ExcitationMechanism):
     def __init__(self, spikeTrains):
         """Each axon receives a certain pattern of spikes.
 
-        :param spikeTrains: Matrix containing the spike streams for all axons. Current problem: Axons are generated in a random manner, no way of assining a certain spike stream to an axon of certain properties in a bundle with different axons.
+        :param spikeTrains: Matrix containing the spike streams for all axons. Current problem: Axons are generated in a random manner, no way of assigning a certain spike stream to an axon of certain properties in a bundle with different axons.
         """
         self.spikeTrains = spikeTrains # spikeTrainGeneration.generateCorrelaSpikeTimes(nAxons, tStart, tStop, lambd, correlation)
         self.axonIndex = 0 # select one specific of the nAxon spike trains in the connectAxon function
