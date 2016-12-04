@@ -96,10 +96,10 @@ for i in range(len(diameters)):
 
         # plt.plot(added_signals, label='$\sigma$ = ' + str(sigma) + '$\mu$m')
 
-    plt.semilogx(descendDists, amp_pp, label=str(diameter)+' $\mu$m') # 'diameter = ' + # /np.max(amp_pp)
+    plt.loglog(descendDists*2, amp_pp, label=str(diameter)+' $\mu$m') # 'diameter = ' + # /np.max(amp_pp)
     # plt.semilogx(descendDists, amp_int, label=str(diameter) + ' $\mu$m')  # 'diameter = ' + # /np.max(amp_pp)
-plt.xlabel('length of one triangle side ($\mu$m)')
-plt.ylabel('amplitude (unit nonsense but proportional to voltage)')
-plt.title('unmyelinated fibers SFAP amplitude vs catchment distance with linear decay (triangle)')
+plt.xlabel('length of cuff/ oil ($\mu$m)')
+plt.ylabel('amplitude (proportional to voltage)')
+plt.title('unmyelinated fibers SFAP amplitude vs oil length')
 plt.legend()
 plt.show()

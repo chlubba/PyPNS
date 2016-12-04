@@ -14,6 +14,42 @@ class ExtracellularPotentialMechanism(object):
     def calculate_extracellular_potential(self, sourcePositions, sourceCurrents, receiverPositions):
         pass
 
+class precomputedFEM_symmetrical_inhomogeneity(ExtracellularPotentialMechanism):
+
+    def __init__(self, bundleGuide, fieldName='oil_different_positions_2cm', receiverDisplacement=0):
+        """Stores a precomputed voltage field and calculates the extracelluar potential caused by point sources. Used by :class:`recodingMechanismClass.RecordingMechanism`.
+
+        :param bundleGuide: 3D nerve trajectory
+        :param fieldName: string containing the name of the field to import; the location of field files needs to be specified somewhere (TODO)
+        """
+
+        # TODO: finally solve the location issue, saving and field loading. Input dict to bundle.
+
+        # todo: input params that allow more degrees of freedom for the FEM model
+
+        print '\nWhen using a recording mechanism based on a precomputed FEM model, make sure the electrodes are on a ' \
+              'long (~1cm) straight part of the bundle guide.'
+
+        fieldDictArray = np.load(
+            os.path.join('/media/carl/4ECC-1C44/ComsolData/usedFields', fieldName, 'fieldDict.npy'))
+        self.FEMFieldDict = fieldDictArray[()]
+
+        self.bundleGuide = bundleGuide
+        self.receiverDisplacement = receiverDisplacement
+
+    # def calculate_LFP(self, axon, electrodePositions): # sourcePositions, sourceCurrents,
+    def calculate_extracellular_potential(self, sourcePositions, sourceCurrents, receiverPositions):
+        """
+
+        :param sourcePositions: positions of current point sources
+        :param sourceCurrents: currents of these point sources
+        :param receiverPositions: positions the voltage is calculated for
+
+        """
+
+        # calculate LFP from membrane currents
+        return compute_relative_positions_and_interpolate_symmetric_inhomogeneity(sourcePositions, sourceCurrents, receiverPositions, self.FEMFieldDict, self.bundleGuide, self.receiverDisplacement)
+
 class precomputedFEM(ExtracellularPotentialMechanism):
 
     def __init__(self, bundleGuide, fieldName='noCuff1'):

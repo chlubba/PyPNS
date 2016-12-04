@@ -49,10 +49,13 @@ for i in [2]: # range(len(diameters)):
 
     # descendDists = np.logspace(-4, -2, num=10)*dist_max/2
     # descendDists = np.array((0.01, 0.1, 1))*dist_max/2
-    descendDists = [[200], [300], [50000]]
+    descendDists = [[200], [300], [50, 500, 5000]]
+
+    f, axarr = plt.subplots(2, len(descendDists[i]), sharey='row', sharex='all')
+    titles = ['d = 50$\mu$m', 'd = 500$\mu$m (matched)', 'd = 5000$\mu$m']
 
     amp_pp = []
-    for descendDist in descendDists[i]:
+    for descendDistInd, descendDist in enumerate(descendDists[i]):
 
         # mu = 0.
         # profile = 1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (positions - mu)**2 / (2 * sigma**2) )
@@ -102,15 +105,22 @@ for i in [2]: # range(len(diameters)):
                 colorCounter += 1
                 # print colorCounter, colorVal
 
-                plt.plot(t, paddedSignal*profile[posInd], color = colorVal)
+                axis = axarr[1][descendDistInd]
+                axis.plot(t, paddedSignal*profile[posInd], color = colorVal)
+                if descendDistInd == 0:
+                    axis.set_ylabel('V$_\text{ext}$ (proportional)')
+                axis.set_xlabel('t (ms)')
 
                 maxAmp = max(maxAmp, np.max(paddedSignal*profile[posInd]))
 
-        plt.plot(t, added_signals/np.max(added_signals)*maxAmp, color='red', linewidth=2)
-        plt.title('diam ' + str(diameter) + ', cuff length ' + str(descendDist*2) + '$\mu$m')
-        plt.xlabel('t (ms)')
-        plt.xlabel('extracellular voltage (proportional)')
-        plt.xlim([4,7])
+        axis = axarr[0][descendDistInd]
+        axis.plot(t, added_signals, color='red', linewidth=2)
+        # plt.title('diam ' + str(diameter) + ', cuff length ' + str(descendDist*2) + '$\mu$m')
+        if descendDistInd == 0:
+            axis.set_ylabel('V$_\text{ext}$ (proportional)')
+        axis.set_title(titles[descendDistInd])
+
+        axis.set_xlim([3,7])
         # plt.show()
 
         # print sigma
