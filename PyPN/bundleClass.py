@@ -621,7 +621,7 @@ class Bundle(object):
 
             print ''
             with takeTime('load current of axon ' + str(axonIndex)):
-                axon.imem = self.get_imem_from_file_axonwise(axonIndex)
+                axon.imem = self.get_imem_from_file_axonwise(axonIndex)[1]
 
             if len(self.recordingMechanisms) > 0:
                 with takeTime("calculate extracellular potential"):

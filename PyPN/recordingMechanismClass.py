@@ -53,6 +53,12 @@ class RecordingMechanism(object):
         # The contactpoints that constitute one electrode contact (e.g. a cuff electrode ring) have to be recovered,
         # summed up together per recording location along the axon
 
+        # data structure: axon.imem[0] = t ; axon.imem[1] = imem Matrix
+
+        # imemMatrix = axon.imem[1]
+        # timeVector = axon.imem[0]
+
+        # todo: changed this. Problem?
         CAP_axonwise = np.zeros(np.shape(axon.imem)[1])
 
         LFPmeans = []

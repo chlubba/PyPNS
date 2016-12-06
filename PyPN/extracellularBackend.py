@@ -4,20 +4,26 @@ from scipy.interpolate import interp1d
 import time
 import createGeometry
 
-def _getImageCoords1D(physicalCoordinate1D, pointsOfInterest):
+def getImageCoords1D(physicalCoordinate1D, pointsOfInterest):
 
-    # interpolate to obtain coordinate position
-    physicalCoordinate1D.sort()
-    coordInterp = interp1d(physicalCoordinate1D, range(len(physicalCoordinate1D)))
+    if len(physicalCoordinate1D) > 1:
 
-    pointsOfInterest = np.array(pointsOfInterest)
+        # interpolate to obtain coordinate position
+        physicalCoordinate1D.sort()
+        coordInterp = interp1d(physicalCoordinate1D, range(len(physicalCoordinate1D)))
 
-    # if only one half of coordinates was exported, is is to be assumed, that a symmetry in the geometry justifies that.
-    # we therefore mirror here by taking the absolute value of the input coordinates
-    if np.min(physicalCoordinate1D) >= 0:
-        coords = coordInterp(np.abs(pointsOfInterest))
+        pointsOfInterest = np.array(pointsOfInterest)
+
+        # if only one half of coordinates was exported, is is to be assumed, that a symmetry in the geometry justifies that.
+        # we therefore mirror here by taking the absolute value of the input coordinates
+        if np.min(physicalCoordinate1D) >= 0:
+            coords = coordInterp(np.abs(pointsOfInterest))
+        else:
+            coords = coordInterp(pointsOfInterest)
+
     else:
-        coords = coordInterp(pointsOfInterest)
+        # a single value only signifies that this coordinate does not interest. Only for source positions.
+        coords = np.zeros(len(pointsOfInterest))
 
     return coords
 
@@ -125,73 +131,75 @@ def _getImageCoords(fieldDict, points):
 
     return combinedCoords
 
-def _interpolateFromImageGranular(fieldDict, points, order=3, zGiven=False):
-
-    fieldKeys = (('axonX', 'x'), ('axonY', 'y'), ('axonZ', 'z'))
-    receiverCoords = []
-    sourceCoords = []
-    coordInd = 0
 
 
-    print points
-
-    # process coordinate pairs (axon position and electrode position). If for a coordinate the axon position is only
-    # given in one direction (only positive coordinate values), for negative coordinate values the field of the positive
-    # position is taken. But then also the receiver position needs to be mirrored on the axis of symmetry.
-    for coordKeyPair in fieldKeys:
-
-        axonFieldKey = coordKeyPair[0]
-
-        signArray = []
-        try:
-            # exported (from FEM simulation) coordinate values for the axis of interest
-            physicalCoords = fieldDict[axonFieldKey]
-
-            # get the coordinates of interest
-            if len(points.shape) > 1:
-                coordVals = points[coordInd, :]
-            else:
-                coordVals = points[coordInd]
-
-            sourceCoords.append(_getImageCoords1D(physicalCoords, coordVals))
-
-            # if the exported coordinates for this dimension are only positive, this means the source position is taken
-            # as an absolute value. Therefore, if it actually was a negative value, the field needs to be mirrored along
-            # the symmetry axis. This mirroring is equivalent to a sign change of the receiver coordinate value.
-            if min(physicalCoords) >= 0:
-                signArray = np.sign(coordVals)
-                signArray[signArray == 0] = 1 # if no mirroring neccessary, don't.
-            else:
-                signArray = np.ones(np.shape(physicalCoords))
-
-            coordInd += 1
-        except:
-            pass
-
-        # now process the receiver.
-        receiverFieldKey = coordKeyPair[1]
-        physicalCoords = fieldDict[receiverFieldKey]
-
-        # get the coordinates of interest
-        if len(points.shape) > 1:
-            coordVals = points[coordInd, :]
-        else:
-            coordVals = points[coordInd]
-
-        # mirror source positions along symmetry axis
-        if not np.size(signArray) == 0:
-            coordVals = np.multiply(coordVals, signArray)
-
-        # get the coordinated mapped to image 'pixel indices'
-        receiverCoords.append(_getImageCoords1D(physicalCoords, coordVals))
-
-        coordInd += 1
-
-    combinedCoords = np.vstack((np.array(receiverCoords), np.array(sourceCoords)))
-
-    print combinedCoords
-
-    imageCoords = np.array(combinedCoords)
+# def _interpolateFromImageGranular(fieldDict, points, order=3, zGiven=False):
+#
+#     fieldKeys = (('axonX', 'x'), ('axonY', 'y'), ('axonZ', 'z'))
+#     receiverCoords = []
+#     sourceCoords = []
+#     coordInd = 0
+#
+#
+#     print points
+#
+#     # process coordinate pairs (axon position and electrode position). If for a coordinate the axon position is only
+#     # given in one direction (only positive coordinate values), for negative coordinate values the field of the positive
+#     # position is taken. But then also the receiver position needs to be mirrored on the axis of symmetry.
+#     for coordKeyPair in fieldKeys:
+#
+#         axonFieldKey = coordKeyPair[0]
+#
+#         signArray = []
+#         try:
+#             # exported (from FEM simulation) coordinate values for the axis of interest
+#             physicalCoords = fieldDict[axonFieldKey]
+#
+#             # get the coordinates of interest
+#             if len(points.shape) > 1:
+#                 coordVals = points[coordInd, :]
+#             else:
+#                 coordVals = points[coordInd]
+#
+#             sourceCoords.append(_getImageCoords1D(physicalCoords, coordVals))
+#
+#             # if the exported coordinates for this dimension are only positive, this means the source position is taken
+#             # as an absolute value. Therefore, if it actually was a negative value, the field needs to be mirrored along
+#             # the symmetry axis. This mirroring is equivalent to a sign change of the receiver coordinate value.
+#             if min(physicalCoords) >= 0:
+#                 signArray = np.sign(coordVals)
+#                 signArray[signArray == 0] = 1 # if no mirroring neccessary, don't.
+#             else:
+#                 signArray = np.ones(np.shape(physicalCoords))
+#
+#             coordInd += 1
+#         except:
+#             pass
+#
+#         # now process the receiver.
+#         receiverFieldKey = coordKeyPair[1]
+#         physicalCoords = fieldDict[receiverFieldKey]
+#
+#         # get the coordinates of interest
+#         if len(points.shape) > 1:
+#             coordVals = points[coordInd, :]
+#         else:
+#             coordVals = points[coordInd]
+#
+#         # mirror source positions along symmetry axis
+#         if not np.size(signArray) == 0:
+#             coordVals = np.multiply(coordVals, signArray)
+#
+#         # get the coordinated mapped to image 'pixel indices'
+#         receiverCoords.append(_getImageCoords1D(physicalCoords, coordVals))
+#
+#         coordInd += 1
+#
+#     combinedCoords = np.vstack((np.array(receiverCoords), np.array(sourceCoords)))
+#
+#     print combinedCoords
+#
+#     imageCoords = np.array(combinedCoords)
 
 # def _interpolateFromImageGranular(fieldDict, points, order=3, zGiven=False):
 #
@@ -243,7 +251,7 @@ def _interpolateFromImage(fieldDict, points, order=3, zGiven=False):
     #
     # print '\n'
 
-    _interpolateFromImageGranular(fieldDict, points, order)
+    # _interpolateFromImageGranular(fieldDict, points, order)
 
 
 
