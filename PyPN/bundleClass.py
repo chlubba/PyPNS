@@ -352,6 +352,10 @@ class Bundle(object):
 
         """
 
+        print '\n======================================================'
+        print '================ Starting to simulate ================'
+        print '======================================================'
+
         # exectue the NEURON and LFPy calculations of all axons
         self.simulate_axons()
         print '\nAll axons simulated.'
