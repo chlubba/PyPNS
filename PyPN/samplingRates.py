@@ -126,7 +126,7 @@ def change_samplingrate(inputSignal, inputTime, factor):
     lendiff = len(tResampled) - np.shape(signalResampled)[-1]
     if lendiff > 0:
         len(tResampled) > len(signalResampled)
-        tResampled = tResampled[:-(lendiff)]
+        tResampled = tResampled[:-lendiff]
     elif lendiff < 0:
         tResampled = np.concatenate((tResampled, tResampled[-1] + (dtResampled * np.arange(1, -lendiff + 1))))
 

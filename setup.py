@@ -34,6 +34,6 @@ setup(
     # license='LICENSE',
     description='A module for simulating bundles of axons built on NEURON and LFPy',
     #long_description=,
-    install_requires = ['numpy', 'scipy', 'matplotlib', 'neuron'],
+    install_requires = ['numpy', 'scipy', 'matplotlib', 'neuron'], # , 'psutil'
     provides = ['PyPN'],
     )

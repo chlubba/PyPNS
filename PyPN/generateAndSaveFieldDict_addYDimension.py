@@ -36,15 +36,15 @@ except:
 
 # correct the units of axon positions from um to m
 fieldDict['axonX'] = np.array(fieldDict['axonX']).astype(float)
-fieldDict['axonX'] = fieldDict['axonX'] / 1000000
+fieldDict['axonX'] /= 1000000
 try:
     fieldDict['axonY'] = np.array(fieldDict['axonY']).astype(float)
-    fieldDict['axonY'] = fieldDict['axonY'] / 1000000
+    fieldDict['axonY'] /= 1000000
 except:
     pass
 try:
     fieldDict['axonZ'] = np.array(fieldDict['axonZ']).astype(float)
-    fieldDict['axonZ'] = fieldDict['axonZ'] / 1000000
+    fieldDict['axonZ'] /= 1000000
 except:
     pass
 

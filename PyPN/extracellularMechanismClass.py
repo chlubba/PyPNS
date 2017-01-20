@@ -255,7 +255,7 @@ class interpolationExtracellular(ExtracellularPotentialMechanism):
                     # also there can be a mismatch in current unit of the source, eliminate
                     receiverPotTemp = np.outer(receiverPotTempStatic,
                                                sourceCurrents[imemAxonSegInd, :]
-                                               * (10) ** (currentUnitSource - currentUnitFEM)) * 1000
+                                               * 10 ** (currentUnitSource - currentUnitFEM)) * 1000
 
 
                     # add contributions
@@ -274,7 +274,7 @@ class interpolationExtracellular(ExtracellularPotentialMechanism):
 
 class precomputedFEM_6D(ExtracellularPotentialMechanism):
 
-    def __init__(self, bundleGuide, fieldName='oil_different_positions_2cm', receiverDisplacement=0, interpolationOrder=1):
+    def __init__(self, bundleGuide, fieldName='oil_different_positions_2cm', folder=None, receiverDisplacement=0, interpolationOrder=1):
         """Stores a precomputed voltage field and calculates the extracelluar potential caused by point sources. Used by :class:`recodingMechanismClass.RecordingMechanism`.
 
         :param bundleGuide: 3D nerve trajectory
@@ -705,7 +705,7 @@ class precomputedFEM_6D(ExtracellularPotentialMechanism):
                     # also there can be a mismatch in current unit of the source, eliminate
                     receiverPotTemp = np.outer(receiverPotTempStatic,
                                                sourceCurrents[imemAxonSegInd, :]
-                                               * (10) ** (currentUnitSource - currentUnitFEM)) * 1000
+                                               * 10 ** (currentUnitSource - currentUnitFEM)) * 1000
 
                     # # compontent parallel to bundle direction
                     # bundleSegStartPointTiled = np.tile(bundleSegStartPoint, (receiverPositions.shape[0], 1))

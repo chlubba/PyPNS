@@ -21,6 +21,8 @@ import time
 import shutil
 import copy
 
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
@@ -49,7 +51,8 @@ class Bundle(object):
     # umyelinated:  parameters for fiber type C
 
     def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=None,
-                 segmentLengthAxon = 10, randomDirectionComponent = 0., tStop=30, timeRes=0.0025, numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation=''): # , downsamplingFactor=1
+                 segmentLengthAxon = 10, randomDirectionComponent = 0., tStop=30, timeRes=0.0025,
+                 numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation='Results'):
 
         """Constructor of the Bundle class, the main object in `PyPN`.
 
@@ -86,7 +89,7 @@ class Bundle(object):
         self.randomDirectionComponent = randomDirectionComponent
         self.segmentLengthAxon = segmentLengthAxon
 
-        if bundleGuide == None:
+        if bundleGuide is None:
             self.bundleCoords = createGeometry.get_bundle_guide_straight_radius(length, segmentLengthAxon, radius=radius)
         elif bundleGuide.shape[1] == 3:
             numCoords = bundleGuide.shape[0]
@@ -108,10 +111,12 @@ class Bundle(object):
         self.radiusBundle = radius # um
 
         # self.voltages = []
+        self.trec = None  # vector of time steps
 
         # params for NEURON simulation
         self.tStop = tStop # set simulation duration (ms)
         self.timeRes = timeRes # set time step (ms)
+
 
         self._build_disk(self.numberOfAxons, self.bundleCoords[0, -1])
 
@@ -188,21 +193,16 @@ class Bundle(object):
         """
 
         # first decide by chance whether myelinated or unmyelinated
-        axonTypeIndex = np.random.choice(2,1,p = [self.pMyel, self.pUnmyel])
+        axonTypeIndex = np.random.choice(2,1,p = [self.pMyel, self.pUnmyel])[0]
         axonTypes = ['m', 'u']
         axonType = axonTypes[axonTypeIndex]
 
         # then get diameter. Either drawn from distribution or constant.
         axonDiameter = self._get_diam(axonType)
 
-        # axonCoords = np.row_stack((np.concatenate(([0], axonPosition)), np.concatenate(([self.bundleLength], axonPosition))))
-
-        if True:
-            # calculate the random axon coordinates
-            axonCoords = createGeometry.create_random_axon(self.bundleCoords, axonPosition,
+        # calculate the random axon coordinates
+        axonCoords = createGeometry.create_random_axon(self.bundleCoords, axonPosition,
                                                            self.segmentLengthAxon, randomDirectionComponent=self.randomDirectionComponent)
-        else:
-            axonCoords = np.column_stack(axonPosition, np.concatenate(([axonPosition[0] + self.bundleLength], axonPosition[1:2])))
 
         if axonTypeIndex == 1:
             unmyel = copy.copy(self.paramsUnmyel)
@@ -498,7 +498,7 @@ class Bundle(object):
 
             # see if recording has already been performed, then do not overwirte it (with potentially empty array)
             _, CAP = self.get_CAP_from_file(recMechIndex)
-            if not CAP == None:
+            if CAP is not None:
                 continue
 
             recMechName = recMech.__class__.__name__
@@ -527,18 +527,25 @@ class Bundle(object):
         Get rid of all CAP recordings written to disk. This might be useful if you save the membrane current and then calculate the CAP from it several times with different recording mechanisms using :meth:`bundleClass.Bundle.compute_CAPs_from_imem_files`.
         """
 
-        for recMechIndex in range(len(self.recordingMechanisms)):
+        # for recMechIndex in range(len(self.recordingMechanisms)):
+        #
+        #     recMech = self.recordingMechanisms[recMechIndex]
+        #
+        #     recMechName = recMech.__class__.__name__
+        #
+        #     # filename = get_file_name("CAP_" + recMechName + '_recMech' + str(recMechIndex), self.basePath)
+        #     directory = get_directory_name("CAP_" + recMechName + '_recMech' + str(recMechIndex), self.basePath)
+        #     shutil.rmtree(directory)
+        #
+        #     directory = get_directory_name('CAP1A_' + recMechName + '_recMech' + str(recMechIndex), self.basePath)
+        #     shutil.rmtree(directory)
 
-            recMech = self.recordingMechanisms[recMechIndex]
-
-            recMechName = recMech.__class__.__name__
-
-            # filename = get_file_name("CAP_" + recMechName + '_recMech' + str(recMechIndex), self.basePath)
-            directory = get_directory_name("CAP_" + recMechName + '_recMech' + str(recMechIndex), self.basePath)
-            shutil.rmtree(directory)
-
-            directory = get_directory_name('CAP1A_' + recMechName + '_recMech' + str(recMechIndex), self.basePath)
-            shutil.rmtree(directory)
+        # no need to go through recordin mechanisms. In fact if bundle was run but not saved, they might not even be
+        # saved in bundle but still the files exist. So simply delete all directories starting with 'CAP'
+        allFolderNames = [o for o in os.listdir(self.basePath) if os.path.isdir(os.path.join(self.basePath, o))]
+        CAPFolderNames = [o for o in allFolderNames if o[0:3] == 'CAP']
+        for CAPFolder in CAPFolderNames:
+            shutil.rmtree(os.path.join(self.basePath,CAPFolder))
 
     def clear_all_recording_mechanisms(self):
         """
@@ -635,7 +642,7 @@ class Bundle(object):
                         # see if recording has already been performed
                         _, CAP = self.get_CAP_from_file(recMechIndex)
                         recMechIndex += 1
-                        if not CAP == None:
+                        if CAP is not None:
                             continue
 
                         recMech.compute_single_axon_CAP(axon)
@@ -791,25 +798,25 @@ class Bundle(object):
 
 
 
-    def get_filename(self, recordingType):
-
-        directory = get_directory_name(recordingType, self.basePath)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        # filename = 'recording.dat'
-        filename = recordingType+'.dat'
-
-        number = 0
-        filenameTemp = filename
-        while os.path.isfile(os.path.join(directory, filenameTemp)):
-            number += 1
-            # print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
-            filenameTemp = str(number).zfill(5) + filename
-
-        self.filename = os.path.join(directory, filenameTemp)
-
-        return self.filename
+    # def get_filename(self, recordingType):
+    #
+    #     directory = get_directory_name(recordingType, self.basePath)
+    #     if not os.path.exists(directory):
+    #         os.makedirs(directory)
+    #
+    #     # filename = 'recording.dat'
+    #     filename = recordingType+'.dat'
+    #
+    #     number = 0
+    #     filenameTemp = filename
+    #     while os.path.isfile(os.path.join(directory, filenameTemp)):
+    #         number += 1
+    #         # print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
+    #         filenameTemp = str(number).zfill(5) + filename
+    #
+    #     self.filename = os.path.join(directory, filenameTemp)
+    #
+    #     return self.filename
 
     # def conduction_velocities(self, saveToFile=False, plot=True):
     #

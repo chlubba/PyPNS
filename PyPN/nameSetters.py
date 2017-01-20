@@ -3,7 +3,7 @@ import sys
 import glob
 import cPickle as pickle
 
-def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, pMyel=0, myelinatedDiam = 0, unmyelinatedDiam = 0, L=0, new = False): createDir=False
+def get_bundle_directory(paramDict, new = False):
     """Create the directory where all output of the simulation is saved in. If no ``saveLocation`` is specified in the ``paramDict``, the working directory is used as a basis. For each simulation an individual subfolder will be generated.
 
     :param paramDict: dictionary containing all information charaterizing the ``Bundle`` and the wanted save location.
@@ -14,8 +14,7 @@ def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, pMyel=0, mye
 
     """
 
-    # read out dictionary of parameters (more elegant methon possible?)
-    # elecCount = len(paramDict['recordingElecPos'])
+    # read out dictionary of parameters (more elegant method possible?)
     dt=paramDict['timeRes']
     tStop = paramDict['tStop']
     pMyel = paramDict['pMyel']
@@ -24,30 +23,12 @@ def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, pMyel=0, mye
 
     paramsMyel = paramDict['paramsMyel']
     paramsUnmyel = paramDict['paramsUnmyel']
-
     myelinatedDiam = paramsMyel['fiberD']
     unmyelinatedDiam = paramsUnmyel['fiberD']
 
     homeDirectory = paramDict['saveLocation']
 
-    # # define here the root of the PyPN file system
-    # homeDirectory = '/media/carl/4ECC-1C44/PyPN/'  # '/home/carl/PNPy/Results/' #  ""#"results"#
-
-    # further process save parameters
     pUnmyel = 1 - pMyel
-
-    # if stimType in ["EXTRA", "INTRA", "NONE"]:
-    #     stimulusPathString = "stimType="+stimType+" stimWaveform="+stimWaveform+" stimDutyCycle="+str(stimDutyCycle)+" stimAmplitude="+str(stimAmplitude)+"/"
-
-    if type(myelinatedDiam) in [int, float]:
-        myelDiamStr = str(myelinatedDiam)
-    else:
-        myelDiamStr = 'draw'
-
-    if type(unmyelinatedDiam) in [int, float]:
-        unmyelDiamStr = str(unmyelinatedDiam)
-    else:
-        unmyelDiamStr = 'draw'
 
     #concatenate strings
     pathStringNoStim = "dt="+str(dt)+" tStop="+str(tStop)+" pMyel="+str(pMyel)+" pUnmyel="+str(pUnmyel)+" L="+str(L)+' nAxons='+str(numberOfAxons)#+' '+poleString
@@ -71,9 +52,7 @@ def get_bundle_directory(paramDict, new = False): #dt=0, tStop = 0, pMyel=0, mye
 
         finalBasePath = latestFolder
 
-
     return finalBasePath
-
 
 
 def get_directory_name(keyword, basePath):
@@ -87,7 +66,6 @@ def get_directory_name(keyword, basePath):
 
     """
 
-
     if keyword=='bundle':
         suffix=''
     else:
@@ -99,6 +77,7 @@ def get_directory_name(keyword, basePath):
             os.makedirs(finalCombinedPath)
 
     return finalCombinedPath
+
 
 def get_file_name(recordingType, basePath, newFile=True, directoryType=False):
     """Get the file name for certain output data including the folder.
@@ -173,6 +152,6 @@ def open_bundle_from_location(bundleSaveLocation):
         return bundle
     except:
         print("Unexpected error:", sys.exc_info()[0])
-        raise
         print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
+        raise
 

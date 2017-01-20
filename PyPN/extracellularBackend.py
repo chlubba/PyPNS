@@ -428,7 +428,7 @@ def compute_relative_positions_and_interpolate_symmetric_inhomogeneity(sourcePos
             # also there can be a mismatch in current unit of the source, eliminate
             receiverPotTemp = np.outer(receiverPotTempStatic,
                                        sourceCurrents[imemAxonSegInd, :]
-                                       * (10) ** (currentUnitSource - currentUnitFEM)) * 1000
+                                       * 10 ** (currentUnitSource - currentUnitFEM)) * 1000
 
         # # compontent parallel to bundle direction
         # bundleSegStartPointTiled = np.tile(bundleSegStartPoint, (receiverPositions.shape[0], 1))
@@ -641,7 +641,7 @@ def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, 
             # also there can be a mismatch in current unit of the source, eliminate
             receiverPotTemp = np.outer(receiverPotTempStatic,
                                    sourceCurrents[imemAxonSegInd, :]
-                                   * (10)**(currentUnitSource-currentUnitFEM)) * 1000
+                                       * 10 ** (currentUnitSource - currentUnitFEM)) * 1000
 
             # import matplotlib.pyplot as plt
             # plt.plot(receiverPotTemp.T)

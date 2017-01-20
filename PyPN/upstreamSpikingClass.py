@@ -1,7 +1,7 @@
 from neuron import h
 from excitationMechanismClass import *
+# import spikeTrainGeneration
 
-import spikeTrainGeneration
 
 class UpstreamSpiking(ExcitationMechanism):
 
@@ -14,7 +14,6 @@ class UpstreamSpiking(ExcitationMechanism):
         self.axonIndex = 0 # select one specific of the nAxon spike trains in the connectAxon function
 
         super(UpstreamSpiking, self).__init__()
-
 
     def connect_axon(self, axon):
 
@@ -42,3 +41,6 @@ class UpstreamSpiking(ExcitationMechanism):
         # delete after simulation
         excitationMechanismVars = [synapse, vecStim, spikeVec, spikeTrain, netCon]
         axon.append_ex_mech_vars(excitationMechanismVars)
+
+    def delete_neuron_objects(self):
+        pass

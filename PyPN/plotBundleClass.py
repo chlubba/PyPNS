@@ -2,63 +2,15 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
+# from mpl_toolkits.mplot3d import axes3d
 
 from axonClass import *
-from recordingMechanismClass import RecordingMechanism
 from nameSetters import *
 
 
-def geometry(bundle):
-
-    '''
-    Plots the geometry as retrieved from NEURON
-    Args:
-        bundle: PyPN.bundle
-
-    Returns: nothing
-
-    '''
-
-    if len(bundle.axons[0].xmid) == 0:
-        print 'Bundle has not been run yet. No geometry information was generated in NEURON.'
-        return
-
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-
-    axonID = 0
-    for axon in bundle.axons:
-        if type(axon) == Myelinated:
-            style = '--'
-        else:
-            style = '-'
-        ax.plot(axon.xmid, axon.ymid, axon.zmid, style, color= tuple(bundle.axonColors[axonID,:])) # label='axon '+str(axonID),
-        ax.text(axon.xmid[-1], axon.ymid[-1], axon.zmid[-1], str(axonID))
-        axonID += 1
-    ax.plot(bundle.bundleCoords[:,0], bundle.bundleCoords[:,1], bundle.bundleCoords[:,2])#, label='bundle guide')
-    #plt.legend()
-    plt.title('Axons in space')
-
-    # elecCoords = bundle.electrodeCoords
-    # ax.scatter(elecCoords[:,0], elecCoords[:,1], elecCoords[:,2])
-    #
-    # elecPoles = len(bundle.recordingElecPos)
-    # for i in range(bundle.numberElecs):
-    #     for j in range(elecPoles):
-    #         # selectionIndices = range(i+j*bundle.numberContactPoints, bundle.numberContactPoints*bundle.numberElecs + j*bundle.numberContactPoints, bundle.numberElecs)
-    #         selectionIndices = range((i*elecPoles+j)*bundle.numberContactPoints, bundle.numberContactPoints*(i*elecPoles+j+1))
-    #
-    #         ringCoords = elecCoords[selectionIndices,:]
-    #         ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
-    #         ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.8,0.8,0.8])
-            
-    
-    plt.savefig(os.path.join(bundle.basePath, 'geometry.png'))
-
 def geometry_definition(bundle, axis_equal=True, axis_off=False):
 
-    '''
+    """
     Plots the geometry of the bundle including recording mechanisms.
 
     Args:
@@ -67,7 +19,7 @@ def geometry_definition(bundle, axis_equal=True, axis_off=False):
 
     Returns: nothing
 
-    '''
+    """
 
     # if len(bundle.axons[0].xmid) == 0:
     #     print 'Bundle has not been run yet. No geometry information was generated in NEURON.'
@@ -95,9 +47,10 @@ def geometry_definition(bundle, axis_equal=True, axis_off=False):
     cNorm = colors.Normalize(vmin=0, vmax=numRecMechs)#len(diameters_m)-1)#
     scalarMap = cm.ScalarMappable(norm=cNorm, cmap=colorMap)
 
-    recMechColors = np.array(scalarMap.to_rgba(range(numRecMechs)))
-
     # TODO: get electrode positions of recording mechanisms
+
+    # recMechColors = np.array(scalarMap.to_rgba(range(numRecMechs)))
+    # from recordingMechanismClass import RecordingMechanism
 
     # recMechIndex = 0
     # for recMech in bundle.recordingMechanisms:
@@ -136,8 +89,8 @@ def geometry_definition(bundle, axis_equal=True, axis_off=False):
     #         ringCoords = np.row_stack((ringCoords, ringCoords[0,:]))
     #         ax.plot(ringCoords[:,0], ringCoords[:,1], ringCoords[:,2], color=[0.2,0,0], linewidth=2.0)
 
-
     if axis_equal:
+
         X = bundle.bundleCoords[:,0]
         Y = bundle.bundleCoords[:,1]
         Z = bundle.bundleCoords[:,2]
@@ -564,7 +517,8 @@ def voltage_one_myelinated_axon(bundle, myelinatedIndex=0):
             break
 
         axonIndex += 1
-    if selectedAxon == []:
+
+    if not selectedAxon:
         print 'Select axon index between 0 and ' + str(myelinatedIndex)
         return
 

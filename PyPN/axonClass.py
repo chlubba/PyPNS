@@ -13,22 +13,22 @@ import createGeometry
 # Some methods in the Axon class are based on existing methods in the Python package LFPY
 
 class Axon(object):
-    # Own initialization method of the superclass Axon
-    # rec_v: set voltage recorders True or False
-    # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
 
+    def __init__(self, layout3D, rec_v, name, fiberD, coord, temperature, v_init, tStop, timeRes, numberOfSavedSegments):
 
-    def __init__(self, layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments):
-
-        self.layout3D = layout3D
-        self.rec_v = rec_v
+        # properties of the axon
         self.name = name
         self.fiberD = fiberD
         self.coord = coord
-        self.synapse = []
-        # LFPy initilizations
+        self.v_init = v_init
+
+        # configuration params of the simulation
+        self.layout3D = layout3D
+        self.rec_v = rec_v
         self.verbose = False
-        self.dotprodresults = None # Not in class cell of LFPY but present in run_simulation as cell.dotprodresults
+
+        # excitation mechanisms added to the axon
+        # self.synapse = []
         self.exMechVars = []
 
         # params for NEURON simulation
@@ -37,7 +37,28 @@ class Axon(object):
         self.timeRes = timeRes # set time step (ms)
         self.numberOfSavedSegments = numberOfSavedSegments
 
-        # self.create_cell_props_for_LFPy(tStop, timeRes)
+        # initialize variables for geometry
+        self.xstart = None
+        self.ystart = None
+        self.zstart = None
+        self.xend = None
+        self.yend = None
+        self.zend = None
+        self.area = None
+        self.diam = None
+        self.length = None
+
+        # initialize save variables for NEURON objects (still in NEURON format)
+        self.memireclist = None
+        self.vreclist = None
+        self.allseclist = None
+        self.axon = None
+
+        # save variables for numpy format, imem being scaled to nA (from mA/cm^2)
+        self.imem = None
+        self.tvec = None
+        self.totnsegs = None
+
 
     def calc_totnsegs(self):
         # Calculate the number of segments in the allseclist
@@ -47,22 +68,17 @@ class Axon(object):
 
         return i
 
-    # # this function and the following one are only there for compliance with the LFPy package
-    # def create_cell_props_for_LFPy(self, tStop, timeRes):
-    #     self.tstartms = 0
-    #     self.tstopms = tStop
-    #     self.timeres_NEURON = timeRes
-    #     self.timeres_python = timeRes
-
-    def _loadspikes(self):
-        pass
-
     def append_ex_mech_vars(self, exMechVars):
         self.exMechVars.append(exMechVars)
 
     def collect_geometry(self):
-        '''Collects x, y, z-coordinates from NEURON'''
-        #None-type some attributes if they do not exis:
+        """
+        Collects x, y, z-coordinates from NEURON
+
+        Returns:
+            -
+        """
+
         if not hasattr(self, 'xstart'):
             self.xstart = None
             self.ystart = None
@@ -79,8 +95,14 @@ class Axon(object):
 
 
     def collect_geometry_neuron(self):
-        # Loop over allseclist to determine area, diam, xyz-start- and
-        # endpoints, embed geometry to self object
+        """
+        Loop over allseclist to determine area, diam, xyz-start- and
+        endpoints, embed geometry to self object
+
+        Returns:
+
+        """
+
         areavec = np.zeros(self.totnsegs)
         diamvec = np.zeros(self.totnsegs)
         lengthvec = np.zeros(self.totnsegs)
@@ -150,15 +172,13 @@ class Axon(object):
         self.length = lengthvec
 
     def calc_midpoints(self):
-        '''Calculate midpoints of each segment'''
         self.xmid = .5*(self.xstart+self.xend).flatten()
         self.ymid = .5*(self.ystart+self.yend).flatten()
         self.zmid = .5*(self.zstart+self.zend).flatten()
 
     def set_imem_recorders(self):
 
-        # Record membrane currents for all segments
-
+        # Record membrane currents for all segments (scale with area and a factor to adjust the unit)
         self.memireclist = neuron.h.List()
         for sec in self.allseclist:
             for seg in sec:
@@ -166,23 +186,14 @@ class Axon(object):
                 memirec.record(seg._ref_i_membrane)
                 self.memireclist.append(memirec)
 
-        # # test if this works
-        # self.ikflutlist = []
-        # for sec in self.allseclist:
-        #     if
-        #     for seg in sec:
-        #         memirec = h.Vector(int(h.tstop/h.dt +1))
-        #         memirec.record(seg.ikf)
-        #         self.memireclist.append(memirec)
-
     def set_voltage_recorders(self):
 
-        # Record voltage for all segments (not from LFPy sources)
-
+        # Record voltage for all segments
         self.vreclist = h.List()
 
         for sec in self.allseclist:
-            # address the problem of the important number of segments necessary to compute the accurate AP propagation in the unmyelinated axon case
+            # address the problem of the high number of segments necessary to compute the accurate AP propagation
+            # in the unmyelinated axon case by limiting the number of monitored segments.
             if sec.nseg > self.numberOfSavedSegments:
                 for i in range(1,self.numberOfSavedSegments+1):
                     vrec = h.Vector(int(h.tstop/h.dt+1))
@@ -194,7 +205,6 @@ class Axon(object):
                     vrec.record(seg._ref_v)
                     self.vreclist.append(vrec)
 
-
     def calc_imem(self):
         """
         Fetch the vectors from the memireclist and calculate self.imem
@@ -205,8 +215,6 @@ class Axon(object):
         """
 
         self.imem = np.array(self.memireclist)
-
-        print 'test. maximum current density: ' + str(np.max(self.imem))
 
         for i in range(self.imem.shape[0]):
             self.imem[i, ] *= self.area[i] * 1E-2 # * 1E2 #
@@ -318,7 +326,8 @@ class Axon(object):
                     sec(xr).y_xtra = yint.x[ii]
                     sec(xr).z_xtra = zint.x[ii]
 
-    def setrx(self, stim_elec, axon_pos, rho=500, bipolar = False):
+    @staticmethod
+    def setrx(stim_elec, axon_pos, rho=500, bipolar = False):
 
         numPoints = stim_elec.shape[0]
 
@@ -346,7 +355,7 @@ class Axon(object):
                         # this would be meaningless since the location would be inside the cell
                         # so force r to be at least as big as local radius
 
-                        if (r[j] == 0):
+                        if r[j] == 0:
                             r[j] = seg.diam / 2.0
 
                     sum_r = 0
@@ -418,8 +427,8 @@ class Unmyelinated(Axon):
     # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
     # rec_v: set voltage recorders True or False
 
-    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=33, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
-        super(Unmyelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments)
+    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=33, v_init=-64.975, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
+        super(Unmyelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, v_init, tStop, timeRes, numberOfSavedSegments)
 
         self.L = createGeometry.length_from_coords(coord)
         self.cm = cm
@@ -429,8 +438,6 @@ class Unmyelinated(Axon):
         self.lambda_f = lambda_f
         self.d_lambda = d_lambda
         self.max_nsegs_length = max_nsegs_length
-
-        self.v_init = -64.975
 
         print "Unmyelinated axon diameter: " + str(self.fiberD)
 
@@ -458,9 +465,9 @@ class Unmyelinated(Axon):
 
         self.set_nsegs(self.nsegs_method, self.lambda_f, self.d_lambda, self.max_nsegs_length)
 
-        if (self.layout3D == "DEFINE_SHAPE"):
+        if self.layout3D == "DEFINE_SHAPE":
             h.define_shape()
-        elif (self.layout3D == "PT3D"):
+        elif self.layout3D == "PT3D":
 
             if True:
                 h.pt3dclear(sec=self.axon)
@@ -492,10 +499,10 @@ class Unmyelinated(Axon):
         self.allseclist = None
         self.axon = None
 
-        if not self.synapse == []:
-            self.synapse = None
-            self.vecStim = None
-            self.netCon = None
+        # if not self.synapse == []:
+        #     self.synapse = None
+        #     self.vecStim = None
+        #     self.netCon = None
 
         try:
             for memirec in self.memireclist:
@@ -571,7 +578,7 @@ class Unmyelinated(Axon):
             self.set_nsegs_fixed_length(max_nsegs_length)
         else:
             if self.verbose:
-                print(('No nsegs_method applied (%s)' % nsegs_method))
+                print('No nsegs_method applied (%s)' % nsegs_method)
         self.totnsegs = self.calc_totnsegs()
 
     def set_nsegs_lambda_f(self, frequency=100, d_lambda=0.1):
@@ -586,7 +593,7 @@ class Unmyelinated(Axon):
                 / 2 )*2 + 1
             # print "Number of segments for unmyelinated axon via d_lambda: "+ str(sec.nseg)
         if self.verbose:
-            print(("set nsegs using lambda-rule with frequency %i." % frequency))
+            print("set nsegs using lambda-rule with frequency %i." % frequency)
 
     def set_nsegs_lambda100(self, d_lambda=0.1):
         # Set the numbers of segments using d_lambda(100)
@@ -706,7 +713,8 @@ class Myelinated(Axon):
     # static variables containing the fitted functions for diameter, node distances, etc.
     pNodeSep, pNoLamella, pNodeDiam, pFLUTLen, pSTINLen, pFLUTDiam, pMYSALen, pNodeLen = createMyelinatedParaFits() # , MYSASpline, nodeSpline
 
-    def getFittedMcIntyreParams(self, diameter):
+    @staticmethod
+    def getFittedMcIntyreParams(diameter):
 
         axonD=Myelinated.pFLUTDiam(diameter)
         nodeD=Myelinated.pNodeDiam(diameter)
@@ -720,7 +728,8 @@ class Myelinated(Axon):
 
         return axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl,  g # interlength,
 
-    def getOriginalMcIntyreParams(self, diameter):
+    @staticmethod
+    def getOriginalMcIntyreParams(diameter):
 
         # find diameter closest to give nones in McIntyre's paper
         possibleDiams = np.array([5.7, 7.3, 8.7, 10., 11.5, 12.8, 14., 15., 16.])
@@ -729,7 +738,7 @@ class Myelinated(Axon):
 
         fiberD = possibleDiams[diameterIndex]
 
-        if (fiberD==5.7):
+        if fiberD==5.7:
             g=0.605
             axonD=3.4
             nodeD=1.9
@@ -738,7 +747,7 @@ class Myelinated(Axon):
             deltax=500
             paralength2=35
             nl=80
-        elif (fiberD==7.3):
+        elif fiberD==7.3:
             g=0.630
             axonD=4.6
             nodeD=2.4
@@ -747,7 +756,7 @@ class Myelinated(Axon):
             deltax=750
             paralength2=38
             nl=100
-        elif (fiberD==8.7):
+        elif fiberD==8.7:
             g=0.661
             axonD=5.8
             nodeD=2.8
@@ -756,7 +765,7 @@ class Myelinated(Axon):
             deltax=1000
             paralength2=40
             nl=110
-        elif (fiberD==10.0):
+        elif fiberD==10.0:
             g=0.690
             axonD=6.9
             nodeD=3.3
@@ -765,7 +774,7 @@ class Myelinated(Axon):
             deltax=1150
             paralength2=46
             nl=120
-        elif (fiberD==11.5):
+        elif fiberD==11.5:
             g=0.700
             axonD=8.1
             nodeD=3.7
@@ -774,7 +783,7 @@ class Myelinated(Axon):
             deltax=1250
             paralength2=50
             nl=130
-        elif (fiberD==12.8):
+        elif fiberD==12.8:
             g=0.719
             axonD=9.2
             nodeD=4.2
@@ -783,7 +792,7 @@ class Myelinated(Axon):
             deltax=1350
             paralength2=54
             nl=135
-        elif (fiberD==14.0):
+        elif fiberD==14.0:
             g=0.739
             axonD=10.4
             nodeD=4.7
@@ -792,7 +801,7 @@ class Myelinated(Axon):
             deltax=1400
             paralength2=56
             nl=140
-        elif (fiberD==15.0):
+        elif fiberD==15.0:
             g=0.767
             axonD=11.5
             nodeD=5.0
@@ -813,39 +822,36 @@ class Myelinated(Axon):
 
         return axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g
 
-    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=37, name="myelinated_axonA", layout3D="PT3D", rec_v=True, gkbar_axnode=0.12):
-        super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, tStop, timeRes, numberOfSavedSegments)
-
-        self.v_init = -81
+    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=37, v_init=-81, name="myelinated_axonA", layout3D="PT3D", rec_v=True, gkbar_axnode=0.12):
+        super(Myelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, v_init, tStop, timeRes, numberOfSavedSegments)
 
         self.endOverlap = 7 # number of axon segments after last node
 
         print 'Myelinated fiber diameter: ' + str(self.fiberD)
 
+        # initialize variables to store NEURON elements in
+        self.nodes = None
+        self.MYSAs = None
+        self.FLUTs = None
+        self.STINs = None
+
         # morphological parameters
-        self.paralength1=3 # MYSA length
-        self.nodelength=1.0 # node length
-        self.space_p1=0.002
-        self.space_p2=0.004
-        self.space_i=0.004
+        self.paralength1 = 3 # MYSA length
+        self.nodelength = 1.0 # node length
+        self.space_p1 = 0.002
+        self.space_p2 = 0.004
+        self.space_i = 0.004
 
         #electrical parameters
-        self.rhoa=0.7e6 #Ohm-um
-        self.mycm=0.1 #uF/cm2/lamella membrane
-        self.mygm=0.001 #S/cm2/lamella membrane
-
+        self.rhoa = 0.7e6 # Ohm-um
+        self.mycm = 0.1 # uF/cm2/lamella membrane
+        self.mygm = 0.001 # S/cm2/lamella membrane
         self.gkbar_axnode = gkbar_axnode
 
-
+        # inter-/extrapolate the parameters of the McIntyre (2002) model
         axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getFittedMcIntyreParams(self.fiberD) # interlength,
-        # axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getOriginalMcIntyreParams(self.fiberD) # interlength,
-        # # # self.paralength1 = Myelinated.pMYSALen(self.fiberD)
-        # # # self.nodelength = Myelinated.pNodeLen(self.fiberD)
-        # self.paralength1 = interpolate.splev(self.fiberD, Myelinated.MYSASpline)
-        # self.nodelength = interpolate.splev(self.fiberD, Myelinated.nodeSpline)
 
-        # axonD, nodeD, paraD1, paraD2, deltax, paralength2, nl, g = self.getOriginalMcIntyreParams(self.fiberD)
-
+        # geometry including lammellae
         self.g = g
         self.axonD = axonD
         self.nodeD = nodeD
@@ -855,25 +861,22 @@ class Myelinated(Axon):
         self.paralength2 = paralength2
         self.nl = nl
 
-        self.Rpn0=(self.rhoa*0.01)/(math.pi*((math.pow((self.nodeD/2)+self.space_p1,2))-(math.pow(nodeD/2,2))))
-        self.Rpn1=(self.rhoa*0.01)/(math.pi*((math.pow((self.paraD1/2)+self.space_p1,2))-(math.pow(paraD1/2,2))))
-        self.Rpn2=(self.rhoa*0.01)/(math.pi*((math.pow((self.paraD2/2)+self.space_p2,2))-(math.pow(paraD2/2,2))))
-        self.Rpx=(self.rhoa*0.01)/(math.pi*((math.pow((self.axonD/2)+self.space_i,2))-(math.pow(axonD/2,2))))
-
-        self.interlength=(self.deltax-self.nodelength-(2*self.paralength1)-(2*self.paralength2))/6
-
-
-        # length from the middle of one node to the middle of the next
-        self.lengthOneCycle = self.deltax # self.nodelength + self.interlength*6 + 2*self.paralength1 + 2*self.paralength2
+        # some additional length measures
+        self.lengthOneCycle = self.deltax
+        self.interlength = (self.deltax - self.nodelength - (2 * self.paralength1) - (2 * self.paralength2)) / 6
 
         # length of the whole axon
         self.L = createGeometry.length_from_coords(coord)
 
-        # number of nodes
+        # resistances
+        self.Rpn0 = (self.rhoa*0.01)/(math.pi*((math.pow((self.nodeD/2)+self.space_p1,2))-(math.pow(nodeD/2,2))))
+        self.Rpn1 = (self.rhoa*0.01)/(math.pi*((math.pow((self.paraD1/2)+self.space_p1,2))-(math.pow(paraD1/2,2))))
+        self.Rpn2 = (self.rhoa*0.01)/(math.pi*((math.pow((self.paraD2/2)+self.space_p2,2))-(math.pow(paraD2/2,2))))
+        self.Rpx = (self.rhoa*0.01)/(math.pi*((math.pow((self.axonD/2)+self.space_i,2))-(math.pow(axonD/2,2))))
+
+        # number of sections
         # self.axonnodes = int(math.ceil(self.L/self.lengthOneCycle))
         self.axonnodes = int(math.ceil(self.L/self.lengthOneCycle)) - 1 # substract one for overlap
-
-        # number of remaining sections
         self.paranodes1= 2*(self.axonnodes-1)
         self.paranodes2= 2*(self.axonnodes-1)
         self.axoninter= 6*(self.axonnodes-1)
@@ -1003,7 +1006,7 @@ class Myelinated(Axon):
             self.createSingleNode(nodeType)
         # self.createSingleNode('n')
 
-        if (self.layout3D == "DEFINE_SHAPE"):
+        if self.layout3D == "DEFINE_SHAPE":
             for i in range(self.axonnodes-1):
                 self.MYSAs[2*i].connect(self.nodes[i],1,0)
                 self.FLUTs[2*i].connect(self.MYSAs[2*i],1,0)
@@ -1017,7 +1020,7 @@ class Myelinated(Axon):
                 self.MYSAs[2*i+1].connect(self.FLUTs[2*i+1],1,0)
                 self.nodes[i+1].connect(self.MYSAs[2*i+1],1,0)
             h.define_shape()
-        elif (self.layout3D == "PT3D"):
+        elif self.layout3D == "PT3D":
 
             lengthArray = np.concatenate(([self.nodelength, self.paralength1, self.paralength2], np.multiply(np.ones(6), self.interlength), [self.paralength2, self.paralength1]))
 
@@ -1025,7 +1028,6 @@ class Myelinated(Axon):
             sectionArray = []
             for sec in self.allseclist:
                 sectionArray.append(sec)
-
 
             # DO-WHILE emulation
             sectionIndex = 0
@@ -1062,7 +1064,7 @@ class Myelinated(Axon):
 
                     # set coordinates for section as lying in axon guide
                     # coord = self.coord[coordCounter,:] + directionNorm * (sectionLength - cumulatedLengthFromSection)
-                    coord = coord + directionNorm * (sectionLength - cumulatedLengthFromSection)
+                    coord += directionNorm * (sectionLength - cumulatedLengthFromSection)
                     lengthReached += (sectionLength - cumulatedLengthFromSection)
 
                     # set endpoint of section
@@ -1151,15 +1153,10 @@ class Myelinated(Axon):
         self.MYSAs = None
         self.STINs = None
 
-        if not self.synapse == []:
-            self.synapse = None
-            self.vecStim = None
-            self.netCon = None
-
-        if not self.synapse == []:
-            self.synapse = None
-            self.vecStim = None
-            self.netCon = None
+        # if not self.synapse == []:
+        #     self.synapse = None
+        #     self.vecStim = None
+        #     self.netCon = None
 
         try:
             for memirec in self.memireclist:

@@ -1,13 +1,13 @@
 #!/bin/sh
 if test "x${NRNHOME}" = "x" ; then
-	NRNHOME="/home/carl/neuron/nrn-7.4"
+	NRNHOME="/Applications/NEURON-7.4/nrn"
 fi
 if test "x${NRNBIN}" = "x" ; then
-	NRNBIN="/home/carl/neuron/nrn-7.4/x86_64/bin/"
+	NRNBIN="/Applications/NEURON-7.4/nrn/x86_64/bin/"
 fi
 if test "" = "yes" ; then
 	NRNIV="${NRNBIN}nrniv.app/Contents/MacOS/nrniv"
 else
 	NRNIV="${NRNBIN}nrniv"
 fi
-"${NRNIV}" -dll "/home/carl/PyCharmProjects/PyPN/PyPN/x86_64/.libs/libnrnmech.so" "$@"
+"${NRNIV}" -dll "/Users/carl/PycharmProjects/PyPN/PyPN/x86_64/.libs/libnrnmech.so" "$@"

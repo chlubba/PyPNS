@@ -68,7 +68,7 @@ def rectangular(stimDur, amplitude, frequency, dutyCycle, waveform, delay=0, inv
     stimulusSignal = np.concatenate((stimulusSignal, [0]))
 
     # add delay
-    stimulusSignalDelayed = np.concatenate((np.zeros(delay / timeRes), stimulusSignal))
+    stimulusSignalDelayed = np.concatenate((np.zeros(int(delay / timeRes)), stimulusSignal))
     # t = np.arange(len(stimulusSignalDelayed))*timeRes
 
     return stimulusSignalDelayed

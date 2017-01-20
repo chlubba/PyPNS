@@ -36,7 +36,7 @@ def rotation_matrix(axis, theta):
     """
     axis = np.asarray(axis)
     theta = np.asarray(theta)
-    axis = axis/sqrt(np.dot(axis, axis))
+    axis /= sqrt(np.dot(axis, axis))
     a = cos(theta/2.0)
     b, c, d = -axis*sin(theta/2.0)
     aa, bb, cc, dd = a*a, b*b, c*c, d*d
@@ -95,13 +95,10 @@ def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDire
             else:
                 radiusVectorNorm = radiusVector
 
-        # assure axon stays within bundle. If too far away -> next direction
-        # equals bundle direction
+        # assure axon stays within bundle. If too far away -> next direction equals bundle direction
         bundleRadius = bundleCoords4D[currentBundleSegment, 3]
-        # factorBundleDirection = min((max(0, distance / bundleRadius - 0.7)) * 6, 2.5)
 
-
-        # calculate the random component perpendicular to the bundle direction. If axon approaches bundle limit (radius),
+        # calculate the random component perpendicular to the bundle direction. If axon approaches bundle limit (radius)
         # the random component faces inwards, towards the bundle core.
         factorRadiusBias = min((max(0, distance / bundleRadius - 0.7)) * 6, 2.5)
         radialNorm = np.cross(radiusVectorNorm, bundleDirectionNorm)
@@ -122,7 +119,7 @@ def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDire
         coords = np.row_stack((coords, nextPoint))
 
         if np.inner(bundleDirection, (nextPoint - bundleCoords[currentBundleSegment, :])) > 0:
-            currentBundleSegment = currentBundleSegment + 1
+            currentBundleSegment += 1
 
     return coords
 
@@ -282,7 +279,7 @@ def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, 
     segmentMiddle = (segmentStartingPos + segmentEndPos) / 2
 
     segmentOrientation = segmentEndPos - segmentStartingPos
-    segmentOrientation = segmentOrientation / np.linalg.norm(segmentOrientation)
+    segmentOrientation /= np.linalg.norm(segmentOrientation)
 
     electrodeProjectionOnBundleGuide = segmentStartingPos + (positionAlongBundle - distanceTemp)*segmentOrientation
 
@@ -324,7 +321,7 @@ def get_bundle_guide_corner(bundleLength, segmentLengthAxon, overlapLength=1000,
     """
 
     #length after bundle end. necessary for myelinated axons
-    bundleLength = bundleLength + overlapLength
+    bundleLength += overlapLength
 
     segmentLengthBundle = segmentLengthAxon*lengthFactor
 
@@ -352,7 +349,7 @@ def get_bundle_guide_random(bundleLength, segmentLength = 200, overlapLength=100
 
     """
 
-    bundleLength = bundleLength + overlapLength
+    bundleLength += overlapLength
 
     numBundleGuideSteps = int(np.floor(bundleLength/segmentLength))
 
@@ -381,7 +378,7 @@ def get_bundle_guide_straight(bundleLength, segmentLengthAxon, overlapLength=100
     """
 
     #length after bundle end. necessary for myelinated axons
-    bundleLength = bundleLength + overlapLength
+    bundleLength += overlapLength
 
     segmentLengthBundle = segmentLengthAxon*3
     numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
@@ -404,7 +401,7 @@ def get_bundle_guide_straight_radius(bundleLength, segmentLengthAxon, overlapLen
     """
 
     #length after bundle end. necessary for myelinated axons
-    bundleLength = bundleLength + overlapLength
+    bundleLength += overlapLength
 
     segmentLengthBundle = segmentLengthAxon*3
     numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
@@ -428,7 +425,7 @@ def get_bundle_guide_straight_2radii(bundleLength, segmentLengthAxon, overlapLen
     """
 
     #length after bundle end. necessary for myelinated axons
-    bundleLength = bundleLength + overlapLength
+    bundleLength += overlapLength
 
     segmentLengthBundle = segmentLengthAxon*3
     numBundleGuideSteps = int(np.floor(bundleLength/segmentLengthBundle))
