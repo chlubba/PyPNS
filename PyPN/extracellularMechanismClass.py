@@ -824,7 +824,7 @@ class precomputedFEM(ExtracellularPotentialMechanism):
               'long (~1cm) straight part of the bundle guide.'
 
         fieldDictArray = np.load(
-            os.path.join('/media/carl/4ECC-1C44/ComsolData/usedFields', fieldName, 'fieldDict.npy'))
+            os.path.join('/Volumes/SANDISK/ComsolData/usedFields', fieldName, 'fieldDict.npy'))
         self.FEMFieldDict = fieldDictArray[()]
 
         self.bundleGuide = bundleGuide

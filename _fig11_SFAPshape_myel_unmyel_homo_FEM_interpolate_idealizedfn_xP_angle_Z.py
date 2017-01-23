@@ -96,7 +96,7 @@ if calculationFlag:
                 # set all properties of the bundle
                 bundleParameters = {'radius': 300,  # 150, #um Radius of the bundle (typically 0.5-1.5mm)
                                     'length': bundleLengths[i],  # um Axon length
-                                    'randomDirectionComponent': 1,
+                                    'randomDirectionComponent': 0,
                                     # 'bundleGuide': bundleGuide,
 
                                     'numberOfAxons': numberOfAxons,  # Number of axons in the bundle
@@ -110,7 +110,7 @@ if calculationFlag:
 
                                     'saveI':True,
                                     'saveV': False,
-                                    'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
+                                    'saveLocation': '/Volumes/SANDISK/PyPN/',
 
                                     'numberOfSavedSegments': 50,
                                     # number of segments of which the membrane potential is saved to disk
@@ -162,8 +162,8 @@ else:
 
     # bundleLocations = ['/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00013',
     #                    '/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00003']
-    bundleLocations = ['/Volumes/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00013',
-                       '/Volumes/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00003']
+    bundleLocations = ['/Volumes/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00016',
+                       '/Volumes/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00005']
 
     legends = ['Unmyelinated', 'Myelinated']
     bundleLengths = [40000, 40000] # [40000, 40000] # [60000, 40000]
@@ -172,11 +172,11 @@ else:
         bundle = PyPN.open_bundle_from_location(bundleLocations[i])
 
         smoothingLength = [1, 100, 1000] # [0.01, 0.001, 0.0001]  # , 0.00001]
-        peakFactors = [1, 0.5, 0.1]
+        xPs = [0, 0.000090, 0.000180]
         FEMFileNames = ['smoothed1_zeroed.npy', 'smoothed100_zeroed.npy', 'smoothed1000_zeroed.npy']
-        profileParams = [smoothingLength, peakFactors, FEMFileNames]
+        profileParams = [smoothingLength, xPs, FEMFileNames]
 
-        for profileInd in [0, 1, 2]: # [0, 1, 2]
+        for profileInd in [1]: # [0, 1, 2]
 
             import matplotlib.cm as cm
             import matplotlib.colors as colors
@@ -208,14 +208,14 @@ else:
                     profileLegends = (np.array(profileParams[profileInd]) * 1.5).astype(str)
 
                     angle = 0
-                    xP = 0
+                    xP = profileParam
 
-                    peakFactor = max(0, (1 - np.mod(angle, np.pi) / np.pi * 5)) * np.min(1, (xP / 190) ^ 5)
-                    a = 1.9E-9 # 2.5E-9;
+                    peakFactor = max(0, (1 - np.mod(angle, np.pi) / np.pi * 5)) * np.min([1, (xP / 0.000190) ** 5])
+                    a = 1.9E-9  # 2.5E-9;
                     b = 0.00005
 
-                    zValues = np.arange(0,1.05,0.01) / 100
-                    vValues = a * (1.0 / (np.abs(zValues) + b)) * peakFactor + np.max(0, (1 - np.abs(zValues / 0.01)) * 8.83e-5)
+                    # zValues = np.arange(0, 1.05, 0.01) / 100
+                    vValues = a * (1.0 / (np.abs(zValues) + b)) * peakFactor + np.maximum(0, (np.subtract(1, np.abs(zValues / 0.01)) * 8.83e-5))
 
                     # a = 2.5e-9
                     # b = 0.00005 # 0.00025
@@ -238,7 +238,7 @@ else:
 
                     smoothedFunctionArrayPacked = np.load(
                         os.path.join(
-                            '/media/carl/4ECC-1C44/ComsolData/interpolated_function_electrode_fixed_a_z_variable',
+                            '/Volumes/SANDISK/ComsolData/interpolated_function_electrode_fixed_a_z_variable',
                             profileParam))
                     smoothedFunctionArray = smoothedFunctionArrayPacked[()]
                     zValues = smoothedFunctionArray[0]
@@ -284,6 +284,7 @@ else:
 
             axarr[profileInd][0].legend(loc='best')
             axarr[profileInd][0].set_title(profileTitle)
+
 
             bundle.compute_CAPs_from_imem_files()
 

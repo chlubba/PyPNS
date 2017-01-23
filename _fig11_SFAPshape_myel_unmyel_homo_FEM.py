@@ -125,7 +125,7 @@ if calculationFlag:
 
                                     # 'saveI':True,
                                     # 'saveV': False,
-                                    'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
+                                    'saveLocation': '/Volumes/SANDISK/PyPN/',
 
                                     'numberOfSavedSegments': 50,
                                     # number of segments of which the membrane potential is saved to disk
