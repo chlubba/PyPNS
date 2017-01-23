@@ -3,6 +3,7 @@ from scipy import ndimage
 from scipy.interpolate import interp1d
 import time
 import createGeometry
+from takeTime import takeTime
 
 def getImageCoords1D(physicalCoordinate1D, pointsOfInterest):
 
@@ -658,6 +659,69 @@ def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, 
 
     return receiverPotentials
 
+def compute_relative_positions_and_interpolate_new(sourcePositions, sourceCurrents, receiverPositions, fieldDict, bundleGuide, currentUnitFEM=-9, currentUnitSource=-9):
+    """
+
+    Args:
+        sourcePositions:
+        sourceCurrents:
+        receiverPositions:
+        fieldDict:
+        bundleGuide:
+        currentUnitFEM:
+        currentUnitSource:
+
+    Returns:
+
+    """
+
+    # precalculate the spatial relation between the bundle guide and the receivers
+    with takeTime('preprocess source positions'):
+        segmentAssociationsRec = associatePointToBundleSegs(receiverPositions, bundleGuide)
+        distPerpendicularRec, lengthAlongRec, anglesRec = spatialRelation(receiverPositions, bundleGuide,
+                                                                         segmentAssociationsRec)
+
+    # same for sources
+    with takeTime('preprocess receiver positions'):
+        segmentAssociationsSource = associatePointToBundleSegs(sourcePositions, bundleGuide)
+        distPerpendicularsSource, lengthAlongsSource, anglesSource = spatialRelation(sourcePositions, bundleGuide,
+                                                                                    segmentAssociationsSource)
+    # number of sources
+    numSourcePos = np.shape( distPerpendicularsSource)[0]
+
+    receiverPots = np.array([]).reshape(0, np.shape(sourceCurrents)[1])
+
+    # loop over all recording electrodes
+    for recInd in range(np.shape(distPerpendicularRec)[0]):
+
+        distPerpendicularRecTemp = distPerpendicularRec[recInd]
+        lengthAlongRecTemp = lengthAlongRec[recInd]
+        angleRecTemp = anglesRec[recInd]
+
+        # distance between source and recording positions
+        distBetweenTemp = lengthAlongsSource - lengthAlongRecTemp
+
+        # angle between them
+        anglesTemp = anglesSource - angleRecTemp
+
+        # calculate the interpolation points handed over to the fieldImage
+        interpolationPoints = np.vstack([np.zeros(numSourcePos), np.ones(numSourcePos)*distPerpendicularRecTemp, distBetweenTemp, distPerpendicularsSource])
+        interpolationPoints = np.divide(interpolationPoints,
+                                        1000000)  # from um to m
+
+        # now interpolate from fieldImage
+        receiverPotTempStatic = _interpolateFromImage(fieldDict, interpolationPoints, order=1)
+
+        # scale potential-voltage-relation with current to obtain temporal signal
+        # COMSOL gave V, we need mV, therefore multiply with 1000
+        # also there can be a mismatch in current unit of the source, eliminate
+        # receiverPotTemp = np.outer(receiverPotTempStatic, sourceCurrents * 10 ** (currentUnitSource - currentUnitFEM)) * 1000
+        receiverPotTemp = np.sum(sourceCurrents * receiverPotTempStatic[:, np.newaxis], axis=0) \
+                          * 10 ** (currentUnitSource - currentUnitFEM) * 1000
+
+        receiverPots = np.vstack([receiverPotTemp, receiverPotTemp]);
+
+    return receiverPots
 
 def i_to_v_homogeneous(sourcePositions, sourceCurrents, receiverPositions, sigma=1., currentUnitSource=-9):
     """
@@ -697,3 +761,133 @@ def i_to_v_homogeneous(sourcePositions, sourceCurrents, receiverPositions, sigma
     receiverPotentials = np.array(receiverPotentials)
 
     return receiverPotentials
+
+def associatePointToBundleSegs(points, bundleGuide):
+
+    # make sure orientation is fine
+    pointsShape = np.shape(points)
+    if pointsShape[0] == 3:
+        points = np.transpose(points)
+    numPoints = np.shape(points)[0]
+
+    # cut away potential radius coordinate
+    bundleGuideStripped = bundleGuide[:,0:3]
+    bundleGuideLength = np.shape(bundleGuide)[0]
+
+    # variable to save squared distances between bundle guide segment centers and source positions
+    r2min = np.ones(numPoints) * np.inf
+    # indices of closest bundle segment for all points
+    closestSegInds = np.zeros(numPoints)
+
+    for bundleGuideInd in range(bundleGuideLength - 1):
+        bundleSegStart = bundleGuideStripped[bundleGuideInd, :]
+        bundleSegStop = bundleGuideStripped[bundleGuideInd + 1, :]
+        bundleMiddle = (bundleSegStart + bundleSegStop) / 2
+
+        r2 = np.sum(np.square(points - bundleMiddle), axis=1)
+
+        # current distance smaller than current minimum?
+        compArray = r2 < r2min
+
+        closestSegInds[compArray] = bundleGuideInd
+        r2min[compArray] = r2[compArray]
+
+    return closestSegInds
+
+
+def rotationMatrixFromVectors(a, b):
+    """np.dot(R,a) = b
+
+    from http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+    user 'Kuba Ober'
+
+    """
+
+    if np.all(a == b):
+        return np.diag(np.ones(3))
+    else:
+
+        G = np.array([[np.dot(a, b), -np.linalg.norm(np.cross(a, b)), 0],
+                      [np.linalg.norm(np.cross(a, b)), np.dot(a, b), 0],
+                      [0, 0, 1]])
+        F = np.array(
+            [a, (b - np.multiply(np.dot(a, b), a)) / np.linalg.norm(b - np.multiply(np.dot(a, b), a)), np.cross(b, a)])
+
+        R = F.dot(G).dot(np.linalg.inv(F))
+
+        return R
+
+
+def spatialRelation(points, bundleGuide, segmentAssociations):
+    """
+
+    Args:
+        points: points of interest (Nx3), can be electrode or axon segments
+        bundleGuide: ... bundle guide.
+        segmentAssociations: an array of length N (number of points), containing the bundle guide segment indices
+
+    Returns:
+        distPerpendiculars: distance of points from bundle guide
+        lengthAlongs: distance along the bundle guide (from origin)
+        angles: the angle between the perpendicular of the points towards the bundle guide segment and the y-axis (chosen arbitrarily)
+
+    """
+
+    # cut away potential radius coordinate
+    bundleGuideStripped = bundleGuide[:, 0:3]
+    bundleGuideLength = np.shape(bundleGuide)[0]
+
+    # variables of interest that are calculated for all positions
+    posPerpendiculars = np.zeros(np.shape(points))
+    distPars = np.zeros(np.shape(points)[0])
+    distPerpendiculars = np.zeros(np.shape(points)[0])
+    lengthAlongs = np.zeros(np.shape(points)[0])
+    angles = np.zeros(np.shape(points)[0])
+
+    # loop over all bundle segments
+    lengthAlongBundle = 0
+    lastBundleDir = bundleGuideStripped[1, :] - bundleGuideStripped[0, :]
+    lastBundleDirNorm = lastBundleDir / np.linalg.norm(lastBundleDir)
+    overallR = np.diag(np.ones(3))
+    for bundleSegInd in range(bundleGuideLength-1):
+
+        bundleSegStart = bundleGuideStripped[bundleSegInd, :]
+        bundleSegStop = bundleGuideStripped[bundleSegInd + 1, :]
+        bundleSegLen = np.linalg.norm(bundleSegStop - bundleSegStart)
+        bundleDirNorm = (bundleSegStop - bundleSegStart)/bundleSegLen
+
+        # calulcate the rotation matrix between two following bundle segments
+        R = rotationMatrixFromVectors(bundleDirNorm, lastBundleDirNorm)
+
+        # overall rotation matrix from current segment to initial one
+        overallR = overallR.dot(R)
+
+        # look at points associated with current bundle segment
+        pointIndicesCurrentSegment = np.where(segmentAssociations == bundleSegInd)[0]
+        for pointInd in pointIndicesCurrentSegment:
+            point = points[pointInd,:]
+
+            # compontent parallel to bundle direction
+            distPar = np.inner(point - bundleSegStart, bundleDirNorm)
+
+            # normal from bundle guide to axon position
+            posPerpendicular = point - (bundleSegStart + distPar * bundleDirNorm)
+            distPerpendicular = np.linalg.norm(posPerpendicular)
+
+            # save all computed values of axon into these lists
+            distPerpendiculars[pointInd] = distPerpendicular
+            posPerpendiculars[pointInd, :] = posPerpendicular
+            distPars[pointInd] = distPar
+
+            # distance from origin of bundle
+            lengthAlongs[pointInd] = lengthAlongBundle + distPar
+
+            # vector perpendicular onto bundle segment, turned to calculated the
+            yzVec = np.dot(overallR, posPerpendicular)
+            angle = np.arctan2(yzVec[1], yzVec[2])
+            angles[pointInd] = angle
+
+        lengthAlongBundle += bundleSegLen
+        lastBundleDirNorm = bundleDirNorm
+
+    return distPerpendiculars, lengthAlongs, angles

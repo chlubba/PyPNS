@@ -840,9 +840,8 @@ class precomputedFEM(ExtracellularPotentialMechanism):
         """
 
         # calculate LFP from membrane currents
-        return compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions, self.FEMFieldDict, self.bundleGuide)
-
-
+        # return compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions, self.FEMFieldDict, self.bundleGuide)
+        return compute_relative_positions_and_interpolate_new(sourcePositions, sourceCurrents, receiverPositions, self.FEMFieldDict, self.bundleGuide)
 
 class homogeneous(ExtracellularPotentialMechanism):
 

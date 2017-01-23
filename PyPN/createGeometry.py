@@ -46,7 +46,7 @@ def rotation_matrix(axis, theta):
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
 
-def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDirectionComponent=0.1): # maximumAngle=pi / 10,
+def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDirectionComponent=0): # maximumAngle=pi / 10,
     """
     This function is used to generate the trajectory of axons. They can follow the bundle trajectory more or less loosely, as set by the parameter ``randomDirectionComponent``.
 
@@ -59,6 +59,7 @@ def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDire
     """
     bundleCoords = bundleCoords4D[:, :3]
 
+    # take first two bundle segment start points as first two axon points
     pos1 = np.concatenate(([bundleCoords[0, 0]], axonCoords + bundleCoords[0, 1:3]))
     pos2 = np.concatenate(([bundleCoords[1, 0]], axonCoords + bundleCoords[1, 1:3]))
 
@@ -435,3 +436,33 @@ def get_bundle_guide_straight_2radii(bundleLength, segmentLengthAxon, overlapLen
     bundleCoords[:,-1] = np.linspace(radii[0], radii[1], numBundleGuideSteps)
 
     return bundleCoords
+
+def get_bundle_guide_random_radius(bundleLength, segmentLength = 200, overlapLength=1000, radius=200):
+    """Generate a random bundle trajectory.
+
+    :param bundleLength: length of bundle
+    :param segmentLength: length of straight bundle segment
+    :param overlapLength: additional length of the bundle trajectory to finish myelinated axons.
+
+    :return: coordinates of random bundle. 3 coordinates, no radius
+
+    """
+
+    bundleLength += overlapLength
+
+    numBundleGuideSteps = int(np.floor(bundleLength/segmentLength))
+
+    randomDeltaX = np.random.uniform(0,2,numBundleGuideSteps)
+    randomDeltaYZ = np.random.uniform(-1,1,(numBundleGuideSteps,2))
+    randomDelta = np.column_stack((randomDeltaX, randomDeltaYZ))
+
+    for i in range(numBundleGuideSteps):
+        randomDelta[i,:] = randomDelta[i,:]/np.linalg.norm(randomDelta[i,:])
+
+    bundleGuide = np.cumsum(randomDelta,0)
+
+    bundleGuideScaled = bundleGuide*segmentLength
+
+    bundleGuideScaled = np.concatenate((bundleGuideScaled, np.expand_dims(np.ones(numBundleGuideSteps)*radius,axis=1)), axis=1)
+
+    return bundleGuideScaled
