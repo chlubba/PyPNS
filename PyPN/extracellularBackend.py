@@ -5,66 +5,77 @@ import time
 import createGeometry
 from takeTime import takeTime
 
-def getImageCoords1D(physicalCoordinate1D, pointsOfInterest):
+# def getImageCoords1D(physicalCoordinate1D, pointsOfInterest):
+#
+#     if len(physicalCoordinate1D) > 1:
+#
+#         # interpolate to obtain coordinate position
+#         physicalCoordinate1D.sort()
+#         coordInterp = interp1d(physicalCoordinate1D, range(len(physicalCoordinate1D)))
+#
+#         pointsOfInterest = np.array(pointsOfInterest)
+#
+#         # if only one half of coordinates was exported, is is to be assumed, that a symmetry in the geometry justifies that.
+#         # we therefore mirror here by taking the absolute value of the input coordinates
+#         if np.min(physicalCoordinate1D) >= 0:
+#             coords = coordInterp(np.abs(pointsOfInterest))
+#         else:
+#             coords = coordInterp(pointsOfInterest)
+#
+#     else:
+#         # a single value only signifies that this coordinate does not interest. Only for source positions.
+#         coords = np.zeros(len(pointsOfInterest))
+#
+#     return coords
 
-    if len(physicalCoordinate1D) > 1:
-
-        # interpolate to obtain coordinate position
-        physicalCoordinate1D.sort()
-        coordInterp = interp1d(physicalCoordinate1D, range(len(physicalCoordinate1D)))
-
-        pointsOfInterest = np.array(pointsOfInterest)
-
-        # if only one half of coordinates was exported, is is to be assumed, that a symmetry in the geometry justifies that.
-        # we therefore mirror here by taking the absolute value of the input coordinates
-        if np.min(physicalCoordinate1D) >= 0:
-            coords = coordInterp(np.abs(pointsOfInterest))
-        else:
-            coords = coordInterp(pointsOfInterest)
-
-    else:
-        # a single value only signifies that this coordinate does not interest. Only for source positions.
-        coords = np.zeros(len(pointsOfInterest))
-
-    return coords
-
-def _getImageCoordsUnregXZ(fieldDict, points):
-
-    xValues = fieldDict['x']
-    yValues = fieldDict['y']
-    zValues = fieldDict['z']
-    axonXValues = fieldDict['axonX']
-    axonZValues = fieldDict['axonZ']
-
-    # interpolate to obtain coordinate position
-    xCoordInterp = interp1d(xValues, range(len(xValues)))
-    yCoordInterp = interp1d(yValues, range(len(yValues)))
-    zCoordInterp = interp1d(zValues, range(len(zValues)))
-    axonXCoordInterp = interp1d(axonXValues, range(len(axonXValues)))
-    axonZCoordInterp = interp1d(axonZValues, range(len(axonZValues)))
-
-    points = np.array(points)
-
-    if len(points.shape) > 1:
-        points = np.transpose(points)
-        xCoords = xCoordInterp(points[:, 0])
-        yCoords = yCoordInterp(points[:, 1])
-        zCoords = zCoordInterp(points[:, 2])
-        xAxonCoords = axonXCoordInterp(points[:, 3])
-        zAxonCoords = axonZCoordInterp(points[:, 4])
-    else:
-        xCoords = xCoordInterp(points[0])
-        yCoords = yCoordInterp(points[1])
-        zCoords = zCoordInterp(points[2])
-        xAxonCoords = axonXCoordInterp(points[3])
-        zAxonCoords = axonZCoordInterp(points[4])
-
-    # mirror coordinates where the symmetry allows it. Here only of y, NOT for z
-    yCoords = np.abs(yCoords)
-
-    return np.vstack([xCoords, yCoords, zCoords, xAxonCoords, zAxonCoords])
+# def _getImageCoordsUnregXZ(fieldDict, points):
+#
+#     xValues = fieldDict['x']
+#     yValues = fieldDict['y']
+#     zValues = fieldDict['z']
+#     axonXValues = fieldDict['axonX']
+#     axonZValues = fieldDict['axonZ']
+#
+#     # interpolate to obtain coordinate position
+#     xCoordInterp = interp1d(xValues, range(len(xValues)))
+#     yCoordInterp = interp1d(yValues, range(len(yValues)))
+#     zCoordInterp = interp1d(zValues, range(len(zValues)))
+#     axonXCoordInterp = interp1d(axonXValues, range(len(axonXValues)))
+#     axonZCoordInterp = interp1d(axonZValues, range(len(axonZValues)))
+#
+#     points = np.array(points)
+#
+#     if len(points.shape) > 1:
+#         points = np.transpose(points)
+#         xCoords = xCoordInterp(points[:, 0])
+#         yCoords = yCoordInterp(points[:, 1])
+#         zCoords = zCoordInterp(points[:, 2])
+#         xAxonCoords = axonXCoordInterp(points[:, 3])
+#         zAxonCoords = axonZCoordInterp(points[:, 4])
+#     else:
+#         xCoords = xCoordInterp(points[0])
+#         yCoords = yCoordInterp(points[1])
+#         zCoords = zCoordInterp(points[2])
+#         xAxonCoords = axonXCoordInterp(points[3])
+#         zAxonCoords = axonZCoordInterp(points[4])
+#
+#     # mirror coordinates where the symmetry allows it. Here only of y, NOT for z
+#     yCoords = np.abs(yCoords)
+#
+#     return np.vstack([xCoords, yCoords, zCoords, xAxonCoords, zAxonCoords])
 
 def _getImageCoords(fieldDict, points):
+    """
+    This function transforms the coordinate values in points to positions on the field image. It assumes equidistant
+    coordinate steps in fieldDict.
+
+    Args:
+        fieldDict: dictionary containing the coordinate values with their associated voltage values
+        points: coordinate values this function transforms to image coordinates
+
+    Returns: image coordinate values
+
+    """
 
     xValues = fieldDict['x']
     yValues = fieldDict['y']
@@ -241,20 +252,11 @@ def _getImageCoords(fieldDict, points):
 #     # then with new coords to the interpolation
 #     return ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=order)
 
-def _interpolateFromImage(fieldDict, points, order=3, zGiven=False):
+def interpolateFromImage(fieldDict, points, order=3, zGiven=False):
 
     # first transform coordinates in points into position coordinates
     # different function
-
     imageCoords = _getImageCoords(fieldDict, points)
-    #
-    # print imageCoords
-    #
-    # print '\n'
-
-    # _interpolateFromImageGranular(fieldDict, points, order)
-
-
 
     # then with new coords to the interpolation
     return ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=order)
@@ -659,108 +661,7 @@ def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, 
 
     return receiverPotentials
 
-def compute_relative_positions_and_interpolate_new(sourcePositions, sourceCurrents, receiverPositions, fieldDict, bundleGuide, currentUnitFEM=-9, currentUnitSource=-9):
-    """
 
-    Args:
-        sourcePositions:
-        sourceCurrents:
-        receiverPositions:
-        fieldDict:
-        bundleGuide:
-        currentUnitFEM:
-        currentUnitSource:
-
-    Returns:
-
-    """
-
-    # precalculate the spatial relation between the bundle guide and the receivers
-    with takeTime('preprocess source positions'):
-        segmentAssociationsRec = associatePointToBundleSegs(receiverPositions, bundleGuide)
-        distPerpendicularRec, lengthAlongRec, anglesRec = spatialRelation(receiverPositions, bundleGuide,
-                                                                         segmentAssociationsRec)
-
-    # same for sources
-    with takeTime('preprocess receiver positions'):
-        segmentAssociationsSource = associatePointToBundleSegs(sourcePositions, bundleGuide)
-        distPerpendicularsSource, lengthAlongsSource, anglesSource = spatialRelation(sourcePositions, bundleGuide,
-                                                                                    segmentAssociationsSource)
-    # number of sources
-    numSourcePos = np.shape( distPerpendicularsSource)[0]
-
-    receiverPots = np.array([]).reshape(0, np.shape(sourceCurrents)[1])
-
-    # loop over all recording electrodes
-    for recInd in range(np.shape(distPerpendicularRec)[0]):
-
-        distPerpendicularRecTemp = distPerpendicularRec[recInd]
-        lengthAlongRecTemp = lengthAlongRec[recInd]
-        angleRecTemp = anglesRec[recInd]
-
-        # distance between source and recording positions
-        distBetweenTemp = lengthAlongsSource - lengthAlongRecTemp
-
-        # angle between them
-        anglesTemp = anglesSource - angleRecTemp
-
-        # calculate the interpolation points handed over to the fieldImage
-        interpolationPoints = np.vstack([np.zeros(numSourcePos), np.ones(numSourcePos)*distPerpendicularRecTemp, distBetweenTemp, distPerpendicularsSource])
-        interpolationPoints = np.divide(interpolationPoints,
-                                        1000000)  # from um to m
-
-        # now interpolate from fieldImage
-        receiverPotTempStatic = _interpolateFromImage(fieldDict, interpolationPoints, order=1)
-
-        # scale potential-voltage-relation with current to obtain temporal signal
-        # COMSOL gave V, we need mV, therefore multiply with 1000
-        # also there can be a mismatch in current unit of the source, eliminate
-        # receiverPotTemp = np.outer(receiverPotTempStatic, sourceCurrents * 10 ** (currentUnitSource - currentUnitFEM)) * 1000
-        receiverPotTemp = np.sum(sourceCurrents * receiverPotTempStatic[:, np.newaxis], axis=0) \
-                          * 10 ** (currentUnitSource - currentUnitFEM) * 1000
-
-        receiverPots = np.vstack([receiverPotTemp, receiverPotTemp]);
-
-    return receiverPots
-
-def i_to_v_homogeneous(sourcePositions, sourceCurrents, receiverPositions, sigma=1., currentUnitSource=-9):
-    """
-    Idea and some implementation details from LFPy package
-
-    Args:
-        sourcePositions:
-        sourceCurrents:
-        receiverPositions:
-        sigma:
-        currentUnitSource:
-
-    Returns:
-
-    """
-
-    # import matplotlib.pyplot as plt
-    # plt.plot(sourceCurrents)
-    # plt.show()
-
-    nSourcePoints = np.shape(sourcePositions)[0]
-    nReceiverPoints = np.shape(receiverPositions)[0]
-
-    nTimePoints = len(sourceCurrents[:,0])
-
-    receiverPotentials = []
-    for rInd in range(nReceiverPoints):
-        receiverPosition = receiverPositions[rInd,:]
-
-        r2 = (sourcePositions[:,0] - receiverPosition[0]) ** 2 + (sourcePositions[:,1] - receiverPosition[1]) ** 2 + (sourcePositions[:,2] - receiverPosition[2]) ** 2
-        r = np.sqrt(r2)
-
-        receiverPotential = 1 / (4 * np.pi * sigma) * np.dot(sourceCurrents.T, 1 / r)
-
-        receiverPotentials.append(receiverPotential)
-
-    receiverPotentials = np.array(receiverPotentials)
-
-    return receiverPotentials
 
 def associatePointToBundleSegs(points, bundleGuide):
 
