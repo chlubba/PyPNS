@@ -51,8 +51,8 @@ class Axon(object):
         # initialize save variables for NEURON objects (still in NEURON format)
         self.memireclist = None
         self.vreclist = None
-        self.allseclist = None
-        self.axon = None
+        self.allseclist = h.SectionList()
+        # self.axon = None
 
         # save variables for numpy format, imem being scaled to nA (from mA/cm^2)
         self.imem = None
@@ -222,6 +222,150 @@ class Axon(object):
 
         # Set the tvec to be a monotonically increasing numpy array after sim.
         self.tvec = np.arange(h.tstop /h.dt + 1)*h.dt
+
+    def set_nsegs(self):
+        """
+        Set number of segments per section according to the lambda-rule, or according to maximum length of segments
+
+        """
+
+        d_lambda = 0.1
+        frequency = 100
+
+        for sec in self.allseclist:
+            sec.nseg = int((sec.L / (d_lambda*h.lambda_f(frequency, sec=sec)) + .9) / 2 ) * 2 + 1
+
+        if self.verbose:
+            print("set nsegs using lambda-rule with frequency %i." % frequency)
+
+        self.totnsegs = self.calc_totnsegs()
+
+    def position_sections_in_neuron(self):
+
+        # get sections in order (allseclist not subscriptable since NEURON object. But then, iterable.)
+        sectionArray = []
+        for sec in self.allseclist:
+            sectionArray.append(sec)
+        numSecs = np.shape(sectionArray)[0]
+
+        # DO-WHILE emulation
+        sectionIndex = 0
+        coordCounter = 0
+
+        # get the segment from the axon coordinates defined by createRandomAxon
+        direction = self.coord[coordCounter + 1, :] - self.coord[coordCounter, :]
+
+        # calculate the length and the normed direction vector
+        lengthGuideSegment = np.linalg.norm(direction)
+        directionNorm = direction / np.linalg.norm(direction)
+
+        # variables to keep track of remaining section lengths and guide segment lengths
+        cumulatedLengthOnGuideSeg = 0
+        cumulatedLengthFromSection = 0
+
+        # set startpoint of axon /first axon section
+        section = sectionArray[sectionIndex]
+
+        # get length
+        sectionLength = section.L
+
+        # set actual coordinate values
+        h.pt3dclear(sec=section)
+        coord = self.coord[0, :]
+        h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
+
+        # print 'Section ' + str(sectionIndex) + ' started at coords ' + str(coord) + '.'
+        lengthReached = 0
+
+        while sectionIndex < numSecs:
+
+            # if the axon guide segment is longer than the remaining axon section, go to next section
+            if cumulatedLengthOnGuideSeg + (sectionLength - cumulatedLengthFromSection) < lengthGuideSegment:
+
+                # set coordinates for section as lying in axon guide
+                # coord = self.coord[coordCounter,:] + directionNorm * (sectionLength - cumulatedLengthFromSection)
+                coord += directionNorm * (sectionLength - cumulatedLengthFromSection)
+                lengthReached += (sectionLength - cumulatedLengthFromSection)
+
+                # set endpoint of section
+                h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
+
+                # update how far we got on the segment of the guide
+                cumulatedLengthOnGuideSeg += (sectionLength - cumulatedLengthFromSection)
+
+                # step to next segment
+                sectionIndex += 1
+
+                if sectionIndex >= numSecs:
+                    break
+
+                # set startpoint of next section
+                section = sectionArray[sectionIndex]
+
+                # get length
+                sectionLength = section.L
+
+                # set actual coordinate values
+                h.pt3dclear(sec=section)
+                h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
+
+                section.connect(sectionArray[sectionIndex - 1], 1, 0)
+
+                cumulatedLengthFromSection = 0
+
+            # if section does not fit into remaining axon guide segment, go to next axon guide segment
+            else:
+
+                # substract the remaining length on the former segment from the section length to see what is left
+                # for consecutive segments
+                cumulatedLengthFromSection += lengthGuideSegment - cumulatedLengthOnGuideSeg
+
+                lengthReached += np.linalg.norm(self.coord[coordCounter + 1, :] - coord)
+
+                # get coords of node between guide segments
+                coord = self.coord[coordCounter + 1, :]
+
+                h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
+
+                # check out next guide segment
+                if coordCounter < np.shape(self.coord)[0]-2:
+                    coordCounter += 1
+                # else:
+                #     print 'whoops, axon guide not long enough for axon.'
+
+                # calculate the next normed direction vector
+                direction = self.coord[coordCounter + 1, :] - self.coord[coordCounter, :]
+                directionNorm = direction / np.linalg.norm(direction)
+                lengthGuideSegment = np.linalg.norm(direction)
+
+                # new guide segment -> no length consumed yet.
+                cumulatedLengthOnGuideSeg = 0
+
+    def create_neuron_object(self):
+
+
+        # # general things to do
+        # self.allseclist = h.SectionList()
+        # self.allseclist.append(sec = self.axon)
+
+        # calculate number of segments per section
+        self.set_nsegs()
+
+        for sec in self.allseclist:
+
+            # insert extracellular mechanism for imem
+            sec.insert('extracellular')
+            # insert xtra mechanism for extracellular stimulation
+            sec.insert('xtra')
+
+            for seg in sec:
+                h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
+                h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
+
+        # get geometry from NEURON object
+        self.interpxyz()
+        self.collect_geometry()
+        self.calc_midpoints()
 
     def delete_neuron_object(self):
 
@@ -424,86 +568,63 @@ class Axon(object):
 
 class Unmyelinated(Axon):
 
-    # name: axon name (for neuron)
-    # nsegs_method: ['lambda100']/'lambda_f'/'fixed_length': nseg rule
-    # max_nsegs_length: [None]: max segment length for method 'fixed_length'
-    # lambda_f: [100]: AC frequency for method 'lambda_f'
-    # d_lambda: [0.1]: parameter for d_lambda rule
-    #
-    # diam: Axon diameter (micrometer)
-    # cm : Specific membrane capacitance (microfarad/cm2)
-    # Ra: Specific axial resistance (Ohm cm)
-    # coord: y,z coordinates to spatially place the axon once created
-    # layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
-    # rec_v: set voltage recorders True or False
+    """
+    name: axon name (for neuron)
+    nsegs_method: ['lambda100']/'lambda_f'/'fixed_length': nseg rule
+    max_nsegs_length: [None]: max segment length for method 'fixed_length'
+    lambda_f: [100]: AC frequency for method 'lambda_f'
+    d_lambda: [0.1]: parameter for d_lambda rule
 
-    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=33, v_init=-64.975, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False, nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
+    diam: Axon diameter (micrometer)
+    cm : Specific membrane capacitance (microfarad/cm2)
+    Ra: Specific axial resistance (Ohm cm)
+    coord: y,z coordinates to spatially place the axon once created
+    layout3D: either "DEFINE_SHAPE" or "PT3D" using hoc corresponding function
+    rec_v: set voltage recorders True or False
+    """
+
+    def __init__(self, fiberD, coord, tStop, timeRes, numberOfSavedSegments, temperature=33, v_init=-64.975, cm=1.0, Ra=200.0, name="unmyelinated_axon", layout3D="PT3D", rec_v=True, hhDraw=False): # , nsegs_method='lambda100', lambda_f=100, d_lambda=0.1, max_nsegs_length=None):
         super(Unmyelinated,self).__init__(layout3D, rec_v, name, fiberD, coord, temperature, v_init, tStop, timeRes, numberOfSavedSegments)
 
         self.L = createGeometry.length_from_coords(coord)
         self.cm = cm
         self.Ra = Ra
         self.hhDraw = hhDraw
-        self.nsegs_method = nsegs_method
-        self.lambda_f = lambda_f
-        self.d_lambda = d_lambda
-        self.max_nsegs_length = max_nsegs_length
 
         print "Unmyelinated axon diameter: " + str(self.fiberD)
 
         print 'Number of segments for unmyelinated axon: %i' % self.get_number_of_segs()
 
-    def get_number_of_segs(self):
+    def get_number_of_segs(self, d_lambda=0.1, lambda_freq=100):
 
         def lambda_f(freq, diam, Ra, cm):
             return 1e5 * np.sqrt(diam / (4 * np.pi * freq * Ra * cm))
 
         def approx_nseg_d_lambda(axon):
-            return int((axon.L / (axon.d_lambda * lambda_f(axon.lambda_f, axon.fiberD, axon.Ra, axon.cm)) + 0.9) / 2) * 2 + 1
+            return int((axon.L / (d_lambda * lambda_f(lambda_freq, axon.fiberD, axon.Ra, axon.cm)) + 0.9) / 2) * 2 + 1
 
         return approx_nseg_d_lambda(self)
 
     def create_neuron_object(self):
 
+        # define the section properties of the unmyelinated axon
         self.axon = h.Section(name = str(self.name))
         self.axon.L = self.L
         self.axon.diam = self.fiberD
         self.axon.cm = self.cm
         self.axon.Ra = self.Ra
 
-        self.allseclist = h.SectionList()
+        # add section(s) to the section list
         self.allseclist.append(sec = self.axon)
 
-        self.axon.insert('extracellular')
-        self.axon.insert('xtra')
+        # transfer the geometry into the NEURON axon model
+        self.position_sections_in_neuron()
 
+        # do everything (number of segs per sec, channels, geometry from NEURON)
+        super(Unmyelinated, self).create_neuron_object()
 
-        self.set_nsegs(self.nsegs_method, self.lambda_f, self.d_lambda, self.max_nsegs_length)
-
-        if self.layout3D == "DEFINE_SHAPE":
-            h.define_shape()
-        elif self.layout3D == "PT3D":
-
-            if True:
-                h.pt3dclear(sec=self.axon)
-                for i in range(np.shape(self.coord)[0]):
-                    h.pt3dadd(self.coord[i,0], self.coord[i,1], self.coord[i,2], self.fiberD, sec=self.axon)
-            else:
-                h.pt3dadd(0, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
-                h.pt3dadd(self.L, self.coord[0], self.coord[1], self.fiberD, sec=self.axon)
-        else:
-            raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
-
-        # todo: restore
-        for sec_id in self.allseclist:
-            for seg in sec_id:
-                h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
-                h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
-        self.interpxyz()
-        self.collect_geometry()
-        self.calc_midpoints()
+        # add channels specific to unmyelinated axon
         self.channel_init() # default values of hh channel are used
-
 
     def delete_neuron_object(self):
 
@@ -535,45 +656,6 @@ class Unmyelinated(Axon):
             self.axon.ena = ena*(1+0.2*np.random.uniform(1))#[0])
             self.axon.ek = ek*(1+0.1*np.random.uniform(1))#[0])
             self.axon.el_hh = el
-
-    def set_nsegs(self, nsegs_method, lambda_f, d_lambda, max_nsegs_length):
-        # Set number of segments per section according to the lambda-rule,
-        # or according to maximum length of segments
-        if nsegs_method == 'lambda100':
-            self.set_nsegs_lambda100(d_lambda)
-        elif nsegs_method == 'lambda_f':
-            self.set_nsegs_lambda_f(lambda_f, d_lambda)
-        elif nsegs_method == 'fixed_length':
-            self.set_nsegs_fixed_length(max_nsegs_length)
-        else:
-            if self.verbose:
-                print('No nsegs_method applied (%s)' % nsegs_method)
-        self.totnsegs = self.calc_totnsegs()
-
-    def set_nsegs_lambda_f(self, frequency=100, d_lambda=0.1):
-        # Set the number of segments for section according to the
-        # d_lambda-rule for a given input frequency
-        #     frequency: float, frequency at whihc AC length constant is computed
-        #     d_lambda: float,
-
-        for sec in self.allseclist:
-            sec.nseg = int((sec.L / (d_lambda*h.lambda_f(frequency,
-                                                           sec=sec)) + .9)
-                / 2 )*2 + 1
-            # print "Number of segments for unmyelinated axon via d_lambda: "+ str(sec.nseg)
-        if self.verbose:
-            print("set nsegs using lambda-rule with frequency %i." % frequency)
-
-    def set_nsegs_lambda100(self, d_lambda=0.1):
-        # Set the numbers of segments using d_lambda(100)
-        self.set_nsegs_lambda_f(frequency=100, d_lambda=d_lambda)
-
-    def set_nsegs_fixed_length(self, maxlength):
-        # Set nseg for sections so that every segment L < maxlength
-        for sec in self.allseclist:
-            sec.nseg = int(sec.L / maxlength) + 1
-
-
 
 
 
@@ -956,8 +1038,6 @@ class Myelinated(Axon):
 
     def create_neuron_object(self):
 
-        self.allseclist = h.SectionList()
-
         self.nodes = []
         self.MYSAs = []
         self.FLUTs = []
@@ -973,137 +1053,12 @@ class Myelinated(Axon):
         for j in range(len(endSequence)):
             nodeType = endSequence[j]
             self.createSingleNode(nodeType)
-        # self.createSingleNode('n')
 
-        if self.layout3D == "DEFINE_SHAPE":
-            for i in range(self.axonnodes-1):
-                self.MYSAs[2*i].connect(self.nodes[i],1,0)
-                self.FLUTs[2*i].connect(self.MYSAs[2*i],1,0)
-                self.STINs[6*i].connect(self.FLUTs[2*i],1,0)
-                self.STINs[6*i+1].connect(self.STINs[6*i],1,0)
-                self.STINs[6*i+2].connect(self.STINs[6*i+1],1,0)
-                self.STINs[6*i+3].connect(self.STINs[6*i+2],1,0)
-                self.STINs[6*i+4].connect(self.STINs[6*i+3],1,0)
-                self.STINs[6*i+5].connect(self.STINs[6*i+4],1,0)
-                self.FLUTs[2*i+1].connect(self.STINs[6*i+5],1,0)
-                self.MYSAs[2*i+1].connect(self.FLUTs[2*i+1],1,0)
-                self.nodes[i+1].connect(self.MYSAs[2*i+1],1,0)
-            h.define_shape()
-        elif self.layout3D == "PT3D":
+        # transfer the geometry into the NEURON axon model
+        self.position_sections_in_neuron()
 
-            lengthArray = np.concatenate(([self.nodelength, self.paralength1, self.paralength2], np.multiply(np.ones(6), self.interlength), [self.paralength2, self.paralength1]))
-
-            # get sections in order (allseclist not subscriptable since NEURON object. But then, iterable.)
-            sectionArray = []
-            for sec in self.allseclist:
-                sectionArray.append(sec)
-
-            # DO-WHILE emulation
-            sectionIndex = 0
-            coordCounter = 0
-
-            # get the segment from the axon coordinates defined by createRandomAxon
-            direction = self.coord[coordCounter + 1, :] - self.coord[coordCounter, :]
-
-            # calculate the length and the normed direction vector
-            lengthGuideSegment = np.linalg.norm(direction)
-            directionNorm = direction / np.linalg.norm(direction)
-
-            # while on the same guide segment
-            sectionTypeIndex = sectionIndex % 11
-            sectionLength = lengthArray[sectionTypeIndex]
-
-            # variables to keep track of remaining section lengths and guide segment lengths
-            cumulatedLengthOnGuideSeg = 0
-            cumulatedLengthFromSection = 0
-
-            # set startpoint of axon /first axon section
-            section = sectionArray[sectionIndex]
-            h.pt3dclear(sec=section)
-            coord=self.coord[0,:]
-            h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
-
-            # print 'Section ' + str(sectionIndex) + ' started at coords ' + str(coord) + '.'
-            lengthReached = 0
-
-            while sectionIndex < self.axontotal:
-
-                # if the axon guide segment is longer than the remaining axon section, go to next section
-                if cumulatedLengthOnGuideSeg + (sectionLength - cumulatedLengthFromSection) < lengthGuideSegment:
-
-                    # set coordinates for section as lying in axon guide
-                    # coord = self.coord[coordCounter,:] + directionNorm * (sectionLength - cumulatedLengthFromSection)
-                    coord += directionNorm * (sectionLength - cumulatedLengthFromSection)
-                    lengthReached += (sectionLength - cumulatedLengthFromSection)
-
-                    # set endpoint of section
-                    h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
-                    # print 'Section ' + str(sectionIndex) + ' ended at coords' + str(coord) + '.'
-                    # print 'Direction normed : ' + str(directionNorm) + '\n'
-
-                    # update how far we got on the segment of the guide
-                    cumulatedLengthOnGuideSeg += (sectionLength - cumulatedLengthFromSection)
-
-                    # step to next segment
-                    sectionIndex += 1
-
-                    if sectionIndex >= self.axontotal:
-                        break
-
-                    # get the length
-                    sectionTypeIndex = sectionIndex % 11
-                    sectionLength = lengthArray[sectionTypeIndex]
-
-                    # set startpoint of next section
-                    section = sectionArray[sectionIndex]
-                    h.pt3dclear(sec=section)
-                    h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
-                    # print 'Section ' + str(sectionIndex) + ' started at coords' + str(coord) + '.'
-                    # print 'Length reached : '+str(lengthReached)
-
-                    section.connect(sectionArray[sectionIndex-1],1,0)
-
-                    cumulatedLengthFromSection  = 0
-
-                # if section does not fit into remaining axon guide segment, go to next axon guide segment
-                else:
-
-                    # substract the remaining length on the former segment from the section length to see what is left
-                    # for consecutive segments
-                    cumulatedLengthFromSection += lengthGuideSegment - cumulatedLengthOnGuideSeg
-
-                    lengthReached += np.linalg.norm(self.coord[coordCounter + 1,:] - coord)
-
-                    # get coords of node between guide segments
-                    coord = self.coord[coordCounter + 1,:]
-
-                    h.pt3dadd(coord[0], coord[1], coord[2], section.diam, sec=section)
-                    # print 'Section ' + str(sectionIndex) + ' has additional corner at coords' + str(coord) + '.'
-                    # print 'Length reached : '+str(lengthReached)
-
-                    # check out next guide segment
-                    coordCounter += 1
-
-                    # calculate the next normed direction vector
-                    direction = self.coord[coordCounter + 1, :] - self.coord[coordCounter, :]
-                    directionNorm = direction / np.linalg.norm(direction)
-                    lengthGuideSegment = np.linalg.norm(direction)
-
-                    # new guide segment -> no length consumed yet.
-                    cumulatedLengthOnGuideSeg = 0
-
-        else:
-            raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
-
-
-        self.totnsegs = self.calc_totnsegs()
-        for sec_id in self.allseclist:
-            for seg in sec_id:
-                h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
-                h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
-        self.interpxyz()
-        self.collect_geometry()
-        self.calc_midpoints()
+        # do everything (number of segs per sec, channels, geometry from NEURON)
+        super(Myelinated, self).create_neuron_object()
 
         # here we correct the conductance of the slow potassium channel from 0.08 S/cm2 to 0.12 S/cm2 to prevent
         # multiple action potentials for thin fibers
