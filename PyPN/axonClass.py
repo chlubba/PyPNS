@@ -61,7 +61,7 @@ class Axon(object):
 
 
     def calc_totnsegs(self):
-        # Calculate the number of segments in the allseclist
+        # Calculate the number of segments in the allseclist (only possible if NEURON simulation has run)
         i = 0
         for sec in self.allseclist:
             i += sec.nseg
@@ -75,8 +75,7 @@ class Axon(object):
         """
         Collects x, y, z-coordinates from NEURON
 
-        Returns:
-            -
+        Returns: Nothing, write into Axon-class
         """
 
         if not hasattr(self, 'xstart'):
@@ -328,13 +327,26 @@ class Axon(object):
 
     @staticmethod
     def setrx(stim_elec, axon_pos, rho=500, bipolar = False):
+        """
+        This function assumes a homogeneous outer medium for stimulation and sets the transmission resistance rx
+        accordingly. While for the CNS this might be ok, it certainly isn't here in the PNS, so this function should
+        not be used and could as well be removed.
+
+        Args:
+            stim_elec:
+            axon_pos:
+            rho:
+            bipolar:
+
+        Returns:
+
+        """
 
         numPoints = stim_elec.shape[0]
 
         r = np.zeros(len(stim_elec))
 
         # now expects xyc coords as arguments
-
         for sec in h.allsec():
 
             if h.ismembrane('xtra', sec=sec):
@@ -372,49 +384,9 @@ class Axon(object):
                     seg.xtra.rx = (rho / 4.0 / math.pi) * sum_r * 0.01
 
 
-    # def setrx(self,stim_elec, axon_pos):
-    #     stimulation_mode = len(stim_elec) #1: monopolar,2: bipolar,3: tripolar, above just considered as multiple monopolar
-    #     r = np.zeros(stimulation_mode)
-    #     # now expects xyc coords as arguments
-    #
-    #     for sec in h.allsec():
-    #
-    #         if h.ismembrane('xtra',sec=sec):
-    #
-    #             for seg in sec:
-    #
-    #                 for j in range(stimulation_mode):
-    #
-    #                     [xe,ye,ze] = stim_elec[j]
-    #
-    #                     #avoid nodes at 0 and 1 ends, so as not to override values at internal nodes
-    #                     r[j] = math.sqrt(math.pow(seg.x_xtra - xe,2) + math.pow(seg.y_xtra-axon_pos[0] - ye,2) + math.pow(seg.z_xtra-axon_pos[1] - ze,2))
-    #
-    #                     # 0.01 converts rho's cm to um and ohm to megohm
-    #                     # if electrode is exactly at a node, r will be 0
-    #                     # this would be meaningless since the location would be inside the cell
-    #                     # so force r to be at least as big as local radius
-    #
-    #                     if (r[j]==0):
-    #                         r[j] = seg.diam/2.0
-    #                 if stimulation_mode == 1:
-    #                     seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r)*0.01
-    #                 elif stimulation_mode == 2:
-    #                     seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r[0]-1/r[1])*0.01
-    #                 elif stimulation_mode == 3:
-    #                     seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/r[0]-1/r[1]+1/r[2])*0.01
-    #                 else:
-    #                     sum_r = 0
-    #                     for j in range(stimulation_mode):
-    #                         sum_r += 1/r[j]
-    #                     # seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*(1/sum_r)*0.01
-    #                     seg.xtra.rx = (sec.Ra / 4.0 / math.pi)*sum_r*0.01
-
-
 class Unmyelinated(Axon):
 
     # name: axon name (for neuron)
-    #
     # nsegs_method: ['lambda100']/'lambda_f'/'fixed_length': nseg rule
     # max_nsegs_length: [None]: max segment length for method 'fixed_length'
     # lambda_f: [100]: AC frequency for method 'lambda_f'
@@ -461,7 +433,10 @@ class Unmyelinated(Axon):
         self.axon.insert('extracellular')
         # todo: comment in
         # self.axon.insert('xtra')
-        self.axon_update_property()
+        self.axon.L = self.L
+        self.axon.diam = self.fiberD
+        self.axon.cm = self.cm
+        self.axon.Ra = self.Ra
 
         self.set_nsegs(self.nsegs_method, self.lambda_f, self.d_lambda, self.max_nsegs_length)
 
@@ -497,7 +472,6 @@ class Unmyelinated(Axon):
                 seg = None
             sec = None
         self.allseclist = None
-        self.axon = None
 
         # if not self.synapse == []:
         #     self.synapse = None
@@ -526,13 +500,15 @@ class Unmyelinated(Axon):
             for i in range(len(exMechVars)):
                 exMechVars[i] = None
 
+        self.axon = None
 
 
-    def axon_update_property(self):
-        self.axon.L = self.L
-        self.axon.diam = self.fiberD
-        self.axon.cm = self.cm
-        self.axon.Ra = self.Ra
+
+    # def axon_update_property(self):
+    #     self.axon.L = self.L
+    #     self.axon.diam = self.fiberD
+    #     self.axon.cm = self.cm
+    #     self.axon.Ra = self.Ra
 
 
 
@@ -1142,16 +1118,12 @@ class Myelinated(Axon):
         h(hString)
 
     def delete_neuron_object(self):
+
         for sec in self.allseclist:
             for seg in sec:
                 seg = None
             sec = None
         self.allseclist = None
-
-        self.nodes = None
-        self.FLUTs = None
-        self.MYSAs = None
-        self.STINs = None
 
         # if not self.synapse == []:
         #     self.synapse = None
@@ -1175,8 +1147,12 @@ class Myelinated(Axon):
         # also delete unnecessary data that will no longer be used to keep the pickled file small
         self.imem = None
 
-        # do the following better, soon!! have a separate excitationMechanism list in each axon
-
+        # neuron objects inserted by excitation mechanisms
         for exMechVars in self.exMechVars:
             for i in range(len(exMechVars)):
                 exMechVars[i] = None
+
+        self.nodes = None
+        self.FLUTs = None
+        self.MYSAs = None
+        self.STINs = None

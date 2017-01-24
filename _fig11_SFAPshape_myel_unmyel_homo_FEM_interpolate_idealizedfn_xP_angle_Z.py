@@ -254,7 +254,7 @@ else:
 
                 zInterpolator = interp1d(zValues, vValues, bounds_error=False, fill_value=0)
 
-                LFPMechs.append(PyPN.Extracellular.interpolationExtracellular(bundle.bundleCoords, zInterpolator=zInterpolator))
+                LFPMechs.append(PyPN.Extracellular.interpolator(bundle.bundleCoords, interpolator=zInterpolator))
 
                 if i == 1:
 

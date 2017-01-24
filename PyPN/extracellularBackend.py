@@ -1,68 +1,14 @@
 import numpy as np
 from scipy import ndimage
-from scipy.interpolate import interp1d
 import time
 import createGeometry
-from takeTime import takeTime
+# from takeTime import takeTime
+# from scipy.interpolate import interp1d
 
-# def getImageCoords1D(physicalCoordinate1D, pointsOfInterest):
-#
-#     if len(physicalCoordinate1D) > 1:
-#
-#         # interpolate to obtain coordinate position
-#         physicalCoordinate1D.sort()
-#         coordInterp = interp1d(physicalCoordinate1D, range(len(physicalCoordinate1D)))
-#
-#         pointsOfInterest = np.array(pointsOfInterest)
-#
-#         # if only one half of coordinates was exported, is is to be assumed, that a symmetry in the geometry justifies that.
-#         # we therefore mirror here by taking the absolute value of the input coordinates
-#         if np.min(physicalCoordinate1D) >= 0:
-#             coords = coordInterp(np.abs(pointsOfInterest))
-#         else:
-#             coords = coordInterp(pointsOfInterest)
-#
-#     else:
-#         # a single value only signifies that this coordinate does not interest. Only for source positions.
-#         coords = np.zeros(len(pointsOfInterest))
-#
-#     return coords
-
-# def _getImageCoordsUnregXZ(fieldDict, points):
-#
-#     xValues = fieldDict['x']
-#     yValues = fieldDict['y']
-#     zValues = fieldDict['z']
-#     axonXValues = fieldDict['axonX']
-#     axonZValues = fieldDict['axonZ']
-#
-#     # interpolate to obtain coordinate position
-#     xCoordInterp = interp1d(xValues, range(len(xValues)))
-#     yCoordInterp = interp1d(yValues, range(len(yValues)))
-#     zCoordInterp = interp1d(zValues, range(len(zValues)))
-#     axonXCoordInterp = interp1d(axonXValues, range(len(axonXValues)))
-#     axonZCoordInterp = interp1d(axonZValues, range(len(axonZValues)))
-#
-#     points = np.array(points)
-#
-#     if len(points.shape) > 1:
-#         points = np.transpose(points)
-#         xCoords = xCoordInterp(points[:, 0])
-#         yCoords = yCoordInterp(points[:, 1])
-#         zCoords = zCoordInterp(points[:, 2])
-#         xAxonCoords = axonXCoordInterp(points[:, 3])
-#         zAxonCoords = axonZCoordInterp(points[:, 4])
-#     else:
-#         xCoords = xCoordInterp(points[0])
-#         yCoords = yCoordInterp(points[1])
-#         zCoords = zCoordInterp(points[2])
-#         xAxonCoords = axonXCoordInterp(points[3])
-#         zAxonCoords = axonZCoordInterp(points[4])
-#
-#     # mirror coordinates where the symmetry allows it. Here only of y, NOT for z
-#     yCoords = np.abs(yCoords)
-#
-#     return np.vstack([xCoords, yCoords, zCoords, xAxonCoords, zAxonCoords])
+# ================================================================================
+# ====================== used by precomputedFEM to calculate =====================
+# =================== image coordinates from spatial coordinates =================
+# ================================================================================
 
 def _getImageCoords(fieldDict, points):
     """
@@ -143,115 +89,6 @@ def _getImageCoords(fieldDict, points):
 
     return combinedCoords
 
-
-
-# def _interpolateFromImageGranular(fieldDict, points, order=3, zGiven=False):
-#
-#     fieldKeys = (('axonX', 'x'), ('axonY', 'y'), ('axonZ', 'z'))
-#     receiverCoords = []
-#     sourceCoords = []
-#     coordInd = 0
-#
-#
-#     print points
-#
-#     # process coordinate pairs (axon position and electrode position). If for a coordinate the axon position is only
-#     # given in one direction (only positive coordinate values), for negative coordinate values the field of the positive
-#     # position is taken. But then also the receiver position needs to be mirrored on the axis of symmetry.
-#     for coordKeyPair in fieldKeys:
-#
-#         axonFieldKey = coordKeyPair[0]
-#
-#         signArray = []
-#         try:
-#             # exported (from FEM simulation) coordinate values for the axis of interest
-#             physicalCoords = fieldDict[axonFieldKey]
-#
-#             # get the coordinates of interest
-#             if len(points.shape) > 1:
-#                 coordVals = points[coordInd, :]
-#             else:
-#                 coordVals = points[coordInd]
-#
-#             sourceCoords.append(_getImageCoords1D(physicalCoords, coordVals))
-#
-#             # if the exported coordinates for this dimension are only positive, this means the source position is taken
-#             # as an absolute value. Therefore, if it actually was a negative value, the field needs to be mirrored along
-#             # the symmetry axis. This mirroring is equivalent to a sign change of the receiver coordinate value.
-#             if min(physicalCoords) >= 0:
-#                 signArray = np.sign(coordVals)
-#                 signArray[signArray == 0] = 1 # if no mirroring neccessary, don't.
-#             else:
-#                 signArray = np.ones(np.shape(physicalCoords))
-#
-#             coordInd += 1
-#         except:
-#             pass
-#
-#         # now process the receiver.
-#         receiverFieldKey = coordKeyPair[1]
-#         physicalCoords = fieldDict[receiverFieldKey]
-#
-#         # get the coordinates of interest
-#         if len(points.shape) > 1:
-#             coordVals = points[coordInd, :]
-#         else:
-#             coordVals = points[coordInd]
-#
-#         # mirror source positions along symmetry axis
-#         if not np.size(signArray) == 0:
-#             coordVals = np.multiply(coordVals, signArray)
-#
-#         # get the coordinated mapped to image 'pixel indices'
-#         receiverCoords.append(_getImageCoords1D(physicalCoords, coordVals))
-#
-#         coordInd += 1
-#
-#     combinedCoords = np.vstack((np.array(receiverCoords), np.array(sourceCoords)))
-#
-#     print combinedCoords
-#
-#     imageCoords = np.array(combinedCoords)
-
-# def _interpolateFromImageGranular(fieldDict, points, order=3, zGiven=False):
-#
-#     fieldKeys = ('x', 'y', 'z', 'axonX', 'axonY', 'axonZ')
-#     combinedCoords = []
-#     coordInd = 0
-#     for fieldKey in fieldKeys:
-#
-#         try:
-#             physicalCoords = fieldDict[fieldKey]
-#         except:
-#             continue
-#
-#         if len(points.shape) > 1:
-#             combinedCoords.append(_getImageCoords1D(physicalCoords, points[coordInd,:]))
-#         else:
-#             combinedCoords.append(_getImageCoords1D(physicalCoords, points[coordInd]))
-#
-#         coordInd += 1
-#
-#     imageCoords = np.array(combinedCoords)
-#
-#     print imageCoords
-
-#
-#     # then with new coords to the interpolation
-#     return ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=order)
-
-# def _interpolateFromImage(fieldDict, points, order=3, zGiven=False):
-#
-#     # first transform coordinates in points into position coordinates
-#     # different function
-#     if zGiven:
-#         imageCoords = _getImageCoordsUnregXZ(fieldDict, points)
-#     else:
-#         imageCoords = _getImageCoords(fieldDict, points)
-#
-#     # then with new coords to the interpolation
-#     return ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=order)
-
 def interpolateFromImage(fieldDict, points, order=3, zGiven=False):
 
     # first transform coordinates in points into position coordinates
@@ -261,15 +98,210 @@ def interpolateFromImage(fieldDict, points, order=3, zGiven=False):
     # then with new coords to the interpolation
     return ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=order)
 
-# def _interpolateFromImage(fieldDict, points, order=3, zGiven=False):
-#
-#     # first transform coordinates in points into position coordinates
-#     # different function
-#
-#     imageCoords = _getImageCoords(fieldDict, points)
-#
-#     # then with new coords to the interpolation
-#     return ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=order)
+# ================================================================================
+# ========= used by interpolator and precomputedFEM to calculate =================
+# ======== the spatial relationships between points and the bundle ===============
+# ================================================================================
+
+def associatePointToBundleSegs(points, bundleGuide):
+
+    # make sure orientation is fine
+    pointsShape = np.shape(points)
+    if pointsShape[0] == 3:
+        points = np.transpose(points)
+    numPoints = np.shape(points)[0]
+
+    # cut away potential radius coordinate
+    bundleGuideStripped = bundleGuide[:,0:3]
+    bundleGuideLength = np.shape(bundleGuide)[0]
+
+    # variable to save squared distances between bundle guide segment centers and source positions
+    r2min = np.ones(numPoints) * np.inf
+    # indices of closest bundle segment for all points
+    closestSegInds = np.zeros(numPoints)
+
+    for bundleGuideInd in range(bundleGuideLength - 1):
+        bundleSegStart = bundleGuideStripped[bundleGuideInd, :]
+        bundleSegStop = bundleGuideStripped[bundleGuideInd + 1, :]
+        bundleMiddle = (bundleSegStart + bundleSegStop) / 2
+
+        r2 = np.sum(np.square(points - bundleMiddle), axis=1)
+
+        # current distance smaller than current minimum?
+        compArray = r2 < r2min
+
+        closestSegInds[compArray] = bundleGuideInd
+        r2min[compArray] = r2[compArray]
+
+    return closestSegInds
+
+def rotationMatrixFromVectors(a, b):
+    """np.dot(R,a) = b
+
+    from http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+    user 'Kuba Ober'
+
+    """
+
+    if np.all(a == b):
+        return np.diag(np.ones(3))
+    else:
+
+        G = np.array([[np.dot(a, b), -np.linalg.norm(np.cross(a, b)), 0],
+                      [np.linalg.norm(np.cross(a, b)), np.dot(a, b), 0],
+                      [0, 0, 1]])
+        F = np.array(
+            [a, (b - np.multiply(np.dot(a, b), a)) / np.linalg.norm(b - np.multiply(np.dot(a, b), a)), np.cross(b, a)])
+
+        R = F.dot(G).dot(np.linalg.inv(F))
+
+        return R
+
+def spatialRelation(points, bundleGuide, segmentAssociations):
+    """
+
+    Args:
+        points: points of interest (Nx3), can be electrode or axon segments
+        bundleGuide: ... bundle guide.
+        segmentAssociations: an array of length N (number of points), containing the bundle guide segment indices
+
+    Returns:
+        distPerpendiculars: distance of points from bundle guide
+        lengthAlongs: distance along the bundle guide (from origin)
+        angles: the angle between the perpendicular of the points towards the bundle guide segment and the y-axis (chosen arbitrarily)
+
+    """
+
+    # cut away potential radius coordinate
+    bundleGuideStripped = bundleGuide[:, 0:3]
+    bundleGuideLength = np.shape(bundleGuide)[0]
+
+    # variables of interest that are calculated for all positions
+    posPerpendiculars = np.zeros(np.shape(points))
+    distPars = np.zeros(np.shape(points)[0])
+    distPerpendiculars = np.zeros(np.shape(points)[0])
+    lengthAlongs = np.zeros(np.shape(points)[0])
+    angles = np.zeros(np.shape(points)[0])
+
+    # loop over all bundle segments
+    lengthAlongBundle = 0
+    lastBundleDir = bundleGuideStripped[1, :] - bundleGuideStripped[0, :]
+    lastBundleDirNorm = lastBundleDir / np.linalg.norm(lastBundleDir)
+    overallR = np.diag(np.ones(3))
+    for bundleSegInd in range(bundleGuideLength-1):
+
+        bundleSegStart = bundleGuideStripped[bundleSegInd, :]
+        bundleSegStop = bundleGuideStripped[bundleSegInd + 1, :]
+        bundleSegLen = np.linalg.norm(bundleSegStop - bundleSegStart)
+        bundleDirNorm = (bundleSegStop - bundleSegStart)/bundleSegLen
+
+        # calulcate the rotation matrix between two following bundle segments
+        R = rotationMatrixFromVectors(bundleDirNorm, lastBundleDirNorm)
+
+        # overall rotation matrix from current segment to initial one
+        overallR = overallR.dot(R)
+
+        # look at points associated with current bundle segment
+        pointIndicesCurrentSegment = np.where(segmentAssociations == bundleSegInd)[0]
+        for pointInd in pointIndicesCurrentSegment:
+            point = points[pointInd,:]
+
+            # compontent parallel to bundle direction
+            distPar = np.inner(point - bundleSegStart, bundleDirNorm)
+
+            # normal from bundle guide to axon position
+            posPerpendicular = point - (bundleSegStart + distPar * bundleDirNorm)
+            distPerpendicular = np.linalg.norm(posPerpendicular)
+
+            # save all computed values of axon into these lists
+            distPerpendiculars[pointInd] = distPerpendicular
+            posPerpendiculars[pointInd, :] = posPerpendicular
+            distPars[pointInd] = distPar
+
+            # distance from origin of bundle
+            lengthAlongs[pointInd] = lengthAlongBundle + distPar
+
+            # vector perpendicular onto bundle segment, turned to calculated the
+            yzVec = np.dot(overallR, posPerpendicular)
+            angle = np.arctan2(yzVec[1], yzVec[2])
+            angles[pointInd] = angle
+
+        lengthAlongBundle += bundleSegLen
+        lastBundleDirNorm = bundleDirNorm
+
+    return distPerpendiculars, lengthAlongs, angles
+
+def compute_relative_positions_and_interpolate_fn_input(sourcePositions, sourceCurrents, receiverPositions, bundleGuide,
+                                                positionToVoltageFn, currentUnitFEM=-9, currentUnitSource=-9):
+    """
+
+    Args:
+        sourcePositions: position of current sources (Nx3) x,y,z
+        sourceCurrents: source currents (NxM) with M time steps
+        receiverPositions: positions of receivers (Nx3) x,y,z
+        fieldDict: dictionary to interpolate voltage values with
+        bundleGuide: bundle guide, needed to calculate spatial relation between source and recording positions
+        currentUnitFEM: unit of current as used in the FEM simulation in powers of 10 (default -9)
+        currentUnitSource: unit of current as used in the NEURON simulation in powers of 10 (default -9)
+
+    Returns: (KxM) voltage matrix of K recording positions and M time steps
+
+    """
+
+    # precalculate the spatial relation between the bundle guide and the receivers
+    segmentAssociationsRec = associatePointToBundleSegs(receiverPositions, bundleGuide)
+    distPerpendicularRec, lengthAlongRec, anglesRec = spatialRelation(receiverPositions, bundleGuide,
+                                                                      segmentAssociationsRec)
+
+    # same for sources
+    segmentAssociationsSource = associatePointToBundleSegs(sourcePositions, bundleGuide)
+    distPerpendicularsSource, lengthAlongsSource, anglesSource = spatialRelation(sourcePositions, bundleGuide,
+                                                                                 segmentAssociationsSource)
+    # number of sources
+    numSourcePos = np.shape(distPerpendicularsSource)[0]
+
+    # matrix to save receiver potentials in
+    receiverPots = np.array([]).reshape(0, np.shape(sourceCurrents)[1])
+
+    # loop over all recording positions
+    for recInd in range(np.shape(distPerpendicularRec)[0]):
+        # distance to the bundle guide
+        distPerpendicularRecTemp = distPerpendicularRec[recInd]
+        # distance of recording along axon (important: this 'straightens' the bundle) No curves of the
+        # bundle guide are considered. Axon tortuosity still plays a role.
+        lengthAlongRecTemp = lengthAlongRec[recInd]
+        # angle between y-axis and recording position perpendicular towards bundle guide
+        # (bundle guide segment rotated to x-axis)
+        angleRecTemp = anglesRec[recInd]
+
+        # distance between source and recording positions
+        distBetweenTemp = lengthAlongsSource - lengthAlongRecTemp
+
+        # angle between them
+        anglesTemp = anglesSource - angleRecTemp
+
+        # calculate the interpolation points handed over to the fieldImage
+        interpolationPoints = np.vstack(
+            [np.cos(anglesTemp) * distPerpendicularRecTemp, np.sin(anglesTemp) * distPerpendicularRecTemp,
+             distBetweenTemp, distPerpendicularsSource])
+        interpolationPoints = np.divide(interpolationPoints, 1000000)  # from um to m
+
+        # now interpolate from fieldImage
+        receiverPotTempStatic = positionToVoltageFn(interpolationPoints)
+
+        # scale potential-voltage-relation with current to obtain temporal signal
+        # COMSOL gave V, we need mV, therefore multiply with 1000
+        # also there can be a mismatch in current unit of the source, eliminate
+        receiverPotTemp = np.sum(sourceCurrents * receiverPotTempStatic[:, np.newaxis], axis=0) \
+                          * 10 ** (currentUnitSource - currentUnitFEM) * 1000
+
+        receiverPots = np.vstack([receiverPotTemp, receiverPotTemp])
+
+    return receiverPots
+
+# ================================================================================
+# ==================================== unused ====================================
+# ================================================================================
 
 def compute_relative_positions_and_interpolate_symmetric_inhomogeneity(sourcePositions, sourceCurrents, receiverPositions, fieldDict, bundleGuide, receiverDisplacement=0, currentUnitFEM=-9, currentUnitSource=-9):
 
@@ -661,134 +693,71 @@ def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, 
 
     return receiverPotentials
 
+# def _interpolateFromImage(fieldDict, points, order=3, zGiven=False):
+#
+#     # first transform coordinates in points into position coordinates
+#     # different function
+#
+#     imageCoords = _getImageCoords(fieldDict, points)
+#
+#     # then with new coords to the interpolation
+#     return ndimage.map_coordinates(fieldDict['fieldImage'], imageCoords, order=order)
 
+# def getImageCoords1D(physicalCoordinate1D, pointsOfInterest):
+#
+#     if len(physicalCoordinate1D) > 1:
+#
+#         # interpolate to obtain coordinate position
+#         physicalCoordinate1D.sort()
+#         coordInterp = interp1d(physicalCoordinate1D, range(len(physicalCoordinate1D)))
+#
+#         pointsOfInterest = np.array(pointsOfInterest)
+#
+#         # if only one half of coordinates was exported, is is to be assumed, that a symmetry in the geometry justifies that.
+#         # we therefore mirror here by taking the absolute value of the input coordinates
+#         if np.min(physicalCoordinate1D) >= 0:
+#             coords = coordInterp(np.abs(pointsOfInterest))
+#         else:
+#             coords = coordInterp(pointsOfInterest)
+#
+#     else:
+#         # a single value only signifies that this coordinate does not interest. Only for source positions.
+#         coords = np.zeros(len(pointsOfInterest))
+#
+#     return coords
 
-def associatePointToBundleSegs(points, bundleGuide):
-
-    # make sure orientation is fine
-    pointsShape = np.shape(points)
-    if pointsShape[0] == 3:
-        points = np.transpose(points)
-    numPoints = np.shape(points)[0]
-
-    # cut away potential radius coordinate
-    bundleGuideStripped = bundleGuide[:,0:3]
-    bundleGuideLength = np.shape(bundleGuide)[0]
-
-    # variable to save squared distances between bundle guide segment centers and source positions
-    r2min = np.ones(numPoints) * np.inf
-    # indices of closest bundle segment for all points
-    closestSegInds = np.zeros(numPoints)
-
-    for bundleGuideInd in range(bundleGuideLength - 1):
-        bundleSegStart = bundleGuideStripped[bundleGuideInd, :]
-        bundleSegStop = bundleGuideStripped[bundleGuideInd + 1, :]
-        bundleMiddle = (bundleSegStart + bundleSegStop) / 2
-
-        r2 = np.sum(np.square(points - bundleMiddle), axis=1)
-
-        # current distance smaller than current minimum?
-        compArray = r2 < r2min
-
-        closestSegInds[compArray] = bundleGuideInd
-        r2min[compArray] = r2[compArray]
-
-    return closestSegInds
-
-
-def rotationMatrixFromVectors(a, b):
-    """np.dot(R,a) = b
-
-    from http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
-    user 'Kuba Ober'
-
-    """
-
-    if np.all(a == b):
-        return np.diag(np.ones(3))
-    else:
-
-        G = np.array([[np.dot(a, b), -np.linalg.norm(np.cross(a, b)), 0],
-                      [np.linalg.norm(np.cross(a, b)), np.dot(a, b), 0],
-                      [0, 0, 1]])
-        F = np.array(
-            [a, (b - np.multiply(np.dot(a, b), a)) / np.linalg.norm(b - np.multiply(np.dot(a, b), a)), np.cross(b, a)])
-
-        R = F.dot(G).dot(np.linalg.inv(F))
-
-        return R
-
-
-def spatialRelation(points, bundleGuide, segmentAssociations):
-    """
-
-    Args:
-        points: points of interest (Nx3), can be electrode or axon segments
-        bundleGuide: ... bundle guide.
-        segmentAssociations: an array of length N (number of points), containing the bundle guide segment indices
-
-    Returns:
-        distPerpendiculars: distance of points from bundle guide
-        lengthAlongs: distance along the bundle guide (from origin)
-        angles: the angle between the perpendicular of the points towards the bundle guide segment and the y-axis (chosen arbitrarily)
-
-    """
-
-    # cut away potential radius coordinate
-    bundleGuideStripped = bundleGuide[:, 0:3]
-    bundleGuideLength = np.shape(bundleGuide)[0]
-
-    # variables of interest that are calculated for all positions
-    posPerpendiculars = np.zeros(np.shape(points))
-    distPars = np.zeros(np.shape(points)[0])
-    distPerpendiculars = np.zeros(np.shape(points)[0])
-    lengthAlongs = np.zeros(np.shape(points)[0])
-    angles = np.zeros(np.shape(points)[0])
-
-    # loop over all bundle segments
-    lengthAlongBundle = 0
-    lastBundleDir = bundleGuideStripped[1, :] - bundleGuideStripped[0, :]
-    lastBundleDirNorm = lastBundleDir / np.linalg.norm(lastBundleDir)
-    overallR = np.diag(np.ones(3))
-    for bundleSegInd in range(bundleGuideLength-1):
-
-        bundleSegStart = bundleGuideStripped[bundleSegInd, :]
-        bundleSegStop = bundleGuideStripped[bundleSegInd + 1, :]
-        bundleSegLen = np.linalg.norm(bundleSegStop - bundleSegStart)
-        bundleDirNorm = (bundleSegStop - bundleSegStart)/bundleSegLen
-
-        # calulcate the rotation matrix between two following bundle segments
-        R = rotationMatrixFromVectors(bundleDirNorm, lastBundleDirNorm)
-
-        # overall rotation matrix from current segment to initial one
-        overallR = overallR.dot(R)
-
-        # look at points associated with current bundle segment
-        pointIndicesCurrentSegment = np.where(segmentAssociations == bundleSegInd)[0]
-        for pointInd in pointIndicesCurrentSegment:
-            point = points[pointInd,:]
-
-            # compontent parallel to bundle direction
-            distPar = np.inner(point - bundleSegStart, bundleDirNorm)
-
-            # normal from bundle guide to axon position
-            posPerpendicular = point - (bundleSegStart + distPar * bundleDirNorm)
-            distPerpendicular = np.linalg.norm(posPerpendicular)
-
-            # save all computed values of axon into these lists
-            distPerpendiculars[pointInd] = distPerpendicular
-            posPerpendiculars[pointInd, :] = posPerpendicular
-            distPars[pointInd] = distPar
-
-            # distance from origin of bundle
-            lengthAlongs[pointInd] = lengthAlongBundle + distPar
-
-            # vector perpendicular onto bundle segment, turned to calculated the
-            yzVec = np.dot(overallR, posPerpendicular)
-            angle = np.arctan2(yzVec[1], yzVec[2])
-            angles[pointInd] = angle
-
-        lengthAlongBundle += bundleSegLen
-        lastBundleDirNorm = bundleDirNorm
-
-    return distPerpendiculars, lengthAlongs, angles
+# def _getImageCoordsUnregXZ(fieldDict, points):
+#
+#     xValues = fieldDict['x']
+#     yValues = fieldDict['y']
+#     zValues = fieldDict['z']
+#     axonXValues = fieldDict['axonX']
+#     axonZValues = fieldDict['axonZ']
+#
+#     # interpolate to obtain coordinate position
+#     xCoordInterp = interp1d(xValues, range(len(xValues)))
+#     yCoordInterp = interp1d(yValues, range(len(yValues)))
+#     zCoordInterp = interp1d(zValues, range(len(zValues)))
+#     axonXCoordInterp = interp1d(axonXValues, range(len(axonXValues)))
+#     axonZCoordInterp = interp1d(axonZValues, range(len(axonZValues)))
+#
+#     points = np.array(points)
+#
+#     if len(points.shape) > 1:
+#         points = np.transpose(points)
+#         xCoords = xCoordInterp(points[:, 0])
+#         yCoords = yCoordInterp(points[:, 1])
+#         zCoords = zCoordInterp(points[:, 2])
+#         xAxonCoords = axonXCoordInterp(points[:, 3])
+#         zAxonCoords = axonZCoordInterp(points[:, 4])
+#     else:
+#         xCoords = xCoordInterp(points[0])
+#         yCoords = yCoordInterp(points[1])
+#         zCoords = zCoordInterp(points[2])
+#         xAxonCoords = axonXCoordInterp(points[3])
+#         zAxonCoords = axonZCoordInterp(points[4])
+#
+#     # mirror coordinates where the symmetry allows it. Here only of y, NOT for z
+#     yCoords = np.abs(yCoords)
+#
+#     return np.vstack([xCoords, yCoords, zCoords, xAxonCoords, zAxonCoords])

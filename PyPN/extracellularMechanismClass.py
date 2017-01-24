@@ -2,7 +2,6 @@ from abc import abstractmethod, ABCMeta
 import numpy as np
 import os
 import silencer
-# import LFPy
 import time
 from extracellularBackend import *
 
@@ -14,9 +13,10 @@ class ExtracellularPotentialMechanism(object):
     def calculate_extracellular_potential(self, sourcePositions, sourceCurrents, receiverPositions):
         pass
 
-class interpolationExtracellular(ExtracellularPotentialMechanism):
 
-    def __init__(self, bundleGuide, zInterpolator):
+class interpolator(ExtracellularPotentialMechanism):
+
+    def __init__(self, bundleGuide, method='z', interpolator=None):
         """Uses and idealized interpolation function to calculate the extracelluar potential caused by point sources. Used by :class:`recodingMechanismClass.RecordingMechanism`.
 
         :param bundleGuide: 3D nerve trajectory
@@ -24,7 +24,19 @@ class interpolationExtracellular(ExtracellularPotentialMechanism):
         """
 
         self.bundleGuide = bundleGuide
-        self.zInterpolator = zInterpolator
+        self.interpolator = interpolator
+        self.method = method
+
+        if self.interpolator == None:
+            # if no function for potential calculation is given, take the default one
+
+            a = 1.9E-9  # 2.5E-9;
+            b = 0.00005
+
+            peakFactor = lambda angle, xP: max(0, (1 - np.mod(angle, np.pi) / np.pi * 5)) * np.min(
+                [1, (xP / 0.000190) ** 5])
+            self.interpolator = lambda zValues, angle, xP: a * (1.0 / (np.abs(zValues) + b)) * peakFactor(angle, xP) + \
+                                                           np.maximum(0, (np.subtract(1, np.abs(zValues / 0.01)) * 8.83e-5))
 
     def calculate_extracellular_potential(self, sourcePositions, sourceCurrents, receiverPositions):
         """
@@ -37,152 +49,30 @@ class interpolationExtracellular(ExtracellularPotentialMechanism):
 
         def _interpolateStaticPotential(points):
             """
-            Here we simplify.
-
-            x = 220 um
-            y = 0
-            z = 0
-
-            a_x = 0
-            a_y = 0
-            a_z = only variable
-
             Args:
-                points:
-                order:
+                points: input from _compute_relative_positions_and_interpolate (this is the interpolation part)
 
-            Returns:
-
-            """
-
-            a_z = points[-1, :]
-
-            # smoothedFunctionArrayPacked = np.load(os.path.join('/media/carl/4ECC-1C44/ComsolData/interpolated_function_electrode_fixed_a_z_variable', 'smoothed1000.npy'))
-            # smoothedFunctionArray1 = smoothedFunctionArrayPacked[()]
-            #
-            # smoothedFunctionArrayPacked = np.load(
-            #     os.path.join('/media/carl/4ECC-1C44/ComsolData/interpolated_function_electrode_fixed_a_z_variable',
-            #                  'smoothed.npy'))
-            # smoothedFunctionArray0 = smoothedFunctionArrayPacked[()]
-            #
-            # smoothedFunctionArrayPacked = np.load(
-            #     os.path.join('/media/carl/4ECC-1C44/ComsolData/interpolated_function_electrode_fixed_a_z_variable',
-            #                  'smoothed1000_zeroed.npy'))
-            # smoothedFunctionArray2 = smoothedFunctionArrayPacked[()]
-            #
-            # smoothedFunctionArrayPacked = np.load(
-            #     os.path.join('/media/carl/4ECC-1C44/ComsolData/interpolated_function_electrode_fixed_a_z_variable',
-            #                  'smoothed100_zeroed.npy'))
-            # smoothedFunctionArray3 = smoothedFunctionArrayPacked[()]
-
-            # import matplotlib.pyplot as plt
-            # plt.close('all')
-            # plt.figure()
-            # plt.plot(smoothedFunctionArray1[0], smoothedFunctionArray1[1])
-            # plt.plot(smoothedFunctionArray0[0], smoothedFunctionArray0[1])
-            # plt.plot(smoothedFunctionArray1[0], np.maximum(0, np.multiply(np.subtract(1, np.abs(smoothedFunctionArray1[0] / 0.01)), np.max(smoothedFunctionArray0[1]))))
-            # plt.show()
-
-            # smoothedInterp = interp1d(smoothedFunctionArray2[0], smoothedFunctionArray3[1], bounds_error=False, fill_value=0)
-            #
-            # smoothedVoltageStatic = smoothedInterp(a_z)
-
-            # triangularVoltage = np.maximum(0, np.multiply(np.subtract(1, np.abs(a_z / 0.0025)), np.max(smoothedFunctionArray0[1])))
-
-
-            return self.zInterpolator(a_z)  # triangularVoltage # smoothedVoltageStatic #
-
-        def _compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions,
-                                                        fieldDict,
-                                                        bundleGuide, currentUnitFEM=-9, currentUnitSource=-9):
-            """
-
-            Args:
-                sourcePositions: position of current sources (Nx3) x,y,z
-                sourceCurrents: source currents (NxM) with M time steps
-                receiverPositions: positions of receivers (Nx3) x,y,z
-                fieldDict: dictionary to interpolate voltage values with
-                bundleGuide: bundle guide, needed to calculate spatial relation between source and recording positions
-                currentUnitFEM: unit of current as used in the FEM simulation in powers of 10 (default -9)
-                currentUnitSource: unit of current as used in the NEURON simulation in powers of 10 (default -9)
-
-            Returns: (KxM) voltage matrix of K recording positions and M time steps
+            Returns: static potential that needs to be scaled with current
 
             """
 
-            # precalculate the spatial relation between the bundle guide and the receivers
-            segmentAssociationsRec = associatePointToBundleSegs(receiverPositions, bundleGuide)
-            distPerpendicularRec, lengthAlongRec, anglesRec = spatialRelation(receiverPositions, bundleGuide,
-                                                                              segmentAssociationsRec)
+            if self.method == 'z':
+                zValues = points[2, :]
+                angle = 0  # arctan2(points[0,:], points[1,:])
+                xP = 0  # points[-1,:]
+            elif self.method == 'z,xP,angle':
+                zValues = points[2, :]
+                angle = arctan2(points[0, :], points[1, :])
+                xP = points[-1, :]
+            else:
+                raise KeyError
 
-            # same for sources
-            segmentAssociationsSource = associatePointToBundleSegs(sourcePositions, bundleGuide)
-            distPerpendicularsSource, lengthAlongsSource, anglesSource = spatialRelation(sourcePositions,
-                                                                                         bundleGuide,
-                                                                                         segmentAssociationsSource)
-            # number of sources
-            numSourcePos = np.shape(distPerpendicularsSource)[0]
+            return self.interpolator(zValues, angle, xP)  # triangularVoltage # smoothedVoltageStatic #
 
-            # matrix to save receiver potentials in
-            receiverPots = np.array([]).reshape(0, np.shape(sourceCurrents)[1])
-
-            # loop over all recording positions
-            for recInd in range(np.shape(distPerpendicularRec)[0]):
-                # distance to the bundle guide
-                distPerpendicularRecTemp = distPerpendicularRec[recInd]
-                # distance of recording along axon (important: this 'straightens' the bundle) No curves of the
-                # bundle guide are considered. Axon tortuosity still plays a role.
-                lengthAlongRecTemp = lengthAlongRec[recInd]
-                # angle between y-axis and recording position perpendicular towards bundle guide
-                # (bundle guide segment rotated to x-axis)
-                angleRecTemp = anglesRec[recInd]
-
-                # distance between source and recording positions
-                distBetweenTemp = lengthAlongsSource - lengthAlongRecTemp
-
-                # # angle between them
-                # anglesTemp = anglesSource - angleRecTemp
-
-                # receiverX = receiverXDists
-                # receiverY = np.zeros(np.shape(receiverXDists))
-                # receiverZ = np.zeros(np.shape(receiverXDists))
-                # sourceXDist = sourceXDists[sourceIndInner]
-                # sourceZDist = np.multiply(receiverDistToOrigins, -1) + sourceDistToOrigin[
-                #     sourceIndInner]
-                #
-                # # TODO: always add all three source coordinates.
-                # interpolationPoints = np.vstack(
-                #     [receiverX, receiverY, receiverZ, np.tile(sourceXDist, np.shape(receiverY)), np.zeros(np.shape(receiverY)),
-                #      sourceZDist])
-                # interpolationPoints = np.divide(interpolationPoints,
-                #                                 1000000)  # from um to m TODO: numercal problem?
-                #
-                # # now interpolate from fieldImage
-                # receiverPotTempStatic = _interpolateStaticPotential(interpolationPoints)
-
-                # calculate the interpolation points handed over to the fieldImage
-                interpolationPoints = np.vstack(
-                    [np.cos(anglesTemp) * distPerpendicularRecTemp, np.sin(anglesTemp) * distPerpendicularRecTemp,
-                     distBetweenTemp, distPerpendicularsSource])
-                interpolationPoints = np.divide(interpolationPoints, 1000000)  # from um to m
-
-                # now interpolate from interpolator
-                receiverPotTempStatic = _interpolateStaticPotential(interpolationPoints)
-
-                # scale potential-voltage-relation with current to obtain temporal signal
-                # COMSOL gave V, we need mV, therefore multiply with 1000
-                # also there can be a mismatch in current unit of the source, eliminate
-                receiverPotTemp = np.sum(sourceCurrents * receiverPotTempStatic[:, np.newaxis], axis=0) \
-                                  * 10 ** (currentUnitSource - currentUnitFEM) * 1000
-
-                receiverPots = np.vstack([receiverPotTemp, receiverPotTemp])
-
-            return receiverPots
 
         # calculate LFP from membrane currents
-        return _compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions,
-                                                               self.FEMFieldDict, self.bundleGuide)
-
+        return compute_relative_positions_and_interpolate_fn_input(sourcePositions, sourceCurrents, receiverPositions,
+                                                                   self.bundleGuide, _interpolateStaticPotential)
 
 class precomputedFEM(ExtracellularPotentialMechanism):
 
@@ -215,76 +105,12 @@ class precomputedFEM(ExtracellularPotentialMechanism):
 
         """
 
-        def _compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions, fieldDict,
-                                                        bundleGuide, currentUnitFEM=-9, currentUnitSource=-9):
-            """
-
-            Args:
-                sourcePositions: position of current sources (Nx3) x,y,z
-                sourceCurrents: source currents (NxM) with M time steps
-                receiverPositions: positions of receivers (Nx3) x,y,z
-                fieldDict: dictionary to interpolate voltage values with
-                bundleGuide: bundle guide, needed to calculate spatial relation between source and recording positions
-                currentUnitFEM: unit of current as used in the FEM simulation in powers of 10 (default -9)
-                currentUnitSource: unit of current as used in the NEURON simulation in powers of 10 (default -9)
-
-            Returns: (KxM) voltage matrix of K recording positions and M time steps
-
-            """
-
-            # precalculate the spatial relation between the bundle guide and the receivers
-            segmentAssociationsRec = associatePointToBundleSegs(receiverPositions, bundleGuide)
-            distPerpendicularRec, lengthAlongRec, anglesRec = spatialRelation(receiverPositions, bundleGuide,
-                                                                              segmentAssociationsRec)
-
-            # same for sources
-            segmentAssociationsSource = associatePointToBundleSegs(sourcePositions, bundleGuide)
-            distPerpendicularsSource, lengthAlongsSource, anglesSource = spatialRelation(sourcePositions, bundleGuide,
-                                                                                         segmentAssociationsSource)
-            # number of sources
-            numSourcePos = np.shape(distPerpendicularsSource)[0]
-
-            # matrix to save receiver potentials in
-            receiverPots = np.array([]).reshape(0, np.shape(sourceCurrents)[1])
-
-            # loop over all recording positions
-            for recInd in range(np.shape(distPerpendicularRec)[0]):
-                # distance to the bundle guide
-                distPerpendicularRecTemp = distPerpendicularRec[recInd]
-                # distance of recording along axon (important: this 'straightens' the bundle) No curves of the
-                # bundle guide are considered. Axon tortuosity still plays a role.
-                lengthAlongRecTemp = lengthAlongRec[recInd]
-                # angle between y-axis and recording position perpendicular towards bundle guide
-                # (bundle guide segment rotated to x-axis)
-                angleRecTemp = anglesRec[recInd]
-
-                # distance between source and recording positions
-                distBetweenTemp = lengthAlongsSource - lengthAlongRecTemp
-
-                # angle between them
-                anglesTemp = anglesSource - angleRecTemp
-
-                # calculate the interpolation points handed over to the fieldImage
-                interpolationPoints = np.vstack(
-                    [np.cos(anglesTemp) * distPerpendicularRecTemp,  np.sin(anglesTemp) * distPerpendicularRecTemp,
-                     distBetweenTemp, distPerpendicularsSource])
-                interpolationPoints = np.divide(interpolationPoints, 1000000)  # from um to m
-
-                # now interpolate from fieldImage
-                receiverPotTempStatic = interpolateFromImage(fieldDict, interpolationPoints, order=1)
-
-                # scale potential-voltage-relation with current to obtain temporal signal
-                # COMSOL gave V, we need mV, therefore multiply with 1000
-                # also there can be a mismatch in current unit of the source, eliminate
-                receiverPotTemp = np.sum(sourceCurrents * receiverPotTempStatic[:, np.newaxis], axis=0) \
-                                  * 10 ** (currentUnitSource - currentUnitFEM) * 1000
-
-                receiverPots = np.vstack([receiverPotTemp, receiverPotTemp])
-
-            return receiverPots
+        # now interpolate from fieldImage
+        positionToVoltageFn = lambda interpolationPoints: interpolateFromImage(self.FEMFieldDict, interpolationPoints, order=1)
 
         # calculate LFP from membrane currents
-        return _compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, receiverPositions, self.FEMFieldDict, self.bundleGuide)
+        return compute_relative_positions_and_interpolate_fn_input(sourcePositions, sourceCurrents, receiverPositions,
+                                                            self.bundleGuide, positionToVoltageFn)
 
 class homogeneous(ExtracellularPotentialMechanism):
 
@@ -350,6 +176,7 @@ class homogeneous(ExtracellularPotentialMechanism):
 #================================================================================
 #==================================== unused ====================================
 #================================================================================
+
 class precomputedFEM_symmetrical_inhomogeneity(ExtracellularPotentialMechanism):
 
     def __init__(self, bundleGuide, fieldName='oil_different_positions_2cm', receiverDisplacement=0):
