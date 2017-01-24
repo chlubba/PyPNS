@@ -59,7 +59,6 @@ class Axon(object):
         self.tvec = None
         self.totnsegs = None
 
-
     def calc_totnsegs(self):
         # Calculate the number of segments in the allseclist (only possible if NEURON simulation has run)
         i = 0
@@ -91,7 +90,6 @@ class Axon(object):
 
         self.collect_geometry_neuron()
         self.calc_midpoints()
-
 
     def collect_geometry_neuron(self):
         """
@@ -225,6 +223,41 @@ class Axon(object):
         # Set the tvec to be a monotonically increasing numpy array after sim.
         self.tvec = np.arange(h.tstop /h.dt + 1)*h.dt
 
+    def delete_neuron_object(self):
+
+        for sec in self.allseclist:
+            for seg in sec:
+                seg = None
+            sec = None
+        self.allseclist = None
+
+        # if not self.synapse == []:
+        #     self.synapse = None
+        #     self.vecStim = None
+        #     self.netCon = None
+
+        try:
+            for memirec in self.memireclist:
+                memirec = None
+            self.memireclist = None
+        except:
+            pass
+
+        try:
+            for vrec in self.vreclist:
+                vrec = None
+            self.vreclist = None
+        except:
+            pass
+
+        # also delete unnecessary data that will no longer be used to keep the pickled file small
+        self.imem = None
+
+        # neuron objects inserted by excitation mechanisms
+        for exMechVars in self.exMechVars:
+            for i in range(len(exMechVars)):
+                exMechVars[i] = None
+
     def simulate(self, rec_imem=True):
 
         # before LFPy was used to simulate, this is not necessary.
@@ -271,11 +304,16 @@ class Axon(object):
         if rec_imem:
             self.calc_imem()
 
-
-    # Equivalent methods interpxyz and setrx from the xtra mechanism available on the NEURON website from Ted Carnevale
-    # Setrx has been modified to integrate the use of multipolar electrodes
     def interpxyz(self):
-        # interpolated data, spaced at regular intervals
+        """
+        Equivalent methods interpxyz and setrx from the xtra mechanism available on the NEURON website from Ted Carnevale
+        Setrx has been modified to integrate the use of multipolar electrodes
+
+        interpolated data, spaced at regular intervals
+
+        Returns:
+
+        """
 
         # First, need to interpolate centers unto all compartments; from interpxyz.hoc
         for sec in self.allseclist:
@@ -426,17 +464,19 @@ class Unmyelinated(Axon):
         return approx_nseg_d_lambda(self)
 
     def create_neuron_object(self):
-        self.axon = h.Section(name = str(self.name))
-        self.allseclist = h.SectionList()
-        self.allseclist.append(sec = self.axon)
 
-        self.axon.insert('extracellular')
-        # todo: comment in
-        # self.axon.insert('xtra')
+        self.axon = h.Section(name = str(self.name))
         self.axon.L = self.L
         self.axon.diam = self.fiberD
         self.axon.cm = self.cm
         self.axon.Ra = self.Ra
+
+        self.allseclist = h.SectionList()
+        self.allseclist.append(sec = self.axon)
+
+        self.axon.insert('extracellular')
+        self.axon.insert('xtra')
+
 
         self.set_nsegs(self.nsegs_method, self.lambda_f, self.d_lambda, self.max_nsegs_length)
 
@@ -455,10 +495,10 @@ class Unmyelinated(Axon):
             raise NameError('layout3D only "DEFINE_SHAPE" or "PT3D"')
 
         # todo: restore
-        # for sec_id in self.allseclist:
-        #     for seg in sec_id:
-        #         h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
-        #         h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
+        for sec_id in self.allseclist:
+            for seg in sec_id:
+                h.setpointer(seg._ref_i_membrane, 'im', seg.xtra)
+                h.setpointer(seg._ref_e_extracellular, 'ex', seg.xtra)
         self.interpxyz()
         self.collect_geometry()
         self.calc_midpoints()
@@ -467,52 +507,8 @@ class Unmyelinated(Axon):
 
     def delete_neuron_object(self):
 
-        for sec in self.allseclist:
-            for seg in sec:
-                seg = None
-            sec = None
-        self.allseclist = None
-
-        # if not self.synapse == []:
-        #     self.synapse = None
-        #     self.vecStim = None
-        #     self.netCon = None
-
-        try:
-            for memirec in self.memireclist:
-                memirec = None
-            self.memireclist = None
-        except:
-            pass
-
-        try:
-            for vrec in self.vreclist:
-                vrec = None
-            self.vreclist = None
-        except:
-            pass
-
-        # also delete unnecessary data that will no longer be used to keep the pickled file small
-        self.imem = None
-
-        # neuron objects inserted by excitation mechanisms
-        for exMechVars in self.exMechVars:
-            for i in range(len(exMechVars)):
-                exMechVars[i] = None
-
+        super(Unmyelinated, self).delete_neuron_object()
         self.axon = None
-
-
-
-    # def axon_update_property(self):
-    #     self.axon.L = self.L
-    #     self.axon.diam = self.fiberD
-    #     self.axon.cm = self.cm
-    #     self.axon.Ra = self.Ra
-
-
-
-
 
     def channel_init(self, gna=0.120, gk=0.036, gl=0.0003, ena=50, ek=-77, el=-54.3):
 
@@ -539,9 +535,6 @@ class Unmyelinated(Axon):
             self.axon.ena = ena*(1+0.2*np.random.uniform(1))#[0])
             self.axon.ek = ek*(1+0.1*np.random.uniform(1))#[0])
             self.axon.el_hh = el
-
-    ## LPFy methods using the d_lambda rule available in NEURON
-    # http://www.neuron.yale.edu/neuron/static/docs/d_lambda/d_lambda.html
 
     def set_nsegs(self, nsegs_method, lambda_f, d_lambda, max_nsegs_length):
         # Set number of segments per section according to the lambda-rule,
@@ -1119,38 +1112,7 @@ class Myelinated(Axon):
 
     def delete_neuron_object(self):
 
-        for sec in self.allseclist:
-            for seg in sec:
-                seg = None
-            sec = None
-        self.allseclist = None
-
-        # if not self.synapse == []:
-        #     self.synapse = None
-        #     self.vecStim = None
-        #     self.netCon = None
-
-        try:
-            for memirec in self.memireclist:
-                memirec = None
-            self.memireclist = None
-        except:
-            pass
-
-        try:
-            for vrec in self.vreclist:
-                vrec = None
-            self.vreclist = None
-        except:
-            pass
-
-        # also delete unnecessary data that will no longer be used to keep the pickled file small
-        self.imem = None
-
-        # neuron objects inserted by excitation mechanisms
-        for exMechVars in self.exMechVars:
-            for i in range(len(exMechVars)):
-                exMechVars[i] = None
+        super(Myelinated, self).delete_neuron_object()
 
         self.nodes = None
         self.FLUTs = None

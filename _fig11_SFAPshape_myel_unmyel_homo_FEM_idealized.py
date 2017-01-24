@@ -90,7 +90,7 @@ if calculationFlag:
 
         recMechLegends = ['homogeneous', 'FEM', 'idealizedCuff']
         recMechMarkers = ['o', 'v']
-        for recMechIndex in [2]:
+        for recMechIndex in [0]:
 
             vAPs = []
             vAPs2 = []
