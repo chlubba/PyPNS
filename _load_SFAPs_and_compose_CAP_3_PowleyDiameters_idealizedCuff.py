@@ -1,16 +1,16 @@
-import PyPN
 import cPickle as pickle
 import os
 import numpy as np
+import matplotlib as mpl
+mpl.use('TKAgg')
 import matplotlib.pyplot as plt
-# import matplotlib as mpl
-# mpl.use('TKAgg')
+
 
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
 # saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsOil.dict'), "rb" )) # thinnerMyelDiam
-saveDict = pickle.load(open(os.path.join('/Volumes/SANDISK/PyPN/SFAPs', 'SFAPsOilMicroscopyDiams.dict'), "rb" )) # originalMyelDiam
+saveDict = pickle.load(open(os.path.join('SFAPs', 'SFAPsPowleyMyelAsRecordingsIdealizedCuff.dict'), "rb" )) # originalMyelDiam #/Volumes/SANDISK/PyPN/
 
 
 # saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
@@ -40,15 +40,15 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
 # parameters
 lengthOfRecording = 200 #ms
 dt = 0.0025 #ms
-nRecording = lengthOfRecording/dt
+nRecording = int(lengthOfRecording/dt)
 tArtefact = 0.1 # ms
 nArtefact = tArtefact/dt
 
 electrodeDistance = 70.*1.5 # 70. # mm
 jitterAmp = 5 #ms
 jitterDist = 0.5*electrodeDistance # 0.03
-numMyel = 60
-numUnmyel = 10000
+numMyel = 100
+numUnmyel = 1000
 poles = 2
 poleDistance = 1 # mm
 polePolarities = [1, -1]
@@ -57,9 +57,10 @@ fieldTypes = [0, 1] # 0: homo, 1: FEM
 stringsDiam = ['unmyelinatedDiameters', 'myelinatedDiameters']
 stringsSFAPHomo = ['unmyelinatedSFAPsHomo', 'myelinatedSFAPsHomo']
 stringsSFAPFEM = ['unmyelinatedSFAPsFEM', 'myelinatedSFAPsFEM']
+stringsSFAPIdeal = ['unmyelinatedSFAPIdeal', 'myelinatedSFAPIdeal']
 stringsCV = ['unmyelinatedCV', 'myelinatedCV']
 tHomo = saveDict['t']
-ts = [tHomo, np.arange(0,10,0.0025)]
+ts = [tHomo, np.arange(0,20,0.0025), np.arange(0,20,0.0025)]
 
 wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.429980837522710, 0.632957475186409, 2.05015339910575,
                           3.10696898591111,  4.54590886074274,  7.22064649366380,  7.60343269800399,  8.61543655035694,
@@ -105,7 +106,7 @@ def shift_signal(signal, difference, length):
     if difference > 0:
         paddedSignal = signal[difference:]
     else:
-        paddedSignal = np.concatenate((np.zeros(np.abs(difference)), signal))
+        paddedSignal = np.concatenate((np.zeros(int(np.abs(difference))), signal))
 
     if len(paddedSignal) < length:
         paddedSignal = np.concatenate((paddedSignal, np.zeros(length - len(paddedSignal))))
@@ -117,8 +118,8 @@ def shift_signal(signal, difference, length):
 
 tCAP = np.arange(0,lengthOfRecording,0.0025)
 
-fieldStrings = ['Homogeneous', 'FEM']
-for fieldTypeInd in [1]: # fieldTypes:
+fieldStrings = ['Homogeneous', 'FEM', 'Ideal Cuff']
+for fieldTypeInd in [0,1,2]: # fieldTypes:
 
     CAP = np.zeros(nRecording)
     CAPSmoothed = np.zeros(nRecording)
@@ -136,8 +137,10 @@ for fieldTypeInd in [1]: # fieldTypes:
 
         if fieldTypeInd == 0:
             SFAP = np.transpose(np.array(saveDict[stringsSFAPHomo[typeInd]]))
-        else:
+        elif fieldTypeInd == 1:
             SFAP = np.transpose(np.array(saveDict[stringsSFAPFEM[typeInd]]))
+        else:
+            SFAP = np.transpose(np.array(saveDict[stringsSFAPIdeal[typeInd]]))
 
         SFAPNoArt = SFAP [t > tArtefact, :]
 

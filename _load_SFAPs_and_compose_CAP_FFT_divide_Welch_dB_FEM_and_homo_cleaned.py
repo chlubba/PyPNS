@@ -6,19 +6,10 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
+import testWaveletDenoising as w
+from scipy.interpolate import interp1d
+
 saveDict = pickle.load(open(os.path.join('SFAPs', 'SFAPsPowleyMyelAsRecordings.dict'), "rb" )) # thinnerMyelDiam # SFAPsPowleyMyelAsRecordingsNewCurr
-
-
-# saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
-#             'unmyelinatedSFAPsHomo': [],
-#             'unmyelinatedSFAPsFEM': [],
-#             'unmyelinatedCV' : [],
-#             't': [],
-#             'myelinatedDiameters': diametersMyel,
-#             'myelinatedSFAPsHomo': [],
-#             'myelinatedSFAPsFEM': [],
-#             'myelinatedCV' : [],
-#             }
 
 from scipy.signal import butter, lfilter, freqz
 
@@ -57,9 +48,6 @@ stringsDiam = ['unmyelinatedDiameters', 'myelinatedDiameters']
 stringsSFAPHomo = ['unmyelinatedSFAPsHomo', 'myelinatedSFAPsHomo']
 stringsSFAPFEM = ['unmyelinatedSFAPsFEM', 'myelinatedSFAPsFEM']
 stringsCV = ['unmyelinatedCV', 'myelinatedCV']
-# tUnmyel = saveDict['unmyelinatedT']
-# tMyel = saveDict['myelinatedT']
-# ts = [tUnmyel, tMyel]
 tHomo = saveDict['t']
 ts = [tHomo, np.arange(0,10,0.0025)]
 
@@ -82,7 +70,6 @@ wantedNumbersOfFibers[0] = np.divide(wantedNumbersOfFibers[0],  np.sum(wantedNum
 wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNumbersOfFibers[0]))*numMyel
 
 # -------------------- plot recorded data ---------------------------------
-import testWaveletDenoising as w
 data = np.loadtxt('/Users/carl/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
 denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
 
@@ -91,56 +78,12 @@ time = data[:,0]
 tCut = (time[time>tStart] - tStart)*1000
 vDenCut = denoisedVoltage[time>tStart]
 
-# plt.plot(tCut, vDenCut/np.max(vDenCut), color='red', label='Experimental data')
-# plt.show()
-
 tCutPlot = tCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)]
 vDenCutPlot = vDenCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)]
 
-# plt.plot(tCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)], vDenCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)]/np.max(vDenCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)]), color='red', label='Experimental data')
-# plt.show()
-
-# sp = np.fft.fft(vDenCutPlot - np.mean(vDenCutPlot))
-# freq = np.fft.fftfreq(vDenCutPlot.shape[-1], d=time[1]-time[0])
-#
-# sortedInds = sorted(range(len(freq)), key=lambda k: freq[k])
-# absSp = np.abs(sp)
-# absSpRec = absSp[sortedInds]
-# freq = freq[sortedInds]
-#
-# plt.semilogy(freq, absSpRec / max(absSpRec), label='recorded')
-
 from scipy import signal
 f_rec, Pxx_den_rec = signal.welch(vDenCutPlot - np.mean(vDenCutPlot), 1./(time[1]-time[0]), nperseg=50)
-# plt.semilogy(f_rec, Pxx_den_rec/np.max(Pxx_den_rec), label='recording')
-# # plt.ylim([0.5e-3, 1])
-# plt.xlabel('frequency [Hz]')
-# plt.ylabel('PSD [V**2/Hz]')
-# # plt.show()
-# # plt.show()
 
-# dtInterp = 0.0001
-
-from scipy.interpolate import interp1d
-# f = interp1d(tCutPlot, vDenCutPlot)
-# timeInterp = np.arange(timePlotMin+0.1, timePlotMax, dtInterp)
-# CAPInterp = f(timeInterp)
-#
-# # plt.plot(timeInterp, CAPInterp)
-# # plt.plot(tCutPlot, vDenCutPlot)
-# # plt.show()
-#
-# sp = np.fft.fft(CAPInterp - np.mean(CAPInterp))
-# freq = np.fft.fftfreq(CAPInterp.shape[-1], d=dtInterp)
-#
-# sortedInds = sorted(range(len(freq)), key=lambda k: freq[k])
-# absSp = np.abs(sp)
-# absSpRec = absSp[sortedInds]
-# freq = freq[sortedInds]
-#
-#
-# plt.semilogy(freq, absSpRec / max(absSpRec), label='recorded')
-# # plt.show()
 
 tCAP = np.arange(0,lengthOfRecording,0.0025)
 
@@ -214,15 +157,9 @@ for fieldTypeInd in [0,1]: # fieldTypes:
     # plt.plot(tCAP, CAP/np.max(CAP), label=fieldStrings[fieldTypeInd])
 
     f, Pxx_den = signal.welch(CAP- np.mean(CAP), 1000. / (tCAP[1] - tCAP[0]), nperseg=1024)
-    # plt.semilogy(f, Pxx_den/np.max(Pxx_den), label='simulation raw')
-    # # plt.ylim([0.5e-3, 1])
-    # plt.xlabel('frequency [Hz]')
-    # plt.ylabel('PSD [V**2/Hz]')
-    # # plt.show()
 
     # interpolate and cut to obtain same frequency range and same spacing
     f_common = f[f < np.max(f_rec)]
-
     interpolator_Pxx = interp1d(f_rec, Pxx_den_rec)
     Pxx_den_rec_interp = interpolator_Pxx(f_common)
 
@@ -253,107 +190,7 @@ for fieldTypeInd in [0,1]: # fieldTypes:
     b = signal.firwin(80, 0.5, window=('kaiser', 8))
     w, h = signal.freqz(b)
 
-    # sp = np.fft.fft(CAP - np.mean(CAP))
-    # freq = np.fft.fftfreq(CAP.shape[-1], d=(tCAP[1] - tCAP[0])/1000)
-    #
-    # sortedInds = sorted(range(len(freq)), key=lambda k: freq[k])
-    # absSp = np.abs(sp)
-    # absSp = absSp[sortedInds]
-    # freq = freq[sortedInds]
-    #
-    # plt.semilogy(freq, absSp / max(absSp), label='simulated non filtered')
-    # plt.show()
 
-    # f = interp1d(tCAP, CAP)
-    # timeInterp = np.arange(timePlotMin + 0.1, timePlotMax, dtInterp)
-    # CAPInterp = f(timeInterp)
-    #
-    # sp = np.fft.fft(CAPInterp - np.mean(CAPInterp))
-    # freq = np.fft.fftfreq(CAPInterp.shape[-1], d=dtInterp)
-    #
-    # sortedInds = sorted(range(len(freq)), key=lambda k: freq[k])
-    # absSp = np.abs(sp)
-    # absSp = absSp[sortedInds]
-    # freq = freq[sortedInds]
-    #
-    # spDiv = absSpRec/np.max(absSpRec)/(absSp / max(absSp))
-    #
-    # plt.semilogy(freq, absSp / max(absSp), label='simulated non filtered')
-    #
-    # plt.semilogy(freq, spDiv, label='recording / simulation')
-
-    # # filter
-    # for cutoff in [500, 1000, 2000, 5000]:
-    #
-    #     filteredCAP = butter_lowpass_filter(CAP, cutoff, 1000./dt, order=5)
-    #
-    #     f, Pxx_den = signal.welch(filteredCAP - np.mean(filteredCAP), 1000. / (tCAP[1] - tCAP[0]), nperseg=1024)
-    #     plt.semilogy(f, Pxx_den / np.max(Pxx_den), label='cutoff='+str(cutoff)+'Hz')
-    #     # plt.ylim([0.5e-3, 1])
-    #     plt.xlabel('frequency [Hz]')
-    #     plt.ylabel('PSD [V**2/Hz]')
-    #
-    #     # f = interp1d(tCAP, filteredCAP)
-    #     # timeInterp = np.arange(timePlotMin + 0.1, timePlotMax, dtInterp)
-    #     # CAPInterp = f(timeInterp)
-    #     #
-    #     # sp = np.fft.fft(CAPInterp)
-    #     # freq = np.fft.fftfreq(CAPInterp.shape[-1], d=dtInterp)
-    #     #
-    #     # sortedInds = sorted(range(len(freq)), key=lambda k: freq[k])
-    #     # absSp = np.abs(sp)
-    #     # absSp = absSp[sortedInds]
-    #     # freq = freq[sortedInds]
-    #     #
-    #     # plt.semilogy(freq, absSp / max(absSp), label='simulated low pass filtered at ' + str(cutoff) + 'Hz')
-    #
-    #     # plt.plot(tCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)], filteredCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)]/np.max(filteredCAP[np.logical_and(tCAP>timePlotMin, tCAP<timePlotMax)]), label='cutoff='+str(cutoff))
-
-    # plt.title('Comparison between experimental data and simulation')
-    # plt.ylabel('$V_{ext}$ [mV]')
-
-
-    # from scipy import signal
-    #
-    # b, a = signal.butter(4, 10 / (np.pi / dt), 'low', analog=False)
-    #
-    # # plt.figure()
-    # # w, h = signal.freqz(b, a)
-    # # plt.plot(w, 20 * np.log10(abs(h)))
-    # # plt.xscale('log')
-    # # plt.title('Butterworth filter frequency response')
-    # # plt.xlabel('Frequency [radians / second]')
-    # # plt.ylabel('Amplitude [dB]')
-    # # plt.margins(0, 0.1)
-    # # plt.grid(which='both', axis='both')
-    # # # plt.axvline(100, color='green')  # cutoff frequency
-    # # plt.show()
-    #
-    # y = signal.filtfilt(b, a, CAP)
-    # plt.plot(tCAP, y)
-
-    # timesTicks = np.arange(5, int(max(tCAP)), 5)
-    # tickLabelStrings = []
-    # for tickTime in timesTicks:
-    #     tickLabelStrings.append('%2.3f' % (electrodeDistance / tickTime))
-    #
-    # plt.xticks(timesTicks, rotation='vertical')
-    # plt.gca().set_xticklabels(tickLabelStrings)
-    # plt.xlabel('conduction velocity [m/s]')
-    # plt.xlabel('time [ms]')
-
-# plt.title('Divide Spectra')
-# plt.grid()
 plt.legend(loc='best')
 
 plt.show()
-
-# jet = plt.get_cmap('jet')
-# cNorm = colors.Normalize(vmin=0, vmax=numFibers - 1)
-# scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
-#
-# for fiberInd in range(numFibers):
-#     colorVal = scalarMap.to_rgba(fiberInd)
-#
-#     plt.plot(t[t>tArtefact], SFAP[t>tArtefact, fiberInd], color=colorVal)
-# plt.show()

@@ -4,6 +4,7 @@ import os
 import silencer
 import time
 from extracellularBackend import *
+from scipy.interpolate import interp1d
 
 class ExtracellularPotentialMechanism(object):
     __metaclass__ = ABCMeta
@@ -32,11 +33,50 @@ class interpolator(ExtracellularPotentialMechanism):
 
             a = 1.9E-9  # 2.5E-9;
             b = 0.00005
+            cuffWidth = 0.01
+            triangleMax = 8.83e-5
 
+            # for z-dependent triangle, use interpolation
+            def smooth(y, box_pts):
+                box = np.ones(box_pts) / box_pts
+                y_smooth = np.convolve(y, box, mode='same')
+                return y_smooth
+
+            dz = 0.000001
+            zInterp = np.arange(-0.02, 0.02, dz)
+            smoothWidth = cuffWidth/5
+            smoothSamples = smoothWidth / dz
+            sharpOneSide = np.maximum(0, triangleMax * (np.add(1, np.divide(zInterp, cuffWidth))))
+            smoothedOneSide = smooth(sharpOneSide, int(smoothSamples))
+            smoothedOneSideToMiddle = smoothedOneSide[0:int(np.floor(np.shape(smoothedOneSide)[0] / 2))]
+            smoothedTwoSides = np.concatenate([smoothedOneSideToMiddle, np.fliplr([smoothedOneSideToMiddle])[0]])
+            triangle = interp1d(zInterp, smoothedTwoSides)
+
+            # triangle = lambda zValues: np.maximum(0, (np.subtract(1, np.abs(zValues / cuffWidth)) * triangleMax))
             peakFactor = lambda angle, xP: max(0, (1 - np.mod(angle, np.pi) / np.pi * 5)) * np.min(
                 [1, (xP / 0.000190) ** 5])
-            self.interpolator = lambda zValues, angle, xP: a * (1.0 / (np.abs(zValues) + b)) * peakFactor(angle, xP) + \
-                                                           np.maximum(0, (np.subtract(1, np.abs(zValues / 0.01)) * 8.83e-5))
+            peak = lambda zValues, angle, xP: a * (1.0 / (np.abs(zValues) + b)) * peakFactor(angle, xP)
+            # smoothCorner = lambda zValues, cornerZ: np.maximum(0, smoothMax*(np.subtract(1,np.abs(np.divide((zValues-cornerZ), smoothWidth))))**smoothExp)
+
+            # self.interpolator = lambda zValues, angle, xP: a * (1.0 / (np.abs(zValues) + b)) * peakFactor(angle, xP) + \
+            #                                                np.maximum(0, (np.subtract(1, np.abs(zValues / 0.01)) * 8.83e-5))
+            self.interpolator = lambda zValues, angle, xP: triangle(zValues) + peak(zValues, angle, xP)
+
+
+            # import matplotlib as mpl
+            # mpl.use('TkAgg')
+            # import matplotlib.pyplot as plt
+            # plt.figure()
+            # zValues = np.arange(-0.02, 0.02, 0.000001)
+            # nonsmoothedTriangle = triangle(zValues)
+            # # smoothedTriangle = triangle(zValues)+smoothCorner(zValues, -cuffWidth)+smoothCorner(zValues, cuffWidth);
+            # # plt.plot(smoothedTriangle)
+            # # plt.plot(np.diff(smoothedTriangle))
+            # plt.plot(np.diff(np.diff(nonsmoothedTriangle)), label='smoothed')
+            # # plt.plot(np.diff(np.diff(nonsmoothedTriangle)), label='not smoothed')
+            # # plt.plot(np.diff(np.diff(smooth(nonsmoothedTriangle, 100))), label='numerically smoothed')
+            # plt.legend()
+            # plt.show()
 
     def calculate_extracellular_potential(self, sourcePositions, sourceCurrents, receiverPositions):
         """
@@ -83,12 +123,8 @@ class precomputedFEM(ExtracellularPotentialMechanism):
         :param fieldName: string containing the name of the field to import; the location of field files needs to be specified somewhere (TODO)
         """
 
-        # TODO: finally solve the location issue, saving and field loading. Input dict to bundle.
-
-        # todo: input params that allow more degrees of freedom for the FEM model
-
-        print '\nWhen using a recording mechanism based on a precomputed FEM model, make sure the electrodes are on a ' \
-              'long (~1cm) straight part of the bundle guide.'
+        # print '\nWhen using a recording mechanism based on a precomputed FEM model, make sure the electrodes are on a ' \
+        #       'long (~1cm) straight part of the bundle guide.'
 
         # fieldDictArray = np.load(os.path.join('/Volumes/SANDISK/ComsolData/usedFields', fieldName, 'fieldDict.npy'))
         fieldDictArray = np.load(os.path.join('Fields', fieldName, 'fieldDict.npy'))

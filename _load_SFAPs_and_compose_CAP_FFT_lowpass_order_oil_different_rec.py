@@ -7,7 +7,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 
 # saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordings.dict'), "rb" )) # thinnerMyelDiam # SFAPsPowleyMyelAsRecordingsNewCurr
-saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsOilMicroscopyDiams.dict'), "rb" )) # originalMyelDiam
+saveDict = pickle.load(open(os.path.join('/Volumes/SANDISK/PyPN/SFAPs', 'SFAPsOilMicroscopyDiams.dict'), "rb" )) # originalMyelDiam
 
 # saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
 #             'unmyelinatedSFAPsHomo': [],
@@ -84,7 +84,7 @@ wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNum
 # -------------------- plot recorded data ---------------------------------
 import testWaveletDenoising as w
 # data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
-data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/Carl Lubba/figure6.txt')
+data = np.loadtxt('/Users/carl/Dropbox/Carl Lubba/figure6.txt')
 denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
 
 # plt.plot(data[:,0], label='time')

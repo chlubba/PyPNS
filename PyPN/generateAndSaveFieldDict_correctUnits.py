@@ -6,19 +6,18 @@ import cPickle as pickle
 # sourceFolder = '/media/carl/4ECC-1C44/ComsolData/cuffFiner'
 # sourceFolder = '/media/carl/4ECC-1C44/ComsolData/stimulationField/noCuffStimulation'
 # sourceFolder = '/media/carl/18D40D77D40D5900/COMSOL_data/oil_sigma_0.0000001_contact_xP0'
-sourceFolder = '/media/carl/4ECC-1C44/ComsolData/oil_different_source_positions'
+# sourceFolder = '/media/carl/4ECC-1C44/ComsolData/oil_different_source_positions'
 # sourceFolder = '/media/carl/4ECC-1C44/PyPN/voltageFieldDummyzVar'
+sourceFolder = '/Users/carl/PycharmProjects/PyPN/Fields/noCuff1'
 
-# desired location and name of dictionary
-destinationFolder = os.path.join(sourceFolder, 'numpy')
 
-fieldDictArray = np.load(os.path.join(destinationFolder,'fieldDict.npy'))
+fieldDictArray = np.load(os.path.join(sourceFolder,'fieldDict.npy'))
 
 fieldDict = fieldDictArray[()]
 
-fieldDict['axonX'] = np.array(fieldDict['axonX'])/1000000
+fieldDict['axonX'] = np.array(fieldDict['axonX']).astype(float)/1000000
 try:
-    fieldDict['axonZ'] = np.array(fieldDict['axonZ'])/1000000
+    fieldDict['axonZ'] = np.array(fieldDict['axonZ']).astype(float)/1000000
 except:
     pass
 
@@ -30,4 +29,4 @@ except:
 #              'axonZ': axonZs}
 
 
-np.save(os.path.join(destinationFolder, 'fieldDictCor.npy'), fieldDict)
+np.save(os.path.join(sourceFolder, 'fieldDictCor.npy'), fieldDict)

@@ -2,7 +2,7 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import axes3d
+from mpl_toolkits.mplot3d import Axes3D
 
 from axonClass import *
 from nameSetters import *
@@ -26,7 +26,7 @@ def geometry_definition(bundle, axis_equal=True, axis_off=False):
     #     return
 
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = fig.add_subplot(111, projection='3d')
 
     axonID = 0
     for axon in bundle.axons:

@@ -81,7 +81,8 @@ if calculationFlag:
     (f, axarr) = plt.subplots(1, 2, sharey=True)
 
     legends = ['Unmyelinated', 'Myelinated']
-    bundleLengths = [5000, 15000]
+    # bundleLengths = [20000, 20000]
+    bundleLengths = [25000, 20000]
     for i in [0,1]:
 
         vAPCollection = []
@@ -90,7 +91,7 @@ if calculationFlag:
 
         recMechLegends = ['homogeneous', 'FEM', 'idealizedCuff']
         recMechMarkers = ['o', 'v']
-        for recMechIndex in [0]:
+        for recMechIndex in [0,1,2]:
 
             vAPs = []
             vAPs2 = []
@@ -111,7 +112,7 @@ if calculationFlag:
                 # set all properties of the bundle
                 bundleParameters = {'radius': 300,  # 150, #um Radius of the bundle (typically 0.5-1.5mm)
                                     'length': bundleLengths[i],  # um Axon length
-                                    # 'randomDirectionComponent': RDC,
+                                    'randomDirectionComponent': 0.5,
                                     # 'bundleGuide': bundleGuide,
 
                                     'numberOfAxons': numberOfAxons,  # Number of axons in the bundle
@@ -125,7 +126,7 @@ if calculationFlag:
 
                                     # 'saveI':True,
                                     # 'saveV': False,
-                                    'saveLocation': '/Volumes/SANDISK/PyPN/',
+                                    # 'saveLocation': '/Volumes/SANDISK/PyPN/',
 
                                     'numberOfSavedSegments': 50,
                                     # number of segments of which the membrane potential is saved to disk
@@ -155,7 +156,7 @@ if calculationFlag:
 
                         recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
                                                   'radius': 200,
-                                                  'positionAlongBundle': np.floor(10000. / bundle.axons[0].lengthOneCycle) *
+                                                  'positionAlongBundle': np.floor(15000. / bundle.axons[0].lengthOneCycle) *
                                                                          bundle.axons[0].lengthOneCycle + bundle.axons[0].lengthOneCycle*relPos,
                                                   'numberOfPoles': 1,
                                                   'poleDistance': 1000,
@@ -169,7 +170,7 @@ if calculationFlag:
                 else:
                     recordingParametersNew = {'bundleGuide': bundle.bundleCoords,
                                               'radius': 200,
-                                              'positionAlongBundle': 3000,
+                                              'positionAlongBundle': 12000,
                                               'numberOfPoles': 1,
                                               'poleDistance': 1000,
                                               }
@@ -181,6 +182,10 @@ if calculationFlag:
 
                 # run the simulation
                 bundle.simulate()
+
+                # plt.figure()
+                # PyPN.plot.geometry_definition(bundle)
+                # plt.show()
 
                 # import matplotlib.cm as cm
                 # import matplotlib.colors as colors
@@ -222,11 +227,11 @@ if calculationFlag:
             axarr[i].set_xlabel('time [ms]')
 
             if i == 0:
-                axarr[i].set_xlim((1.8, 7.))
+                # axarr[i].set_xlim((1.8, 7.))
                 axarr[i].set_ylabel('$V_{ext}$ [mV]')
                 axarr[i].set_title('Unmyelinated')
             else:
-                axarr[i].set_xlim((.4, 1.4))
+                # axarr[i].set_xlim((.4, 1.4))
                 # axarr[i].legend()
                 axarr[i].set_title('Myelinated')
 
