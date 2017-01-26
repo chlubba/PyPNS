@@ -157,30 +157,6 @@ class Bundle(object):
         self.axons_pos[:,1] = np.sin(theta)
         self.axons_pos *= radius.reshape((n, 1))
 
-    # def approx_num_segs(self):
-    #
-    #     # def lambda_f(freq, diam, Ra, cm):
-    #     #     return 1e5 * np.sqrt(diam / (4 * np.pi *freq * Ra * cm))
-    #     #
-    #     # def approx_nseg_d_lambda(unmyelinatedAxon):
-    #     #     return int((unmyelinatedAxon.L / (unmyelinatedAxon.d_lambda * lambda_f(unmyelinatedAxon.lambda_f,
-    #     #                                                                            unmyelinatedAxon.fiberD,
-    #     #                                                                            unmyelinatedAxon.Ra,
-    #     #                                                                            unmyelinatedAxon.cm)) + 0.9) / 2) * 2 + 1
-    #
-    #     nsegs_tot = 0
-    #     nsegs_axonwise = []
-    #     for axon in self.axons:
-    #         if isinstance(axon, Myelinated):
-    #             nsegTemp = axon.axontotal
-    #         else:
-    #             nsegTemp = axon.get_number_of_segs()
-    #         nsegs_tot += nsegTemp
-    #
-    #         nsegs_axonwise.append(nsegTemp)
-    #
-    #     return nsegs_tot, nsegs_axonwise
-
 
     def create_axon(self, axonPosition):
 
