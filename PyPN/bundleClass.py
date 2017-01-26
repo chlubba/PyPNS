@@ -50,7 +50,7 @@ class Bundle(object):
     # myelinated: parameters for fiber type A, B
     # umyelinated:  parameters for fiber type C
 
-    def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, bundleGuide=None,
+    def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, axonCoords=None, bundleGuide=None,
                  segmentLengthAxon = 10, randomDirectionComponent = 0., tStop=30, timeRes=0.0025,
                  numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation='Results'):
 
@@ -106,9 +106,13 @@ class Bundle(object):
         self.pUnmyel = float(pUnmyel)/(pMyel+pUnmyel)
 
         self.numberOfAxons = numberOfAxons
+        self.numMyel = int(numberOfAxons * pMyel)
+        self.numUnmyel = int(numberOfAxons - self.numMyel)
         self.axons = []
         self.axonColors = np.zeros([self.numberOfAxons,4])
         self.radiusBundle = radius # um
+
+        self.axonCoords = axonCoords
 
         # self.voltages = []
         self.trec = None  # vector of time steps
@@ -118,7 +122,9 @@ class Bundle(object):
         self.timeRes = timeRes # set time step (ms)
 
 
-        self._build_disk(self.numberOfAxons, self.bundleCoords[0, -1])
+        # self._build_disk(self.numberOfAxons, self.bundleCoords[0, -1])
+
+        self.generate_axon_trajectories()
 
         self.saveParams={'timeRes': timeRes, 'tStop': tStop, 'pMyel': pMyel,
                     'paramsMyel': paramsMyel, 'paramsUnmyel': paramsUnmyel,
@@ -135,52 +141,119 @@ class Bundle(object):
         # create axons
         for i in range(self.numberOfAxons):
             print "Creating axon " + str(i)
-
-            self.create_axon(self.axons_pos[i, :])
+            if i <= self.numUnmyel:
+                self.create_axon('u', self.axonCoords[i])
+            else:
+                self.create_axon('m', self.axonCoords[i])
             self.axonColors[i,:] = np.array(scalarMap.to_rgba(i))
 
 
-    def _build_disk(self, numberOfAxons, radiusBundle):
+    def generate_axon_trajectories(self):
+        """
+        Branches on the value given as axonCoords to the bundle, with default value None. Value can be 1D-array, then
+        it is considered as starting position. Or 2D, then considered as starting positions for all axons. Oor, 3D, then
+        taken as the exact trajectory the axons should take.
+
+        Returns:
+
+        """
+        axonCoordNum = len(np.shape(self.axonCoords))
+
+        # if the user did not specify any coordinates distribute axon start positions on disk and create random trajectories
+        if axonCoordNum == 0:
+            axonStartPositions = self._build_disk()
+
+            axonCoordinates = []
+            for axonInd in range(self.numberOfAxons):
+                c = createGeometry.create_random_axon(self.bundleCoords, axonStartPositions[axonInd,:],
+                                                  self.segmentLengthAxon,
+                                                  randomDirectionComponent=self.randomDirectionComponent)
+                axonCoordinates.append(c)
+
+        # if one start position is given, mainly take the bundle guide plus an offset
+        elif axonCoordNum == 1:
+
+            # only 2D input possible as it is in the y-z-plane
+            assert np.shape(self.axonCoords)[0] == 2
+
+            axonCoordinates = []
+            for axonInd in range(self.numberOfAxons):
+                c = createGeometry.create_random_axon(self.bundleCoords, self.axonCoords,
+                                                      self.segmentLengthAxon,
+                                                      randomDirectionComponent=self.randomDirectionComponent)
+                axonCoordinates.append(c)
+
+        # if two coordinates, this assumes
+        elif axonCoordNum == 2:
+
+            # one coordinate for each axon?
+            assert np.shape(self.axonCoords)[0] == self.numberOfAxons
+            assert np.shape(self.axonCoords)[1] == 2
+
+            axonCoordinates = []
+            for axonInd in range(self.numberOfAxons):
+                c = createGeometry.create_random_axon(self.bundleCoords, self.axonCoords[axonInd],
+                                                      self.segmentLengthAxon,
+                                                      randomDirectionComponent=self.randomDirectionComponent)
+                axonCoordinates.append(c)
+
+        # if there is a coordinate vector for each axon
+        elif axonCoordNum == 3:
+
+            assert np.shape(self.axonCoords)[0] == self.numberOfAxons
+            assert np.shape(self.axonCoords)[1] == 3
+
+            axonCoordinates = self.axonCoords
+
+        else:
+            raise ValueError('Format of given axon coordinates not ok.')
+
+        self.axonCoords = axonCoordinates
+
+    def _build_disk(self):
         """Distributes the startpoints of axons uniformly over the cross section of the bundle.
 
         Partly from http://blog.marmakoide.org/?p=1
         """
-        n = numberOfAxons
+        n = self.numberOfAxons
 
-        radius = radiusBundle* np.sqrt(np.arange(n) / float(n))
+        radius = self.radiusBundle[0, -1] * np.sqrt(np.arange(n) / float(n))
 
         golden_angle = np.pi * (3 - np.sqrt(5))
         theta = golden_angle * np.arange(n)
 
-        self.axons_pos = np.zeros((n, 2))
-        self.axons_pos[:,0] = np.cos(theta)
-        self.axons_pos[:,1] = np.sin(theta)
-        self.axons_pos *= radius.reshape((n, 1))
+        axons_pos = np.zeros((n, 2))
+        axons_pos[:,0] = np.cos(theta)
+        axons_pos[:,1] = np.sin(theta)
+        axons_pos *= radius.reshape((n, 1))
+
+        return axons_pos
 
 
-    def create_axon(self, axonPosition):
+    def create_axon(self, axonType, axonCoords):
 
         """
         The properties of an axon are defined. Axon type (myelinated or unmyelinated) is chosen randomly depending on
         the probabilities set in :class:Bundle. Diameters etc. are specified according to the respective dictionary
         handed to :meth:`bundleClass.Bundle.__init__`.
 
-        :param axonPosition: the position of the first axon segment in the y-z-plane (x=0)
+        :param axonType: 'u': Unmyelinated 'm': Myelinated
         """
 
-        # first decide by chance whether myelinated or unmyelinated
-        axonTypeIndex = np.random.choice(2,1,p = [self.pMyel, self.pUnmyel])[0]
-        axonTypes = ['m', 'u']
-        axonType = axonTypes[axonTypeIndex]
+        # # first decide by chance whether myelinated or unmyelinated
+        # axonTypeIndex = np.random.choice(2,1,p = [self.pMyel, self.pUnmyel])[0]
+        # axonTypes = ['m', 'u']
+        # axonType = axonTypes[axonTypeIndex]
 
         # then get diameter. Either drawn from distribution or constant.
         axonDiameter = self._get_diam(axonType)
 
         # calculate the random axon coordinates
-        axonCoords = createGeometry.create_random_axon(self.bundleCoords, axonPosition,
-                                                           self.segmentLengthAxon, randomDirectionComponent=self.randomDirectionComponent)
+        # axonCoords = self.axonCoords[]
+        # axonCoords = createGeometry.create_random_axon(self.bundleCoords, axonPosition,
+        #                                                    self.segmentLengthAxon, randomDirectionComponent=self.randomDirectionComponent)
 
-        if axonTypeIndex == 1:
+        if axonType == 'u':
             unmyel = copy.copy(self.paramsUnmyel)
             unmyel['fiberD'] = axonDiameter
             unmyel['tStop'] = self.tStop
@@ -191,8 +264,7 @@ class Bundle(object):
             #axonParameters = dict( {'coord': axonPosition},**unmyel)
             self.axons.append(Unmyelinated(**axonParameters))
 
-
-        elif axonTypeIndex == 0:
+        elif axonType == 'm':
             myel = copy.copy(self.paramsMyel)
             myel['fiberD'] = axonDiameter
             myel['tStop'] = self.tStop
@@ -205,7 +277,7 @@ class Bundle(object):
         else:
             "Error in the draw of the axon type!"
 
-        self.axons[-1].axonPosition = axonPosition
+        # self.axons[-1].axonPosition = axonPosition
 
 
     def _draw_sample(self, distName, params, size=1):
