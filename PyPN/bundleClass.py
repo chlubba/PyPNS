@@ -97,7 +97,7 @@ class Bundle(object):
         elif bundleGuide.shape[1] == 4:
             self.bundleCoords = bundleGuide
         else:
-            raise Exception('Bundle guide not valid.')
+            raise ValueError('Bundle guide not valid.')
 
         self.excitationMechanisms = []
         self.recordingMechanisms = []
@@ -217,7 +217,7 @@ class Bundle(object):
         """
         n = self.numberOfAxons
 
-        radius = self.radiusBundle[0, -1] * np.sqrt(np.arange(n) / float(n))
+        radius = self.radiusBundle * np.sqrt(np.arange(n) / float(n))
 
         golden_angle = np.pi * (3 - np.sqrt(5))
         theta = golden_angle * np.arange(n)
