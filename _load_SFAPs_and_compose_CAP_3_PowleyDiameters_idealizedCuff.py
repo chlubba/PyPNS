@@ -48,7 +48,7 @@ electrodeDistance = 70.*1.5 # 70. # mm
 jitterAmp = 5 #ms
 jitterDist = 0.5*electrodeDistance # 0.03
 numMyel = 100
-numUnmyel = 1000
+numUnmyel = 2000
 poles = 2
 poleDistance = 1 # mm
 polePolarities = [1, -1]
@@ -74,7 +74,7 @@ wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.4299808375227
 
 diametersMyel = np.array(saveDict[stringsDiam[1]])
 sigma = 0.3 # 0.25
-mu = 2.1 # .7
+mu = 2.3 # .7
 wantedNumbersOfFibers[1] =  1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (diametersMyel - mu)**2 / (2 * sigma**2) )
 
 # plt.plot(diametersMyel, wantedNumbersOfFibers[1])
@@ -88,8 +88,8 @@ wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNum
 
 # -------------------- plot recorded data ---------------------------------
 import testWaveletDenoising as w
-data = np.loadtxt('/Users/carl/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
-denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.5)
+data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
+denoisedVoltage = data[:,1] # w.wden(data[:,1], level=12, threshold=1.5)
 
 tStart = 3.026 # 3.0245
 time = data[:,0]
@@ -98,7 +98,7 @@ vDenCut = denoisedVoltage[time>tStart]/1000
 
 vDenCutMax = np.max(vDenCut[tCut>4])
 
-plt.plot(tCut, vDenCut, color='black', linewidth=2, label='Experimental data')
+plt.plot(tCut, vDenCut, color='black', linewidth=1, label='Experimental data')
 
 def shift_signal(signal, difference, length):
 

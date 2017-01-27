@@ -141,7 +141,7 @@ class Bundle(object):
         # create axons
         for i in range(self.numberOfAxons):
             print "Creating axon " + str(i)
-            if i <= self.numUnmyel:
+            if i < self.numUnmyel:
                 self.create_axon('u', self.axonCoords[i])
             else:
                 self.create_axon('m', self.axonCoords[i])

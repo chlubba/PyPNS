@@ -17,7 +17,7 @@ class ExtracellularPotentialMechanism(object):
 
 class interpolator(ExtracellularPotentialMechanism):
 
-    def __init__(self, bundleGuide, method='z', interpolator=None):
+    def __init__(self, bundleGuide, method='z,xP,angle', interpolator=None):
         """Uses and idealized interpolation function to calculate the extracelluar potential caused by point sources. Used by :class:`recodingMechanismClass.RecordingMechanism`.
 
         :param bundleGuide: 3D nerve trajectory
@@ -31,7 +31,7 @@ class interpolator(ExtracellularPotentialMechanism):
         if self.interpolator == None:
             # if no function for potential calculation is given, take the default one
 
-            a = 1.9E-9  # 2.5E-9;
+            a = 2.5E-9 # 1.9E-9  #
             b = 0.00005
             cuffWidth = 0.01
             triangleMax = 8.83e-5
@@ -52,16 +52,24 @@ class interpolator(ExtracellularPotentialMechanism):
             smoothedTwoSides = np.concatenate([smoothedOneSideToMiddle, np.fliplr([smoothedOneSideToMiddle])[0]])
             triangle = interp1d(zInterp, smoothedTwoSides)
 
-            # triangle = lambda zValues: np.maximum(0, (np.subtract(1, np.abs(zValues / cuffWidth)) * triangleMax))
-            peakFactor = lambda angle, xP: max(0, (1 - np.mod(angle, np.pi) / np.pi * 5)) * np.min(
-                [1, (xP / 0.000190) ** 5])
+            peakFactor = lambda angle, xP: np.maximum(0, (1 - np.abs(np.mod(angle + np.pi, 2*np.pi)-np.pi) / np.pi * 5)) * np.minimum(
+                1, (xP / 0.000190) ** 5)
             peak = lambda zValues, angle, xP: a * (1.0 / (np.abs(zValues) + b)) * peakFactor(angle, xP)
-            # smoothCorner = lambda zValues, cornerZ: np.maximum(0, smoothMax*(np.subtract(1,np.abs(np.divide((zValues-cornerZ), smoothWidth))))**smoothExp)
 
-            # self.interpolator = lambda zValues, angle, xP: a * (1.0 / (np.abs(zValues) + b)) * peakFactor(angle, xP) + \
-            #                                                np.maximum(0, (np.subtract(1, np.abs(zValues / 0.01)) * 8.83e-5))
             self.interpolator = lambda zValues, angle, xP: triangle(zValues) + peak(zValues, angle, xP)
 
+
+            # import matplotlib.pyplot as plt
+            # plt.figure()
+            # # zPlot = np.arange(-0.01, 0.01, 0.0001)
+            # angles = np.arange(-5*np.pi, 5*np.pi, 0.001)
+            # plt.plot(angles, peakFactor(angles, 0.00019))
+            # # angle = 0 # np.pi/10
+            # # for xPPlot in [0.00009, 0.00018, 0.00025]:
+            # #     # plt.plot(angles, peak(np.ones(np.shape(angles))*zPlot, angles, np.ones(np.shape(angles))*xPPlot), label='peak factor only')
+            # #     plt.plot(zPlot, self.interpolator(zPlot, np.ones(np.shape(zPlot))*angle, np.ones(np.shape(zPlot))*xPPlot), label=str(xPPlot))
+            # # plt.legend()
+            # plt.show()
 
             # import matplotlib as mpl
             # mpl.use('TkAgg')
@@ -77,6 +85,9 @@ class interpolator(ExtracellularPotentialMechanism):
             # # plt.plot(np.diff(np.diff(smooth(nonsmoothedTriangle, 100))), label='numerically smoothed')
             # plt.legend()
             # plt.show()
+
+        else:
+            self.interpolator = interpolator
 
     def calculate_extracellular_potential(self, sourcePositions, sourceCurrents, receiverPositions):
         """
@@ -98,16 +109,20 @@ class interpolator(ExtracellularPotentialMechanism):
 
             if self.method == 'z':
                 zValues = points[2, :]
-                angle = 0  # arctan2(points[0,:], points[1,:])
-                xP = 0  # points[-1,:]
+                # angle = 0  # arctan2(points[0,:], points[1,:])
+                # xP = 0  # points[-1,:]
+                return self.interpolator(zValues)  # triangularVoltage # smoothedVoltageStatic #
+
             elif self.method == 'z,xP,angle':
                 zValues = points[2, :]
-                angle = arctan2(points[0, :], points[1, :])
+                angle = np.arctan2(points[0, :], points[1, :])
                 xP = points[-1, :]
+                return self.interpolator(zValues, angle, xP)  # triangularVoltage # smoothedVoltageStatic #
+
             else:
                 raise KeyError
 
-            return self.interpolator(zValues, angle, xP)  # triangularVoltage # smoothedVoltageStatic #
+
 
 
         # calculate LFP from membrane currents

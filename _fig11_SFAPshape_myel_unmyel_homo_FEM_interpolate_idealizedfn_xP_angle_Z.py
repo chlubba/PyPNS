@@ -110,7 +110,7 @@ if calculationFlag:
 
                                     'saveI':True,
                                     'saveV': False,
-                                    'saveLocation': '/Volumes/SANDISK/PyPN/',
+                                    'saveLocation': '/media/carl/SANDISK/PyPN/',
 
                                     'numberOfSavedSegments': 50,
                                     # number of segments of which the membrane potential is saved to disk
@@ -160,10 +160,12 @@ else:
 
     (f, axarr) = plt.subplots(3, 3, sharey='col', sharex='col')
 
-    # bundleLocations = ['/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00013',
-    #                    '/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00003']
-    bundleLocations = ['/Volumes/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00016',
-                       '/Volumes/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00005']
+    # bundleLocations = ['/media/carl/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00013',
+    #                    '/media/carl/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00003']
+    # bundleLocations = ['/Volumes/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00016',
+    #                    '/Volumes/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00005']
+    bundleLocations = ['/media/carl/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00018',
+                       '/media/carl/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00006']
 
     legends = ['Unmyelinated', 'Myelinated']
     bundleLengths = [40000, 40000] # [40000, 40000] # [60000, 40000]
@@ -254,7 +256,7 @@ else:
 
                 zInterpolator = interp1d(zValues, vValues, bounds_error=False, fill_value=0)
 
-                LFPMechs.append(PyPN.Extracellular.interpolator(bundle.bundleCoords, interpolator=zInterpolator))
+                LFPMechs.append(PyPN.Extracellular.interpolator(bundle.bundleCoords, method='z')) #  interpolator=zInterpolator,
 
                 if i == 1:
 

@@ -160,8 +160,10 @@ else:
 
     (f, axarr) = plt.subplots(3, 3, sharey='col', sharex='col')
 
-    bundleLocations = ['/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00002',
-                       '/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00000']
+    # bundleLocations = ['/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00002',
+    #                    '/media/carl/4ECC-1C44/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00000']
+    bundleLocations = ['/media/carl/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=0 pUnmyel=1 L=40000 nAxons=1/bundle00018',
+                       '/media/carl/SANDISK/PyPN/dt=0.0025 tStop=70 pMyel=1 pUnmyel=0 L=40000 nAxons=1/bundle00006']
 
     legends = ['Unmyelinated', 'Myelinated']
     bundleLengths = [40000, 40000] # [40000, 40000] # [60000, 40000]
@@ -174,7 +176,7 @@ else:
         FEMFileNames = ['smoothed1_zeroed.npy', 'smoothed100_zeroed.npy', 'smoothed1000_zeroed.npy']
         profileParams = [smoothingLength, peakFactors, FEMFileNames]
 
-        for profileInd in [0, 1, 2]: # [0, 1, 2]
+        for profileInd in [0,1,2]: # [0, 1, 2]
 
             import matplotlib.cm as cm
             import matplotlib.colors as colors
@@ -226,7 +228,7 @@ else:
 
                     smoothedFunctionArrayPacked = np.load(
                         os.path.join(
-                            '/media/carl/4ECC-1C44/ComsolData/interpolated_function_electrode_fixed_a_z_variable',
+                            '/media/carl/SANDISK/ComsolData/interpolated_function_electrode_fixed_a_z_variable',
                             profileParam))
                     smoothedFunctionArray = smoothedFunctionArrayPacked[()]
                     zValues = smoothedFunctionArray[0]
@@ -242,7 +244,7 @@ else:
 
                 zInterpolator = interp1d(zValues, vValues, bounds_error=False, fill_value=0)
 
-                LFPMechs.append(PyPN.Extracellular.interpolationExtracellular(bundle.bundleCoords, zInterpolator=zInterpolator))
+                LFPMechs.append(PyPN.Extracellular.interpolator(bundle.bundleCoords, method='z', interpolator=zInterpolator))
 
                 if i == 1:
 

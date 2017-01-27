@@ -91,7 +91,7 @@ if calculationFlag:
 
         recMechLegends = ['homogeneous', 'FEM', 'idealizedCuff']
         recMechMarkers = ['o', 'v']
-        for recMechIndex in [0,1,2]:
+        for recMechIndex in [2]:
 
             vAPs = []
             vAPs2 = []
@@ -112,7 +112,7 @@ if calculationFlag:
                 # set all properties of the bundle
                 bundleParameters = {'radius': 300,  # 150, #um Radius of the bundle (typically 0.5-1.5mm)
                                     'length': bundleLengths[i],  # um Axon length
-                                    'randomDirectionComponent': 0.5,
+                                    'randomDirectionComponent': 0.,
                                     # 'bundleGuide': bundleGuide,
 
                                     'numberOfAxons': numberOfAxons,  # Number of axons in the bundle
@@ -120,13 +120,14 @@ if calculationFlag:
                                     'pUnmyel': 1 - i,  # Percentage of unmyelinated fiber type C
                                     'paramsMyel': myelinatedParameters,  # parameters for fiber type A
                                     'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
+                                    'axonCoords': [0, 180],
 
                                     'tStop': tStop,
                                     'timeRes': 0.0025, #'variable', #
 
                                     # 'saveI':True,
-                                    # 'saveV': False,
-                                    # 'saveLocation': '/Volumes/SANDISK/PyPN/',
+                                    'saveV': False,
+                                    'saveLocation': '/media/carl/SANDISK/PyPN/Results',
 
                                     'numberOfSavedSegments': 50,
                                     # number of segments of which the membrane potential is saved to disk
@@ -160,6 +161,7 @@ if calculationFlag:
                                                                          bundle.axons[0].lengthOneCycle + bundle.axons[0].lengthOneCycle*relPos,
                                                   'numberOfPoles': 1,
                                                   'poleDistance': 1000,
+                                                  'numberOfPoints': 20,
                                                   }
                         electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
 
