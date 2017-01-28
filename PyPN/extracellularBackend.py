@@ -295,7 +295,7 @@ def compute_relative_positions_and_interpolate_fn_input(sourcePositions, sourceC
         receiverPotTemp = np.sum(sourceCurrents * receiverPotTempStatic[:, np.newaxis], axis=0) \
                           * 10 ** (currentUnitSource - currentUnitFEM) * 1000
 
-        receiverPots = np.vstack([receiverPotTemp, receiverPotTemp])
+        receiverPots = np.vstack([receiverPots, receiverPotTemp])
 
     return receiverPots
 

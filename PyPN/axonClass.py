@@ -240,6 +240,7 @@ class Axon(object):
 
         self.totnsegs = self.calc_totnsegs()
 
+
     def position_sections_in_neuron(self):
 
         # get sections in order (allseclist not subscriptable since NEURON object. But then, iterable.)

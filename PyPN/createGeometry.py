@@ -246,7 +246,7 @@ def distance_along_bundle(bundleGuide, bundleLength, positionMax):
     return electrodeDistance
 
 
-def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, poleDistance, numberOfPoints=8):
+def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, poleDistance, numberOfPoints=20):
     """Calculate the set of electrode coordinates for a circular electrode. Can be used for ``RecordingMechanism`` or ``StimFieldQuasistatic``.
 
     :param bundleGuide: trajectory of the bundle

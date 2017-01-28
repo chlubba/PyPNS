@@ -50,7 +50,7 @@ class Bundle(object):
     # myelinated: parameters for fiber type A, B
     # umyelinated:  parameters for fiber type C
 
-    def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel, paramsUnmyel, axonCoords=None, bundleGuide=None,
+    def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel=None, paramsUnmyel=None, axonCoords=None, bundleGuide=None,
                  segmentLengthAxon = 10, randomDirectionComponent = 0., tStop=30, timeRes=0.0025,
                  numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation='Results'):
 
@@ -108,6 +108,12 @@ class Bundle(object):
         self.numberOfAxons = numberOfAxons
         self.numMyel = int(numberOfAxons * pMyel)
         self.numUnmyel = int(numberOfAxons - self.numMyel)
+
+        if not self.numMyel == 0 and self.paramsMyel == None:
+            raise ValueError('Properties of myelinated axons not specified but at least one myelinated axon in bundle.')
+        if not self.numUnmyel == 0 and self.paramsUnmyel == None:
+            raise ValueError('Properties of unmyelinated axons not specified but at least one myelinated axon in bundle.')
+
         self.axons = []
         self.axonColors = np.zeros([self.numberOfAxons,4])
         self.radiusBundle = radius # um

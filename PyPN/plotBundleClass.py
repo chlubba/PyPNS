@@ -169,10 +169,6 @@ def CAP1D_singleAxon(bundle, maxNumberOfAxons=10, recMechIndex=0):
 
     plt.savefig(os.path.join(bundle.basePath, 'CAPSingleAxons.png'))
 
-
-
-
-
 def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0, startTime=0):
 
     '''
@@ -244,7 +240,6 @@ def CAP1D(bundle, maxNumberOfSubplots = 10, recMechIndex=0, startTime=0):
         plt.xlabel('time [ms]')
 
     plt.savefig(os.path.join(bundle.basePath, 'CAP1D.png'))
-
 
 def CAP2D(bundle):
 
@@ -356,6 +351,9 @@ def voltage(bundle, maxNumberOfSubplots=10):
 
             currentAxis.set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
         else:
+            plt.plot(v)
+            continue
+
             Nnodes = bundle.axons[axonIndex].axonnodes
 
             numberOfRecordingSites = np.shape(v)[1]

@@ -147,26 +147,27 @@ class StimFieldQuasistatic(ExcitationMechanism):
         # one signal for every point that constitutes an electrode. Divide by number of points to keep current constant
         signalTiled = np.tile(self.signal/self.numberOfPoints, (self.numberOfPoints, 1))
 
-        # calculate the potential caused by one stimulation pole, sum everything up
-        extSegPot = np.ones((len(axon.xmid), len(self.signal)))
+        # calculate the potential caused by stimulation poles for reference current of constant 1nA, sum everything up
+        extSegPot = np.zeros((len(axon.xmid), 1))
         for poleIndex in range(self.numberOfPoles):
-            # todo: check current units
-            extSegPot += self.extPotMech.calculate_extracellular_potential(self.electrodePositions[:, :, poleIndex], signalTiled,
+            # todo: check current units, and voltage units...
+            extSegPot += self.polarities[poleIndex] * \
+                         self.extPotMech.calculate_extracellular_potential(self.electrodePositions[:, :, poleIndex],
+                                                                           np.ones(np.shape(self.electrodePositions)[0])[:, np.newaxis],
                                                                            np.transpose(np.vstack([axon.xmid, axon.ymid, axon.zmid])))
 
-
-
-        # apply calculated voltage to axon segments by playing v_ext into e_extracellular reference
-        t_ext = h.Vector(np.arange(len(self.signal))*self.timeRes)
-        v_ext = []
-
+        # interpret calculated voltage as a transfer resistivity r = v_ext/i_ref with i_ref = 1nA
         for sec in axon.allseclist:
             for segInd, seg in enumerate(sec):
-                v_ext.append(h.Vector(extSegPot[segInd,:]))
-                v_ext[-1].play(seg._ref_e_extracellular, t_ext)
+                seg.xtra.rx = extSegPot[segInd] * 1e-6 # mV/nA = uOhm, we want ohm
+
+
+        # write signal vector into the reference for the xtra mechanism
+        svec = h.Vector(np.concatenate((self.signal, [0])))
+        svec.play(h._ref_is_xtra, constants.timeResStim)
 
         # keep variables in memory in order for NEURON to see them
-        axon.append_ex_mech_vars([v_ext, t_ext])
+        axon.append_ex_mech_vars([svec])
 
 
     def delete_neuron_objects(self):
