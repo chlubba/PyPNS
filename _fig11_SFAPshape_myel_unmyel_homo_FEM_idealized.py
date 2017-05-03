@@ -76,9 +76,20 @@ Ras = np.arange(50, 300, 50)
 
 RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
 
+def cm2inch(*tupl):
+    inch = 2.54
+    if isinstance(tupl[0], tuple):
+        return tuple(i/inch for i in tupl[0])
+    else:
+        return tuple(i/inch for i in tupl)
+
+f = plt.figure(figsize=(cm2inch(8,3)))
+(_, axarr) = plt.subplots(1, 2) # , sharey=True)
+
+colors = np.array(((0.,0.,0.), (230., 159., 0.), (86., 180., 233.), (0., 158., 115.)))/255
+
 if calculationFlag:
 
-    (f, axarr) = plt.subplots(1, 2, sharey=True)
 
     legends = ['Unmyelinated', 'Myelinated']
     # bundleLengths = [20000, 20000]
@@ -91,7 +102,7 @@ if calculationFlag:
 
         recMechLegends = ['homogeneous', 'FEM', 'idealizedCuff']
         recMechMarkers = ['o', 'v']
-        for recMechIndex in [2]:
+        for recMechIndex in [0,1,2]:
 
             vAPs = []
             vAPs2 = []
@@ -120,14 +131,14 @@ if calculationFlag:
                                     'pUnmyel': 1 - i,  # Percentage of unmyelinated fiber type C
                                     'paramsMyel': myelinatedParameters,  # parameters for fiber type A
                                     'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
-                                    'axonCoords': [0, 180],
+                                    'axonCoords': [0, 0],
 
                                     'tStop': tStop,
                                     'timeRes': 0.0025, #'variable', #
 
                                     # 'saveI':True,
                                     'saveV': False,
-                                    'saveLocation': '/media/carl/SANDISK/PyPN/Results',
+                                    # 'saveLocation': '/media/carl/SANDISK/PyPN/Results',
 
                                     'numberOfSavedSegments': 50,
                                     # number of segments of which the membrane potential is saved to disk
@@ -175,6 +186,7 @@ if calculationFlag:
                                               'positionAlongBundle': 12000,
                                               'numberOfPoles': 1,
                                               'poleDistance': 1000,
+                                              'numberOfPoints': 20,
                                               }
                     electrodePos = PyPN.createGeometry.circular_electrode(**recordingParametersNew)
 
@@ -225,11 +237,11 @@ if calculationFlag:
 
             t, SFAPs = bundle.get_SFAPs_from_file()
 
-            axarr[i].plot(t,SFAPs, label=recMechLegends[recMechIndex])
+            axarr[i].plot(t,SFAPs, label=recMechLegends[recMechIndex], color=colors[recMechIndex,:])
             axarr[i].set_xlabel('time [ms]')
 
             if i == 0:
-                # axarr[i].set_xlim((1.8, 7.))
+                # axarr[i].set_xlim((16, 19))
                 axarr[i].set_ylabel('$V_{ext}$ [mV]')
                 axarr[i].set_title('Unmyelinated')
             else:
@@ -237,9 +249,10 @@ if calculationFlag:
                 # axarr[i].legend()
                 axarr[i].set_title('Myelinated')
 
-        axarr[i].grid()
+        # axarr[i].grid()
         # axarr[i].set_ylim((-0.0003, 0.00035))
         plt.legend()
+        # plt.show()
         # plt.figure()
         # plt.plot(diameters, np.divide(vAPCollection[0], vAPCollection[1]))
 
@@ -247,7 +260,7 @@ if calculationFlag:
     # plt.xlabel('diameter [$\mu$m]')
     # plt.ylabel('$V_{ext}$ [mV]')
     # plt.legend(loc='best')
-    plt.show()
+
 else:
 
     # try to open a bundle with the parameters set above
@@ -261,77 +274,29 @@ else:
 # ---------------------------------- PLOTTING ----------------------------------
 # ------------------------------------------------------------------------------
 
+# plt.show()
 
 # pickle.dump(saveDict, open(os.path.join('/media/carl/4ECC-1C44/PyPN/condVel', 'conductionVelocitiesUnmyelinatedRa.dict'), "wb"))
 
-print '\nStarting to plot'
 
-# # pp = pprint.PrettyPrinter(indent=4)
-# # pp.pprint(bundle)
-# pprint (vars(bundle))
-# # for axon in bundle.axons:
-# #     # print axon.nbytes
-# #     pprint (vars(axon))
-# pprint(vars(bundle.axons[0]))
-# pprint(vars(bundle.recordingMechanisms[0]))
+# zoom in and save figure
+# first dimension: zoom, second dimension: un-/myel
+# xlims = [[(15.3, 21.1), (0.1, 2.5)], [(15.6, 20.7), (0.5, 1.5)]]
+xlims = [[(0.8, 38.0), (0.1, 2.5)], [(15.6, 20.7), (0.5, 1.5)]]
+ylims = [[(-0.007, 0.0032), (-0.007, 0.0032)], [(-0.0006, 0.00011), (-0.0003, 0.00025)]]
 
+figureNames = ['SFAPglobal.eps', 'SFAPzoomed.eps']
+for zoomInd in range(2):
 
+    xlimits = xlims[zoomInd]
+    ylimits = ylims[zoomInd]
 
+    for axInd in range(2):
+        axarr[axInd].set_xlim(xlimits[axInd])
+        axarr[axInd].set_ylim(ylimits[axInd])
+        # axarr[axInd].axis('equal')
 
-# # first load the desired data from file
-# for i in range(len(bundle.recordingMechanisms)):
-#     time, CAP = bundle.get_CAP_from_file(i)
-#     plt.plot(time, CAP, label='recMech'+str(i))
-# plt.legend()
+    # plt.axes().set_aspect('equal', 'datalim')
+    plt.savefig(os.path.join('/home/carl/Dropbox/_Exchange/Project/PyPN Paper/PythonFigureOutput', figureNames[zoomInd]), format='eps', dpi=300)
 
-# plt.figure()
-# plt.plot(diameters, vAPs)
-
-
-
-# # # # PyPN.plot.geometry_definition(bundle)
-# PyPN.plot.CAP1D(bundle)
-# PyPN.plot.CAP1D(bundle, recMechIndex=1)
-# PyPN.plot.CAP1D(bundle, recMechIndex=2)
-# PyPN.plot.CAP1D(bundle, recMechIndex=3)
-
-# plt.figure()
-# time, CAP = bundle.get_CAP_from_file(0)
-# plt.plot(time, CAP[-1,:], label='FEM')
-# time, CAP = bundle.get_CAP_from_file(1)
-# plt.plot(time, CAP[-1,:]/2*0.3, label='homogeneous')
-# plt.xlabel('time [ms]')
-# plt.ylabel('voltage [mV]')
-# plt.legend()
-# plt.tight_layout()
-#
-# plt.figure()
-# time, CAP = bundle.get_CAP_from_file(2)
-# plt.plot(time, CAP[-1,:], label='FEM')
-# time, CAP = bundle.get_CAP_from_file(3)
-# plt.plot(time, CAP[-1,:]/2*0.3, label='homogeneous')
-# plt.xlabel('time [ms]')
-# plt.ylabel('voltage [mV]')
-# plt.legend()
-# plt.tight_layout()
-#
-# plt.figure()
-# time, CAP = bundle.get_CAP_from_file(0)
-# plt.plot(time, CAP[-1,:], label='FEM monopolar')
-# time, CAP = bundle.get_CAP_from_file(2)
-# plt.plot(time, CAP[-1,:]/2*0.3, label='FEN bipolar')
-# plt.xlabel('time [ms]')
-# plt.ylabel('voltage [mV]')
-# plt.legend()
-# plt.tight_layout()
-
-# t, CAP = bundle.get_CAP_from_file()
-# np.save(os.path.join('/media/carl/4ECC-1C44/PyPN/FEM_CAPs/forPoster', 'homogeneous2.npy'), [t, CAP])
-
-
-# PyPN.plot.CAP1D(bundle, recMechIndex=1)
-# PyPN.plot.voltage(bundle)
-# PyPN.plot.diameterHistogram(bundle)
 plt.show()
-
-bundle = None

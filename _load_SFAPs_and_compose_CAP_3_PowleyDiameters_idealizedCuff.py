@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
+CBcolors = np.array(((0.,0.,0.), (230., 159., 0.), (86., 180., 233.), (0., 158., 115.)))/255
+
 # saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/SFAPs', 'SFAPsOil.dict'), "rb" )) # thinnerMyelDiam
-saveDict = pickle.load(open(os.path.join('SFAPs', 'SFAPsPowleyMyelAsRecordingsIdealizedCuff.dict'), "rb" )) # originalMyelDiam #/Volumes/SANDISK/PyPN/
+saveDict = pickle.load(open(os.path.join('SFAPs', 'SFAPsPowleyMyelAsRecordingsIdealizedCuff4.dict'), "rb" )) # originalMyelDiam #/Volumes/SANDISK/PyPN/
 
 
 # saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
@@ -44,13 +46,13 @@ nRecording = int(lengthOfRecording/dt)
 tArtefact = 0.1 # ms
 nArtefact = tArtefact/dt
 
-electrodeDistance = 70.*1.5 # 70. # mm
+electrodeDistance = 70.*1.2 #*1.5 # 70. # mm
 jitterAmp = 5 #ms
-jitterDist = 0.5*electrodeDistance # 0.03
-numMyel = 100
-numUnmyel = 2000
+jitterDist = 0.1*electrodeDistance # 0.03
+numMyel = 200
+numUnmyel = 2000 # 350
 poles = 2
-poleDistance = 1 # mm
+poleDistance = 3 # 1 # mm
 polePolarities = [1, -1]
 fieldTypes = [0, 1] # 0: homo, 1: FEM
 
@@ -59,8 +61,8 @@ stringsSFAPHomo = ['unmyelinatedSFAPsHomo', 'myelinatedSFAPsHomo']
 stringsSFAPFEM = ['unmyelinatedSFAPsFEM', 'myelinatedSFAPsFEM']
 stringsSFAPIdeal = ['unmyelinatedSFAPIdeal', 'myelinatedSFAPIdeal']
 stringsCV = ['unmyelinatedCV', 'myelinatedCV']
-tHomo = saveDict['t']
-ts = [tHomo, np.arange(0,20,0.0025), np.arange(0,20,0.0025)]
+# tHomo = saveDict['t']
+ts = [np.arange(0,100.0025,0.0025), np.arange(0,20.0025,0.0025)]
 
 wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.429980837522710, 0.632957475186409, 2.05015339910575,
                           3.10696898591111,  4.54590886074274,  7.22064649366380,  7.60343269800399,  8.61543655035694,
@@ -73,7 +75,7 @@ wantedNumbersOfFibers = [(0.0691040631732923, 0.182192465406599, 0.4299808375227
                           1.189, 0.948, 0.917, 2.1, 2.1)]
 
 diametersMyel = np.array(saveDict[stringsDiam[1]])
-sigma = 0.3 # 0.25
+sigma = .5 # 0.3 # 0.25
 mu = 2.3 # .7
 wantedNumbersOfFibers[1] =  1/(sigma * np.sqrt(2 * np.pi)) *np.exp( - (diametersMyel - mu)**2 / (2 * sigma**2) )
 
@@ -88,8 +90,8 @@ wantedNumbersOfFibers[1] = np.divide(wantedNumbersOfFibers[1],  np.sum(wantedNum
 
 # -------------------- plot recorded data ---------------------------------
 import testWaveletDenoising as w
-data = np.loadtxt('/media/carl/18D40D77D40D5900/Dropbox/_Exchange/Project/SD_1ms_AllCurrents.txt')
-denoisedVoltage = data[:,1] # w.wden(data[:,1], level=12, threshold=1.5)
+data = np.loadtxt('experimentalData/SD_1ms_AllCurrents.txt')
+denoisedVoltage = w.wden(data[:,1], level=12, threshold=1.) # data[:,1] #w.wden(data[:,1], level=12, threshold=1.5) # data[:,1] #
 
 tStart = 3.026 # 3.0245
 time = data[:,0]
@@ -119,7 +121,7 @@ def shift_signal(signal, difference, length):
 tCAP = np.arange(0,lengthOfRecording,0.0025)
 
 fieldStrings = ['Homogeneous', 'FEM', 'Ideal Cuff']
-for fieldTypeInd in [0,1,2]: # fieldTypes:
+for fieldTypeInd in [2,1,0]: # fieldTypes:
 
     CAP = np.zeros(nRecording)
     CAPSmoothed = np.zeros(nRecording)
@@ -142,16 +144,24 @@ for fieldTypeInd in [0,1,2]: # fieldTypes:
         else:
             SFAP = np.transpose(np.array(saveDict[stringsSFAPIdeal[typeInd]]))
 
+        # plt.figure()
+        # plt.plot(SFAP)
         SFAPNoArt = SFAP [t > tArtefact, :]
 
-        # plt.plot(SFAPNoArt)
+        # plt.figure()
+        # plt.plot(SFAPNoArt[:,-1])
         # plt.show()
 
         for fiberInd in range(numFibers):
 
             currentSFAP = SFAPNoArt[:, fiberInd]
+
+            # plt.plot(currentSFAP)
+            # plt.show()
+
             if typeInd == 0:
                 currentSFAP = currentSFAP[3000:]
+
 
 
             # caution, convolving!
@@ -171,18 +181,19 @@ for fieldTypeInd in [0,1,2]: # fieldTypes:
                 # g_ratio = 0.6
                 CV = 5*diameters[fiberInd] # *g_ratio # CVs[fiberInd]
             else:
-                CV = np.sqrt(diameters[fiberInd]) * 2
+                CV = np.sqrt(diameters[fiberInd]) * 2 * 0.7
 
             # print 'diameter : ' + str(diameters[fiberInd]) + 'CV = ' + str(CV)
 
             for ii in range(int(wantedNums[fiberInd])): # range(int(max(wantedNums[fiberInd], 1))):
 
 
-
+                signalBothPoles = np.zeros(nRecording)
+                jitterTemp = np.random.uniform(0, 1) * jitterDist
                 for poleInd in range(poles):
 
                     # wantedPeakInd = (electrodeDistance + poleInd*poleDistance) / CV / dt + jitterAmp*np.random.uniform(-1,1) / dt
-                    wantedPeakInd = (electrodeDistance + poleInd * poleDistance + np.random.uniform(0, 1) * jitterDist) / CV / dt
+                    wantedPeakInd = (electrodeDistance + poleInd * poleDistance + jitterTemp) / CV / dt
                     # wantedPeakInd = 10/dt
 
 
@@ -195,8 +206,17 @@ for fieldTypeInd in [0,1,2]: # fieldTypes:
                     paddedSignal = shift_signal(currentSFAP, difference, nRecording)
                     paddedSignalSmoothed = shift_signal(smoothedSFAP, difference, nRecording)
 
-                    CAP = np.add(CAP, polePolarities[poleInd] * paddedSignal)
-                    CAPSmoothed = np.add(CAPSmoothed, polePolarities[poleInd] * paddedSignalSmoothed)
+                    signalBothPoles = np.add(signalBothPoles, polePolarities[poleInd] * paddedSignal)
+
+                    # plt.plot(currentSFAP)
+                    # plt.plot(paddedSignal)
+                    # plt.show()
+
+                # plt.plot(signalBothPoles)
+                # plt.show()
+
+                CAP = np.add(CAP, signalBothPoles)
+                    # CAPSmoothed = np.add(CAPSmoothed, polePolarities[poleInd] * paddedSignalSmoothed)
 
                     # plt.plot(paddedSignal)
                     # plt.title(str(diameters[fiberInd]))
@@ -209,7 +229,7 @@ for fieldTypeInd in [0,1,2]: # fieldTypes:
 
     # unfilteredScaling = vDenCutMax/np.max(CAP)
 
-    plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd])
+    plt.plot(tCAP, CAP, label=fieldStrings[fieldTypeInd], color=CBcolors[fieldTypeInd+1])
     plt.title('Comparison between experimental data and simulation')
     plt.ylabel('$V_{ext}$ [mV]')
 
@@ -253,6 +273,19 @@ for fieldTypeInd in [0,1,2]: # fieldTypes:
 
 # plt.grid()
 plt.legend()
+
+xlimits = ([0,120], [10,25], [30,100])
+figureNames = ['CAPfull.eps', 'CAPmyel.eps', 'CAPunmyel.eps']
+for limInd in range(3):
+    plt.xlim(xlimits[limInd])
+    if limInd == 2:
+        plt.ylim((-0.01, 0.01))
+    # plt.ylim(ylimits[axInd])
+    # axarr[axInd].axis('equal')
+
+    # plt.axes().set_aspect('equal', 'datalim')
+    plt.savefig(os.path.join('/home/carl/Dropbox/_Exchange/Project/PyPN Paper/PythonFigureOutput', figureNames[limInd]),
+            format='eps', dpi=300)
 
 plt.show()
 

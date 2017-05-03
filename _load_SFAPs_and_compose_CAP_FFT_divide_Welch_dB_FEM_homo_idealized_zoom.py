@@ -88,13 +88,19 @@ vDenCutPlot = vDenCut[np.logical_and(tCut>timePlotMin, tCut<timePlotMax)]
 # plt.show()
 
 typeIndSelected = 1
+segFactor = 1.0
 
-times =np.array(([50.,90.], [2., 60.]))/1000
+times =np.array(([50.,90.], [2., 60.]))/1000 + tStart
 
 from scipy import signal
 # f_rec, Pxx_den_rec = signal.welch(vDenCutPlot - np.mean(vDenCutPlot), 1./(time[1]-time[0]), nperseg=50)
-f_rec, Pxx_den_rec = signal.welch(data[:,1] - np.mean(data[:,1]), 1./(time[1]-time[0]), nperseg=64) # 256
+# f_rec, Pxx_den_rec = signal.welch(data[:,1] - np.mean(data[:,1]), 1./(time[1]-time[0]), nperseg=256) # 256
 # f_rec, Pxx_den_rec = signal.welch(data[np.logical_and(time>times[typeIndSelected,0], time<times[typeIndSelected,1]),1] - np.mean(data[:,1]), 1./(time[1]-time[0]), nperseg=256) # 256
+f_rec, Pxx_den_rec = signal.welch(denoisedVoltage[np.logical_and(time>times[typeIndSelected,0], time<times[typeIndSelected,1])], 1./(time[1]-time[0]), nperseg=segFactor*128) # 256
+
+# plt.figure()
+# plt.plot(denoisedVoltage[np.logical_and(time>times[typeIndSelected,0], time<times[typeIndSelected,1])])
+# plt.show()
 
 plt.plot(f_rec, 20 * np.log10(
             np.sqrt(Pxx_den_rec / np.max(Pxx_den_rec))), label='recorded', color='r')
@@ -106,7 +112,7 @@ fieldStrings = ['homogeneous', 'FEM', 'idealized Cuff']
 for fieldTypeInd in [0,1,2]: # fieldTypes:
     CAP = np.zeros(nRecording)
 
-    for typeInd in [0,1]:
+    for typeInd in [typeIndSelected]:
 
         diameters = np.array(saveDict[stringsDiam[typeInd]])
         CVs = np.array(saveDict[stringsCV[typeInd]])
@@ -181,7 +187,7 @@ for fieldTypeInd in [0,1,2]: # fieldTypes:
 
     # plt.plot(tCAP, CAP/np.max(CAP), label=fieldStrings[fieldTypeInd])
 
-    f, Pxx_den = signal.welch(CAP- np.mean(CAP), 1000. / (tCAP[1] - tCAP[0]), nperseg=1024) # 8192
+    f, Pxx_den = signal.welch(CAP- np.mean(CAP), 1000. / (tCAP[1] - tCAP[0]), nperseg=segFactor*2048) # 8192
 
     # interpolate and cut to obtain same frequency range and same spacing
     f_common = f[f < np.max(f_rec)]

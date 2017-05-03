@@ -49,7 +49,6 @@ def _getImageCoords(fieldDict, points):
     zMax = max(zValues)
     zNum = len(zValues)
 
-    # todo: change from um to m! in generate dict script.
     axonXMin = min(axonXValues)
     axonXMax = max(axonXValues)
     axonXNum = len(axonXValues)
@@ -441,8 +440,6 @@ def compute_relative_positions_and_interpolate_symmetric_inhomogeneity(sourcePos
 
         for sourceIndInner,sourceDir2D in enumerate(sourceDir2Ds):
 
-            # TODO: x,y need to be set correctly, this is only a simplified implementation valid because no side
-            # TODO: displacement of axon segments is modeled
             receiverX = receiverXDists
             receiverY = np.zeros(np.shape(receiverXDists))
             receiverZ = np.zeros(np.shape(receiverXDists))
@@ -558,13 +555,6 @@ def compute_relative_positions_and_interpolate(sourcePositions, sourceCurrents, 
     # first go through all bundle segments, find the associated source positions and calculate the needed
     # quantities for all sources
     receiverPotentials = np.zeros((receiverPositions.shape[0], np.shape(sourceCurrents)[1]))
-
-    # # TODO: delete this again, only for testing
-    # lastElectrodeSignal = []
-    # f, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
-    # jet = plt.get_cmap('jet')
-    # cNorm = colors.Normalize(vmin=0, vmax=int(nSourcePoints) - 1)
-    # scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
 
     t0 = time.time()
 

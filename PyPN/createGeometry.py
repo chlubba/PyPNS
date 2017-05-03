@@ -46,7 +46,7 @@ def rotation_matrix(axis, theta):
                      [2*(bd+ac), 2*(cd-ab), aa+dd-bb-cc]])
 
 
-def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDirectionComponent=0): # maximumAngle=pi / 10,
+def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDirectionComponent=0, distribution='normal'): # maximumAngle=pi / 10,
     """
     This function is used to generate the trajectory of axons. They can follow the bundle trajectory more or less loosely, as set by the parameter ``randomDirectionComponent``.
 
@@ -103,7 +103,13 @@ def create_random_axon(bundleCoords4D, axonCoords, segmentLengthAxon, randomDire
         # the random component faces inwards, towards the bundle core.
         factorRadiusBias = min((max(0, distance / bundleRadius - 0.7)) * 6, 2.5)
         radialNorm = np.cross(radiusVectorNorm, bundleDirectionNorm)
-        randomVectorToAdd = np.random.uniform(-1,1)*radialNorm + (np.random.uniform(-1,1) - factorRadiusBias)*np.array(radiusVectorNorm*(-1))
+        if distribution == 'uniform':
+            randFactors = np.random.uniform(-1,1,2)
+        elif distribution == 'normal':
+            randFactors = np.random.normal(0, 1, 2)/3
+        else:
+            raise NameError('No valid distribution name given. Either ''uniform'' or ''normal''.')
+        randomVectorToAdd = randFactors[0]*radialNorm + (randFactors[1] - factorRadiusBias)*np.array(radiusVectorNorm*(-1))
         if not np.sum(randomVectorToAdd) == 0:
             randomVectorToAddNorm = randomVectorToAdd/np.linalg.norm(randomVectorToAdd)
         else:
@@ -246,7 +252,7 @@ def distance_along_bundle(bundleGuide, bundleLength, positionMax):
     return electrodeDistance
 
 
-def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, poleDistance, numberOfPoints=20):
+def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, poleDistance=None, numberOfPoints=20):
     """Calculate the set of electrode coordinates for a circular electrode. Can be used for ``RecordingMechanism`` or ``StimFieldQuasistatic``.
 
     :param bundleGuide: trajectory of the bundle
@@ -261,6 +267,9 @@ def circular_electrode(bundleGuide, positionAlongBundle, radius, numberOfPoles, 
     """
 
     bundleGuide = bundleGuide[:, 0:3]
+
+    if not numberOfPoles == 1:
+        assert not poleDistance == None
 
     # first find the bundle guide segment index that corresponds to the intended bundle length (overlap for
     # myelinated axons gives longer bundle than specified by user)

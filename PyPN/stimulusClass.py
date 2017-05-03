@@ -82,7 +82,7 @@ class StimCuff(ExcitationMechanism):
 
     def connect_axon(self, axon):
 
-        axon.setrx(self.stim_coord, axon.axonPosition, rho=self.rho)
+        axon.setrx(self.stim_coord, rho=self.rho)
         self.svec.play(h._ref_is_xtra, self.timeRes)
 
     def delete_neuron_objects(self):
@@ -157,10 +157,12 @@ class StimFieldQuasistatic(ExcitationMechanism):
                                                                            np.transpose(np.vstack([axon.xmid, axon.ymid, axon.zmid])))
 
         # interpret calculated voltage as a transfer resistivity r = v_ext/i_ref with i_ref = 1nA
+        segCounter = 0
         for sec in axon.allseclist:
             for segInd, seg in enumerate(sec):
-                seg.xtra.rx = extSegPot[segInd] * 1e-6 # mV/nA = uOhm, we want ohm
-
+                seg.xtra.rx = extSegPot[segCounter] * 1e-6 # see xtra readme online from neuron.yale.org
+                # print 'seg no %i, rx %20.20f' % (segCounter, seg.xtra.rx)
+                segCounter += 1
 
         # write signal vector into the reference for the xtra mechanism
         svec = h.Vector(np.concatenate((self.signal, [0])))

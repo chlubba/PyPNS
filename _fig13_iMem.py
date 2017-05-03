@@ -83,7 +83,7 @@ if calculationFlag:
     firstAP = []
 
     typeLegendStrings = ['unmyelinated', 'myelinated']
-    for typeInd in [0, 1]:
+    for typeInd in [0]:
 
         diameters = diametersBothTypes[typeInd]
 
@@ -118,7 +118,7 @@ if calculationFlag:
 
                                 'saveI':True,
                                 'saveV': False,
-                                'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
+                                #'saveLocation': '/media/carl/4ECC-1C44/PyPN/',
 
                                 'numberOfSavedSegments': 50,
                                 # number of segments of which the membrane potential is saved to disk
@@ -142,7 +142,9 @@ if calculationFlag:
             # plt.show()
 
             if typeInd == 1:
-                nodeIndex = np.floor(bundle.axons[0].totnsegs / 11 * 0.8) * 11
+                nodeIndices = np.where(np.array(bundle.axons[0].segmentTypes) == 'n')[0]
+                nodeIndex = nodeIndices[int(len(nodeIndices)*0.8)]
+                # nodeIndex = np.floor(bundle.axons[0].totnsegs / 11 * 0.8) * 11
                 iSignal = np.sum(imem[nodeIndex:nodeIndex+3, :], axis=0)
             else:
                 nodeIndex = 10

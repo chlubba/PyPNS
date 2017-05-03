@@ -59,6 +59,9 @@ class Axon(object):
         self.tvec = None
         self.totnsegs = None
 
+        # save the type of segments in an array as to identify them afterwards
+        self.segmentTypes = None
+
     def calc_totnsegs(self):
         # Calculate the number of segments in the allseclist (only possible if NEURON simulation has run)
         i = 0
@@ -509,7 +512,7 @@ class Axon(object):
                     sec(xr).z_xtra = zint.x[ii]
 
     @staticmethod
-    def setrx(stim_elec, axon_pos, rho=500, bipolar = False):
+    def setrx(stim_elec, rho=500, bipolar = False):
         """
         This function assumes a homogeneous outer medium for stimulation and sets the transmission resistance rx
         accordingly. While for the CNS this might be ok, it certainly isn't here in the PNS, so this function should
@@ -529,12 +532,13 @@ class Axon(object):
 
         r = np.zeros(len(stim_elec))
 
+        segCounter = 0
         # now expects xyc coords as arguments
         for sec in h.allsec():
 
             if h.ismembrane('xtra', sec=sec):
 
-                for seg in sec:
+                for segInd, seg in enumerate(sec):
 
                     for j in range(numPoints):
 
@@ -542,8 +546,8 @@ class Axon(object):
 
                         # avoid nodes at 0 and 1 ends, so as not to override values at internal nodes
                         r[j] = math.sqrt(
-                            math.pow(seg.x_xtra - xe, 2) + math.pow(seg.y_xtra - axon_pos[0] - ye, 2) + math.pow(
-                                seg.z_xtra - axon_pos[1] - ze, 2))
+                            math.pow(seg.x_xtra - xe, 2) + math.pow(seg.y_xtra - ye, 2) + math.pow(
+                                seg.z_xtra - ze, 2))
 
                         # 0.01 converts rho's cm to um and ohm to megohm
                         # if electrode is exactly at a node, r will be 0
@@ -566,6 +570,8 @@ class Axon(object):
                     # seg.xtra.rx = (sec.Ra / 4.0 / math.pi) * sum_r * 0.01
                     seg.xtra.rx = (rho / 4.0 / math.pi) * sum_r * 0.01
 
+                    # print "seg no %i, rx %10.8f" % (segCounter, (rho / 4.0 / math.pi) * sum_r * 0.01)
+                    segCounter += 1
 
 class Unmyelinated(Axon):
 
@@ -606,6 +612,10 @@ class Unmyelinated(Axon):
 
         return approx_nseg_d_lambda(self)
 
+    def set_segment_types(self):
+
+        self.segmentTypes = np.tile('n', self.totnsegs)
+
     def create_neuron_object(self):
 
         # define the section properties of the unmyelinated axon
@@ -623,6 +633,10 @@ class Unmyelinated(Axon):
 
         # do everything (number of segs per sec, channels, geometry from NEURON)
         super(Unmyelinated, self).create_neuron_object()
+
+        # as number of segments per section are set dynamically depending on diameter, set the association here for
+        # further processing
+        self.set_segment_types()
 
         # add channels specific to unmyelinated axon
         self.channel_init() # default values of hh channel are used
@@ -1037,6 +1051,19 @@ class Myelinated(Axon):
             self.STINs.append(STIN)
             self.allseclist.append(sec=STIN)
 
+    def set_segment_types(self):
+
+        nodeSequence = ['n', 'm', 'f', 's', 's', 's', 's', 's', 's', 'f', 'm'] # better be a member variable
+
+        self.segmentTypes = []
+
+        segCounter = 0
+        for sec in self.allseclist:
+            segmentTypeStr = nodeSequence[np.mod(segCounter, len(nodeSequence))]
+            for seg in sec:
+                self.segmentTypes.append(segmentTypeStr)
+            segCounter += 1
+
     def create_neuron_object(self):
 
         self.nodes = []
@@ -1060,6 +1087,10 @@ class Myelinated(Axon):
 
         # do everything (number of segs per sec, channels, geometry from NEURON)
         super(Myelinated, self).create_neuron_object()
+
+        # as number of segments per section are set dynamically depending on diameter, set the association here for
+        # further processing
+        self.set_segment_types()
 
         # here we correct the conductance of the slow potassium channel from 0.08 S/cm2 to 0.12 S/cm2 to prevent
         # multiple action potentials for thin fibers

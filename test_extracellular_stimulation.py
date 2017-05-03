@@ -102,11 +102,11 @@ timeRes=0.005
 
 # stimulation params
 stimDur = 1.
-amplitude = 0.01
+amplitude = 0.1 # 0.01
 frequency = 1
 
 t = np.arange(0, stimDur, timeRes)
-stimSignal = - amplitude * 0.5 * signal.square(2 * np.pi * frequency * t) + amplitude * 0.5
+stimSignal = amplitude * 0.5 * signal.square(2 * np.pi * frequency * t) # + amplitude * 0.5
 stimSignal = np.concatenate((stimSignal, [0]))
 svec = h.Vector(stimSignal)
 

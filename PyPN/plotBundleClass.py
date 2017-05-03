@@ -105,7 +105,9 @@ def geometry_definition(bundle, axis_equal=True, axis_off=False):
         ax.set_zlim(mid_z - max_range, mid_z + max_range)
 
     plt.savefig(os.path.join(bundle.basePath, 'geometry_definition.png'))
-    
+
+    return ax
+
 def CAP1D_singleAxon(bundle, maxNumberOfAxons=10, recMechIndex=0):
 
     '''
@@ -351,7 +353,13 @@ def voltage(bundle, maxNumberOfSubplots=10):
 
             currentAxis.set_title('Voltage of unmyelinated axon with diameter ' + str(axonDiameter) + ' um')
         else:
-            plt.plot(v)
+
+            cNorm = colors.Normalize(vmin=0, vmax=np.shape(v)[1])
+            scalarMap = cm.ScalarMappable(norm=cNorm, cmap=jet)
+
+            for j in range(np.shape(v)[1]):
+                plt.plot(v[:,j], color=scalarMap.to_rgba(j))
+
             continue
 
             Nnodes = bundle.axons[axonIndex].axonnodes

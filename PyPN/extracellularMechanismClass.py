@@ -44,7 +44,7 @@ class interpolator(ExtracellularPotentialMechanism):
 
             dz = 0.000001
             zInterp = np.arange(-0.02, 0.02, dz)
-            smoothWidth = cuffWidth/5
+            smoothWidth = cuffWidth/20 # 5
             smoothSamples = smoothWidth / dz
             sharpOneSide = np.maximum(0, triangleMax * (np.add(1, np.divide(zInterp, cuffWidth))))
             smoothedOneSide = smooth(sharpOneSide, int(smoothSamples))

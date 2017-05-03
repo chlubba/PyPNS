@@ -70,7 +70,7 @@ Ras = np.arange(50, 300, 50)
 
 RDCs = [0, 0.2, 0.4, 0.6, 0.8, 1.] # np.arange(0, 1., 0.15)
 
-simTimes = [40, 20]
+simTimes = [100, 20]
 
 saveDict = {'unmyelinatedDiameters' : diametersUnmyel,
             'unmyelinatedSFAPsHomo': [],
@@ -127,13 +127,14 @@ if calculationFlag:
                                 'pUnmyel': 1 - i,  # Percentage of unmyelinated fiber type C
                                 'paramsMyel': myelinatedParameters,  # parameters for fiber type A
                                 'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
+                                # 'axonCoords': [0, 0],
 
                                 'tStop': simTimes[i],
                                 'timeRes': 0.0025, #'variable', #
 
                                 # 'saveI':True,
-                                # 'saveV': False,
-                                'saveLocation': '/Volumes/SANDISK/PyPN/',
+                                'saveV': False,
+                                # 'saveLocation': '/Volumes/SANDISK/PyPN/',
 
                                 'numberOfSavedSegments': 50,
                                 # number of segments of which the membrane potential is saved to disk
@@ -192,48 +193,48 @@ if calculationFlag:
             # plt.plot(t[t>tStartPlots[i]], SFAPs[t>tStartPlots[i]])
             # plt.show()
 
-            t, v = bundle.get_voltage_from_file_one_axon(0)
+            # t, v = bundle.get_voltage_from_file_one_axon(0)
             # plt.plot(t,v)
             # plt.show()
 
 
-            currentNumberOfSegments = np.shape(v)[1]
-            currentAxonLength = bundle.axons[0].L
-
-            from PyPN.axonClass import *
-
-            if not type(bundle.axons[0]) == Myelinated:
-                iMaxFirstSegment = np.argmax(v[:, 0])
-                iMaxLastSegment = np.argmax(v[:, -1])
-
-                # plt.plot(v[:,0])
-                # plt.show()
-
-                tMinFirstSegment = t[iMaxFirstSegment]
-                tMinLastSegment = t[iMaxLastSegment]
-
-                distance = currentAxonLength
-
-                vel = distance / 1000 / (tMinLastSegment - tMinFirstSegment)
-
-            else:
-                Nnodes = bundle.axons[0].axonnodes
-                numberOfRecordingSites = np.shape(v)[1]
-                nodePositions = range(0, (Nnodes - 1) * 11, 11)
-
-                nodeDistance = bundle.axons[0].lengthOneCycle
-                distance = Nnodes * nodeDistance
-
-                iMaxFirstSegment = np.argmax(v[:, nodePositions[0]])
-                iMaxLastSegment = np.argmax(v[:, nodePositions[-1]])
-
-                # plt.plot(v[:,0])
-                # plt.show()
-
-                tMinFirstSegment = t[iMaxFirstSegment]
-                tMinLastSegment = t[iMaxLastSegment]
-
-                vel = distance / 1000 / (tMinLastSegment - tMinFirstSegment)
+            # currentNumberOfSegments = np.shape(v)[1]
+            # currentAxonLength = bundle.axons[0].L
+            #
+            # from PyPN.axonClass import *
+            #
+            # if not type(bundle.axons[0]) == Myelinated:
+            #     iMaxFirstSegment = np.argmax(v[:, 0])
+            #     iMaxLastSegment = np.argmax(v[:, -1])
+            #
+            #     # plt.plot(v[:,0])
+            #     # plt.show()
+            #
+            #     tMinFirstSegment = t[iMaxFirstSegment]
+            #     tMinLastSegment = t[iMaxLastSegment]
+            #
+            #     distance = currentAxonLength
+            #
+            #     vel = distance / 1000 / (tMinLastSegment - tMinFirstSegment)
+            #
+            # else:
+            #     Nnodes = bundle.axons[0].axonnodes
+            #     numberOfRecordingSites = np.shape(v)[1]
+            #     nodePositions = range(0, (Nnodes - 1) * 11, 11)
+            #
+            #     nodeDistance = bundle.axons[0].lengthOneCycle
+            #     distance = Nnodes * nodeDistance
+            #
+            #     iMaxFirstSegment = np.argmax(v[:, nodePositions[0]])
+            #     iMaxLastSegment = np.argmax(v[:, nodePositions[-1]])
+            #
+            #     # plt.plot(v[:,0])
+            #     # plt.show()
+            #
+            #     tMinFirstSegment = t[iMaxFirstSegment]
+            #     tMinLastSegment = t[iMaxLastSegment]
+            #
+            #     vel = distance / 1000 / (tMinLastSegment - tMinFirstSegment)
 
             t, SFAPs = bundle.get_SFAPs_from_file(0)
             SFAPsHomo.append(np.squeeze(SFAPs))
@@ -242,19 +243,21 @@ if calculationFlag:
             _, SFAPs = bundle.get_SFAPs_from_file(2)
             SFAPsIdeal.append(np.squeeze(SFAPs))
 
+            bundle.clear_all_CAP_files()
+
         # saveDict = {'unmyelinatedDiameters': diametersUnmyel,
         #             'unmyelinatedSFAPs': [],
         #             't': [],
         #             'myelinatedDiameters': diametersMyel,
         #             'myelinatedSFAPs': [],
         #             }
-            if i == 0:
-                saveDict['unmyelinatedCV'].append(vel)
-            else:
-                saveDict['myelinatedCV'].append(vel)
+        #     if i == 0:
+        #         saveDict['unmyelinatedCV'].append(vel)
+        #     else:
+        #         saveDict['myelinatedCV'].append(vel)
 
         if i == 0:
-            saveDict['t'] = t
+            # saveDict['t'] = t
             saveDict['unmyelinatedSFAPsHomo'] = SFAPsHomo
             saveDict['unmyelinatedSFAPsFEM'] = SFAPsFEM
             saveDict['unmyelinatedSFAPIdeal'] = SFAPsIdeal
@@ -278,7 +281,7 @@ else:
 # ------------------------------------------------------------------------------
 
 
-pickle.dump(saveDict, open(os.path.join('/Volumes/SANDISK/PyPN/SFAPs', 'SFAPsPowleyMyelAsRecordingsIdealizedCuff.dict'), "wb"))
+pickle.dump(saveDict, open(os.path.join('SFAPs', 'SFAPsPowleyMyelAsRecordingsIdealizedCuff4.dict'), "wb"))
 
 print '\nStarting to plot'
 

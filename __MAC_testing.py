@@ -302,7 +302,6 @@ else:
                 # axarr[profileInd][i + 1].set_ylim([-.35, 0.2])
 
             # delete what has been calculated before
-            # todo: make this function just parse all folders with the right name and delete them.
             bundle.clear_all_recording_mechanisms()
 
 

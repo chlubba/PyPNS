@@ -406,9 +406,9 @@ class Bundle(object):
 
         """
 
-        print '\n======================================================'
-        print '================ Starting to simulate ================'
-        print '======================================================'
+        # print '\n======================================================'
+        # print '================ Starting to simulate ================'
+        # print '======================================================'
 
         # exectue the NEURON and LFPy calculations of all axons
         self.simulate_axons()
@@ -468,7 +468,6 @@ class Bundle(object):
             h('forall for (x,0) if (ismembrane("axnode")) gkbar_axnode(x) = 0.12') # .16
 
             with takeTime("calculate voltage and membrane current"):
-                # TODO: variable time step option
                 axon.simulate()
 
             if len(self.recordingMechanisms) > 0:
@@ -581,25 +580,24 @@ class Bundle(object):
         Get rid of all CAP recordings written to disk. This might be useful if you save the membrane current and then calculate the CAP from it several times with different recording mechanisms using :meth:`bundleClass.Bundle.compute_CAPs_from_imem_files`.
         """
 
-        # for recMechIndex in range(len(self.recordingMechanisms)):
-        #
-        #     recMech = self.recordingMechanisms[recMechIndex]
-        #
-        #     recMechName = recMech.__class__.__name__
-        #
-        #     # filename = get_file_name("CAP_" + recMechName + '_recMech' + str(recMechIndex), self.basePath)
-        #     directory = get_directory_name("CAP_" + recMechName + '_recMech' + str(recMechIndex), self.basePath)
-        #     shutil.rmtree(directory)
-        #
-        #     directory = get_directory_name('CAP1A_' + recMechName + '_recMech' + str(recMechIndex), self.basePath)
-        #     shutil.rmtree(directory)
-
         # no need to go through recordin mechanisms. In fact if bundle was run but not saved, they might not even be
         # saved in bundle but still the files exist. So simply delete all directories starting with 'CAP'
         allFolderNames = [o for o in os.listdir(self.basePath) if os.path.isdir(os.path.join(self.basePath, o))]
         CAPFolderNames = [o for o in allFolderNames if o[0:3] == 'CAP']
         for CAPFolder in CAPFolderNames:
             shutil.rmtree(os.path.join(self.basePath,CAPFolder))
+
+    def clear_all_voltage_files(self):
+        """
+        Get rid of all voltage recordings written to disk.
+        """
+
+        # no need to go through recordin mechanisms. In fact if bundle was run but not saved, they might not even be
+        # saved in bundle but still the files exist. So simply delete all directories starting with 'CAP'
+        allFolderNames = [o for o in os.listdir(self.basePath) if os.path.isdir(os.path.join(self.basePath, o))]
+        CAPFolderNames = [o for o in allFolderNames if o[0:3] == 'V']
+        for CAPFolder in CAPFolderNames:
+            shutil.rmtree(os.path.join(self.basePath, CAPFolder))
 
     def clear_all_recording_mechanisms(self):
         """

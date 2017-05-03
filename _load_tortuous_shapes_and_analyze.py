@@ -14,7 +14,8 @@ def smooth(y, box_pts):
 
 startIndex = 30
 
-saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/tortuous', 'toruousSignals_50_300_moreRuns.dict'), "rb" ))
+# saveDict = pickle.load(open(os.path.join('/media/carl/4ECC-1C44/PyPN/tortuous', 'toruousSignals_50_300_moreRuns.dict'), "rb" ))
+saveDict = pickle.load(open(os.path.join('tortuous', 'tortuousTest.dict'), "rb" ))
 
 signalArray = saveDict['signals']
 RDCArray = saveDict['RDCs']
