@@ -1,6 +1,6 @@
 import neuron
 from neuron import h
-# import LFPy
+h('load_file("noload.hoc")')
 import numpy as np # for arrays managing
 import math
 import os

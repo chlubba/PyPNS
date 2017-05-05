@@ -1,18 +1,4 @@
-import os
-# load the neuron packages needed from the path of the package
-# TODO: not sure how to proceed. Either the user compiles the extensions in his working directory or they are compiled during package installation into the PyPN directory.
-# TODO: Then the working directory of the script needs to be changed.
-PyPNDir = os.path.realpath(__file__)
-PyPNDir = os.path.dirname(PyPNDir)
-# os.chdir(PyPNDir)
-
 from axonClass import *
-
-h('load_file("noload.hoc")')
-for processorSpecificFolderName in ['x86_64', 'i686', 'powerpc']:
-    neuronCommand = 'nrn_load_dll("'+os.path.join(PyPNDir,processorSpecificFolderName,'.libs','libnrnmech.so')+'")'
-    h(neuronCommand)
-
 import createGeometry
 
 import numpy as np # for arrays managing

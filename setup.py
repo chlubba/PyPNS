@@ -1,27 +1,27 @@
 #!/usr/bin/env python
 '''PyPN setup.py file'''
 
-import os
-import shutil
+# import os
+# import shutil
 try:
     from setuptools import setup
 except ImportError as ie:
     raise ie, 'please install setuptools'
 
 
-#try and locate the nrnivmodl script of NEURON in PATH so that the
-#NEURON extension files AXNODE.mod, xtra.mod and vecevent.mod can be compiled
-from distutils.spawn import find_executable, spawn
-if find_executable('nrnivmodl') is not None:
-    os.chdir('PyPN')
-    for path in ['x86_64', 'i686', 'powerpc']:
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-    spawn([find_executable('nrnivmodl')])
-    os.chdir('..')
-else:
-    print("nrnivmodl script not found in PATH, thus NEURON .mod files could     " +
-          "not be compiled")
+# #try and locate the nrnivmodl script of NEURON in PATH so that the
+# #NEURON extension files AXNODE.mod, xtra.mod and vecevent.mod can be compiled
+# from distutils.spawn import find_executable, spawn
+# if find_executable('nrnivmodl') is not None:
+#     os.chdir('PyPN')
+#     for path in ['x86_64', 'i686', 'powerpc']:
+#         if os.path.isdir(path):
+#             shutil.rmtree(path)
+#     spawn([find_executable('nrnivmodl')])
+#     os.chdir('..')
+# else:
+#     print("nrnivmodl script not found in PATH, thus NEURON .mod files could     " +
+#           "not be compiled. On Ubuntu change 'sudo' to 'sudo env PATH=$PATH'.")
 
 setup(
     name = "PyPN",
