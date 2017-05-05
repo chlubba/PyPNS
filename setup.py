@@ -14,7 +14,7 @@ except ImportError as ie:
 from distutils.spawn import find_executable, spawn
 if find_executable('nrnivmodl') is not None:
     os.chdir('PyPN')
-    for path in ['x86_64', 'i686', 'powerpc']:
+    for path in ['x86_64', 'i386', 'powerpc']:
         if os.path.isdir(path):
             shutil.rmtree(path)
     spawn([find_executable('nrnivmodl')])
@@ -26,13 +26,13 @@ else:
 setup(
     name = "PyPN",
     version = "0.1.0",
-    maintainer = "Carl Lubba",
+    maintainer = "Carl H Lubba",
     maintainer_email = 'c.lubba15@imperial.ac.uk',
     packages = ['PyPN'],
-    #url='',
+    url='https://github.com/caaarl/PyPN',
     # download_url = '',
     # license='LICENSE',
-    description='A module for simulating bundles of axons built on NEURON and LFPy',
+    description='A module for simulating bundles of axons built on NEURON',
     #long_description=,
     install_requires = ['numpy', 'scipy', 'matplotlib', 'neuron'], # , 'psutil'
     provides = ['PyPN'],
