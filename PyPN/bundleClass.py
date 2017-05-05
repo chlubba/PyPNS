@@ -15,7 +15,6 @@ for processorSpecificFolderName in ['x86_64', 'i686', 'powerpc']:
 
 import createGeometry
 
-# import LFPy
 import numpy as np # for arrays managing
 import time
 import shutil

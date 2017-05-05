@@ -14,7 +14,7 @@ except ImportError as ie:
 from distutils.spawn import find_executable, spawn
 if find_executable('nrnivmodl') is not None:
     os.chdir('PyPN')
-    for path in ['x86_64', 'i386', 'powerpc']:
+    for path in ['x86_64', 'i686', 'powerpc']:
         if os.path.isdir(path):
             shutil.rmtree(path)
     spawn([find_executable('nrnivmodl')])
