@@ -11,15 +11,11 @@ This scientific software is released under the GNU Public License GPLv3.
 Requirements
 ============
 
-To install PNPy you will need the following:
+To install PNPy you will need:
 
 - Python modules numpy, scipy and matplotlib
-- NEURON (from http://www.neuron.yale.edu) compiled as a Python module, so the following should execute without error in Python console::
-    
-    import neuron
-    neuron.test()
+- NEURON (from http://www.neuron.yale.edu) compiled as a Python module. See below links for help.
 
-See below links for help.
 http://www.tc.umn.edu/~haszx010/files/vpl_dbs_docs/Installation.html
 http://www.davison.webfactional.com/notes/installation-neuron-python/
 
