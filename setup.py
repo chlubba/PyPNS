@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''PyPN setup.py file'''
+'''PNPy setup.py file'''
 
 # import os
 # import shutil
@@ -8,32 +8,17 @@ try:
 except ImportError as ie:
     raise ie, 'please install setuptools'
 
-
-# #try and locate the nrnivmodl script of NEURON in PATH so that the
-# #NEURON extension files AXNODE.mod, xtra.mod and vecevent.mod can be compiled
-# from distutils.spawn import find_executable, spawn
-# if find_executable('nrnivmodl') is not None:
-#     os.chdir('PyPN')
-#     for path in ['x86_64', 'i686', 'powerpc']:
-#         if os.path.isdir(path):
-#             shutil.rmtree(path)
-#     spawn([find_executable('nrnivmodl')])
-#     os.chdir('..')
-# else:
-#     print("nrnivmodl script not found in PATH, thus NEURON .mod files could     " +
-#           "not be compiled. On Ubuntu change 'sudo' to 'sudo env PATH=$PATH'.")
-
 setup(
-    name = "PyPN",
-    version = "0.1.0",
+    name = "PNPy",
+    version = "0.0.0",
     maintainer = "Carl H Lubba",
     maintainer_email = 'c.lubba15@imperial.ac.uk',
-    packages = ['PyPN'],
-    url='https://github.com/caaarl/PyPN',
-    # download_url = '',
-    # license='LICENSE',
-    description='A module for simulating bundles of axons built on NEURON',
+    packages = ['PNPy'],
+    url='https://github.com/caaarl/PNPy',
+    download_url = 'https://github.com/caaarl/PNPy/archive/0.0.0.tar.gz',
+    license='LICENSE',
+    description='A peripheral nerve simulator built on NEURON',
     #long_description=,
-    install_requires = ['numpy', 'scipy', 'matplotlib', 'neuron'], # , 'psutil'
-    provides = ['PyPN'],
+    install_requires = ['numpy', 'scipy', 'matplotlib', 'neuron'],
+    provides = ['PNPy'],
     )
