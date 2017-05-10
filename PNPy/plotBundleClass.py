@@ -496,6 +496,9 @@ def voltage(bundle, maxNumberOfSubplots=10):
 
 def voltage_one_myelinated_axon(bundle, myelinatedIndex=0):
 
+    # TODO: Select correct compartment. Here one compartment per segment (node, MYSA, FLUT, STIN) is assumed which is
+    # not accurate
+
     timeRec, voltageMatrices = bundle.get_voltage_from_file()
 
     # now plot

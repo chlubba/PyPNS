@@ -15,7 +15,7 @@ class ExtracellularPotentialMechanism(object):
         pass
 
 
-class interpolator(ExtracellularPotentialMechanism):
+class analytic(ExtracellularPotentialMechanism):
 
     def __init__(self, bundleGuide, method='z,xP,angle', interpolator=None):
         """Uses and idealized interpolation function to calculate the extracelluar potential caused by point sources. Used by :class:`recodingMechanismClass.RecordingMechanism`.
@@ -50,7 +50,7 @@ class interpolator(ExtracellularPotentialMechanism):
             smoothedOneSide = smooth(sharpOneSide, int(smoothSamples))
             smoothedOneSideToMiddle = smoothedOneSide[0:int(np.floor(np.shape(smoothedOneSide)[0] / 2))]
             smoothedTwoSides = np.concatenate([smoothedOneSideToMiddle, np.fliplr([smoothedOneSideToMiddle])[0]])
-            triangle = interp1d(zInterp, smoothedTwoSides)
+            triangle = interp1d(zInterp, smoothedTwoSides, bounds_error=False, fill_value="extrapolate")
 
             peakFactor = lambda angle, xP: np.maximum(0, (1 - np.abs(np.mod(angle + np.pi, 2*np.pi)-np.pi) / np.pi * 5)) * np.minimum(
                 1, (xP / 0.000190) ** 5)

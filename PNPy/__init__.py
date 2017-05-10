@@ -26,3 +26,4 @@ from PNPy.nameSetters import get_bundle_directory, save_bundle, open_recent_bund
 # misc
 from PNPy.samplingRates import *
 import PNPy.signalGeneration
+from generateAndSaveFieldDictFn import *

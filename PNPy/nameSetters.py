@@ -138,7 +138,6 @@ def open_recent_bundle(parameters):
         print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
 
 
-
 def open_bundle_from_location(bundleSaveLocation):
     """Like ``open_recent_bundle`` but with a location as an argument. More reliable.
 

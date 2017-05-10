@@ -35,7 +35,7 @@ class Bundle(object):
     # myelinated: parameters for fiber type A, B
     # umyelinated:  parameters for fiber type C
 
-    def __init__(self, radius, length, numberOfAxons, pMyel, pUnmyel, paramsMyel=None, paramsUnmyel=None, axonCoords=None, bundleGuide=None,
+    def __init__(self, radius, numberOfAxons, pMyel, pUnmyel, length=0, paramsMyel=None, paramsUnmyel=None, axonCoords=None, bundleGuide=None,
                  segmentLengthAxon = 10, randomDirectionComponent = 0., tStop=30, timeRes=0.0025,
                  numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation='Results'):
 
@@ -75,6 +75,8 @@ class Bundle(object):
         self.segmentLengthAxon = segmentLengthAxon
 
         if bundleGuide is None:
+            if length == 0:
+                raise ValueError('Length has to be given, alternatively bundle guide.')
             self.bundleCoords = createGeometry.get_bundle_guide_straight_radius(length, segmentLengthAxon, radius=radius)
         elif bundleGuide.shape[1] == 3:
             numCoords = bundleGuide.shape[0]

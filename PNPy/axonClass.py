@@ -1,6 +1,8 @@
 import neuron
 from neuron import h
-h('load_file("noload.hoc")')
+err = h('load_file("noload.hoc")')
+# if not err == 1:
+#     raise ImportError('The needed mod-files were not found. Run "nrnivmodl" in the mod-directory and copy the result to the project directory.')
 import numpy as np # for arrays managing
 import math
 import os

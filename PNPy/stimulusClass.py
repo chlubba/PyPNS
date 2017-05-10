@@ -116,7 +116,7 @@ class SimpleIClamp(ExcitationMechanism):
         pass
 
 
-class StimFieldQuasistatic(ExcitationMechanism):
+class StimField(ExcitationMechanism):
     def __init__(self, stimulusSignal, electrodePositions, extPotMech, polarities = ()):
         """A field is calulated from the current on stimulation electrodes and then applied to the axon as the extracellular membrane voltage.
 
@@ -125,7 +125,7 @@ class StimFieldQuasistatic(ExcitationMechanism):
         :param extPotMech: ``ExtracellularMechansim`` used to calculate the voltage at the axon membrane caused by the stimulation current.
         :param polarities: Signs of the stimulation electrodes.
         """
-        super(StimFieldQuasistatic, self).__init__()
+        super(StimField, self).__init__()
 
         # electrode setup: positions and polarities
         self.electrodePositions = electrodePositions
