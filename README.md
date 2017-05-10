@@ -42,13 +42,3 @@ To run PNPy properly, several NEURON extensions need to be compiled. Those are l
 from the console. A new folder will be generated containing the compiled files. They need to be present in the working directory of your project.
 
 
-Documentation
-=============
-
-To generate the html documentation, issue from the PNPy source code directory:
-::
-    
-    sphinx-build -b html /path/to/PNPy/documentation/sources path/to/dest
-
-The main html file is now in path/to/dest/index.html
-
