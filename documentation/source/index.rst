@@ -19,7 +19,7 @@ This will import the classes
 * :class:`bundleClass.Bundle`
 * :class:`extracellularMechanismClass.homogeneous` and :class:`extracellularMechanismClass.precomputedFEM`
 * :class:`recordingMechanismClass.RecordingMechanism`
-* :class:`stimulusClass.StimIntra`, :class:`stimulusClass.StimFieldQuasistatic`, :class:`upstreamSpikingClass.UpstreamSpiking`
+* :class:`stimulusClass.StimIntra`, :class:`stimulusClass.StimField`, :class:`upstreamSpikingClass.UpstreamSpiking`
 
 as well as the modules
 

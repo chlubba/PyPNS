@@ -8,9 +8,3 @@ def takeTime(action):
     yield
     print '%.2f s' % (time.time() - takeTime.t0)
 
-# def countALittle(maximum):
-#     for i in range(maximum):
-#         print i
-
-# with takeTime("some action"):
-#     countALittle(10)

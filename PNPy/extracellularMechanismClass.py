@@ -58,34 +58,6 @@ class analytic(ExtracellularPotentialMechanism):
 
             self.interpolator = lambda zValues, angle, xP: triangle(zValues) + peak(zValues, angle, xP)
 
-
-            # import matplotlib.pyplot as plt
-            # plt.figure()
-            # # zPlot = np.arange(-0.01, 0.01, 0.0001)
-            # angles = np.arange(-5*np.pi, 5*np.pi, 0.001)
-            # plt.plot(angles, peakFactor(angles, 0.00019))
-            # # angle = 0 # np.pi/10
-            # # for xPPlot in [0.00009, 0.00018, 0.00025]:
-            # #     # plt.plot(angles, peak(np.ones(np.shape(angles))*zPlot, angles, np.ones(np.shape(angles))*xPPlot), label='peak factor only')
-            # #     plt.plot(zPlot, self.interpolator(zPlot, np.ones(np.shape(zPlot))*angle, np.ones(np.shape(zPlot))*xPPlot), label=str(xPPlot))
-            # # plt.legend()
-            # plt.show()
-
-            # import matplotlib as mpl
-            # mpl.use('TkAgg')
-            # import matplotlib.pyplot as plt
-            # plt.figure()
-            # zValues = np.arange(-0.02, 0.02, 0.000001)
-            # nonsmoothedTriangle = triangle(zValues)
-            # # smoothedTriangle = triangle(zValues)+smoothCorner(zValues, -cuffWidth)+smoothCorner(zValues, cuffWidth);
-            # # plt.plot(smoothedTriangle)
-            # # plt.plot(np.diff(smoothedTriangle))
-            # plt.plot(np.diff(np.diff(nonsmoothedTriangle)), label='smoothed')
-            # # plt.plot(np.diff(np.diff(nonsmoothedTriangle)), label='not smoothed')
-            # # plt.plot(np.diff(np.diff(smooth(nonsmoothedTriangle, 100))), label='numerically smoothed')
-            # plt.legend()
-            # plt.show()
-
         else:
             self.interpolator = interpolator
 

@@ -90,8 +90,8 @@ bundleParameters = {'radius': 180,  #um Radius of the bundle (match carefully to
                     'bundleGuide': bundleGuide,
 
                     'numberOfAxons': nAxons,  # Number of axons in the bundle
-                    'pMyel': 0.,  # Percentage of myelinated fiber type A
-                    'pUnmyel': 1.,  # Percentage of unmyelinated fiber type C
+                    'pMyel': .5,  # Percentage of myelinated fiber type A
+                    'pUnmyel': .5,  # Percentage of unmyelinated fiber type C
                     'paramsMyel': myelinatedParameters,  # parameters for fiber type A
                     'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
 

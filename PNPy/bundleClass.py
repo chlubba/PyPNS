@@ -39,7 +39,7 @@ class Bundle(object):
                  segmentLengthAxon = 10, randomDirectionComponent = 0., tStop=30, timeRes=0.0025,
                  numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation='Results'):
 
-        """Constructor of the Bundle class, the main object in `PyPN`.
+        """Constructor of the Bundle class, the main object in `PNPy`.
 
         :param radius: radius of the nerve
         :param length: length of the nerve (not equal to length of the axons as they can take a curvy trajectory)
@@ -366,16 +366,6 @@ class Bundle(object):
 
         self.recordingMechanisms.append(mechanism)
 
-        # if isinstance(mechanism, RecordingMechanism):
-        #     mechanism.setup_recording_elec(self.bundleCoords, self.length)
-        # elif isinstance(mechanism, RecordingMechanismFEM):
-        #     mechanism.bundleGuide = self.bundleCoords
-        #     mechanism.setup_recording_elec(self.bundleCoords, self.length)
-        # else:
-        #     raise Exception('Recording mechanism type not recognized.')
-
-
-
     
     def add_excitation_mechanism(self, mechanism):
         """To incite activity on the axons containted in the nerve, excitation mechanisms need to be added to to the bundle with this function.
@@ -489,45 +479,6 @@ class Bundle(object):
         self.geometry_parameters = [self.axons[0].xstart,self.axons[0].ystart,self.axons[0].zstart,self.axons[0].xend,self.axons[0].yend,self.axons[0].zend,self.axons[0].area,self.axons[0].diam,self.axons[0].length,self.axons[0].xmid,self.axons[0].ymid,self.axons[0].zmid]
 
 
-
-    # def save_extra_rec_one_axon_one_recmech(self, axonIndex, recMechIndex):
-    #
-    #     directory = get_directory_name("elec" + str(recMechIndex), self.basePath)
-    #
-    #     # if this is the first axon to save the extracellular recording to, create the directory
-    #     if axonIndex == 0:
-    #         self.recordingMechanisms[recMechIndex].savePath = directory
-    #         if not os.path.exists(directory):
-    #             os.makedirs(directory)
-    #         else:
-    #             shutil.rmtree(directory)
-    #             os.makedirs(directory)
-    #
-    #     filename = "electrode_" + str(axonIndex) + ".dat"
-    #
-    #     # DataOut = np.array(electrodes.LFP[0])#,1:-1
-    #     # for j in range(1,len(electrodes.LFP)):
-    #     #     DataOut = np.column_stack((DataOut, np.array(electrodes.LFP[j])))#,1:-1
-    #
-    #     # DataOut = np.transpose(np.array(electrodes.LFP))  # ,1:-1
-    #     DataOut = self.recordingMechanisms[recMechIndex].CAP_axonwise[axonIndex]
-    #
-    #     np.savetxt(os.path.join(directory, filename), DataOut)
-
-
-    # def load_one_electrode(self, elecIndex):
-    #
-    #     directory = get_directory_name("elec", self.basePath)
-    #     filename = "electrode_"+str(elecIndex)+".dat"
-    #
-    #     t0 = time.time()
-    #     electrodeData = np.loadtxt(os.path.join(directory, filename), unpack=True)
-    #     print ("Loaded electrode %i in %.2f s." % (elecIndex, time.time()-t0))
-    #
-    #     return electrodeData
-
-
-
     def save_CAPs_to_file(self):
 
         # t0 = time.time()
@@ -567,7 +518,7 @@ class Bundle(object):
         Get rid of all CAP recordings written to disk. This might be useful if you save the membrane current and then calculate the CAP from it several times with different recording mechanisms using :meth:`bundleClass.Bundle.compute_CAPs_from_imem_files`.
         """
 
-        # no need to go through recordin mechanisms. In fact if bundle was run but not saved, they might not even be
+        # no need to go through recording mechanisms. In fact if bundle was run but not saved, they might not even be
         # saved in bundle but still the files exist. So simply delete all directories starting with 'CAP'
         allFolderNames = [o for o in os.listdir(self.basePath) if os.path.isdir(os.path.join(self.basePath, o))]
         CAPFolderNames = [o for o in allFolderNames if o[0:3] == 'CAP']
@@ -835,180 +786,4 @@ class Bundle(object):
 
             recMech.compute_overall_CAP()
 
-
-
-    # def get_filename(self, recordingType):
-    #
-    #     directory = get_directory_name(recordingType, self.basePath)
-    #     if not os.path.exists(directory):
-    #         os.makedirs(directory)
-    #
-    #     # filename = 'recording.dat'
-    #     filename = recordingType+'.dat'
-    #
-    #     number = 0
-    #     filenameTemp = filename
-    #     while os.path.isfile(os.path.join(directory, filenameTemp)):
-    #         number += 1
-    #         # print "Be careful this file name already exist ! We concatenate a number to the name to avoid erasing your previous file."
-    #         filenameTemp = str(number).zfill(5) + filename
-    #
-    #     self.filename = os.path.join(directory, filenameTemp)
-    #
-    #     return self.filename
-
-    # def conduction_velocities(self, saveToFile=False, plot=True):
-    #
-    #     voltageMatricesTime =  self.get_voltage_from_file()
-    #
-    #     timeArray =  voltageMatricesTime[0]
-    #     timeStep = timeArray[1]
-    #     voltageMatrices = voltageMatricesTime[1]
-    #
-    #
-    #     diameterArrayMyel = []
-    #     meanVelocityArrayMyel = []
-    #     medianVelocityArrayMyel = []
-    #     stdVelocityArrayMyel = []
-    #
-    #     diameterArrayUnmyel = []
-    #     meanVelocityArrayUnmyel = []
-    #     medianVelocityArrayUnmyel = []
-    #     stdVelocityArrayUnmyel = []
-    #
-    #     # iterate over all axons
-    #     for i in range(1,len(self.axons)):
-    #
-    #         axon = self.axons[i]
-    #
-    #         axonLength = axon.L
-    #         voltageMatrix = voltageMatrices[i]
-    #
-    #         # for myelinated axons, only the nodes will be taken into account
-    #         if isinstance(axon, Myelinated):
-    #
-    #             # save diameter to plot velocity against it
-    #             diameterArrayMyel.append(axon.fiberD)
-    #
-    #             Nnodes = self.axons[i].axonnodes
-    #             nodePositions = range(0,(Nnodes-1)*11,11)
-    #
-    #             # check for maximum
-    #             maximumTimes = []
-    #             for j in nodePositions:
-    #                 segmentVoltage = voltageMatrix[j]
-    #
-    #                 maximumIndex = segmentVoltage.argmax()
-    #
-    #                 maximumTimes.append(maximumIndex)
-    #                 plt.plot(segmentVoltage)
-    #
-    #             # plt.title('segment voltage at nodes')
-    #             # plt.show()
-    #
-    #             # as only nodes get recorded, distance is node distance.
-    #             stepSize = axon.lengthOneCycle
-    #
-    #         else:
-    #
-    #             # save diameter to plot velocity against it
-    #             diameterArrayUnmyel.append(axon.fiberD)
-    #
-    #             # number or recorded segments.
-    #             recordedSegmentCount = np.shape(voltageMatrix)[0]
-    #
-    #             # find the time of the signal maxima
-    #             maximumTimes = []
-    #             for j in range(recordedSegmentCount):#recordedSegmentCount):
-    #
-    #                 segmentVoltage = voltageMatrix[j]
-    #
-    #                 # # for local maxima
-    #                 # maxima = argrelextrema(segmentVoltage, np.greater)
-    #
-    #                 maximumIndex = segmentVoltage.argmax()
-    #
-    #                 maximumTimes.append(maximumIndex)
-    #
-    #
-    #             # distance between recorded segments in um
-    #             stepSize = axonLength / recordedSegmentCount
-    #
-    #
-    #
-    #         # time difference between action potentials of two consecutive segments in ms
-    #         timeDifferences = np.diff(np.array(maximumTimes))*timeStep
-    #
-    #         # conduction  velocity estimate between two segments in m/s
-    #         velocities = stepSize/timeDifferences/1000
-    #
-    #         # filter beginning and end
-    #         numVel = len(velocities)
-    #         minIndex = int(0.3*numVel)
-    #         maxIndex = int(0.7*numVel)
-    #
-    #         # # mask to exclude inf values (how to they evolve? stimulation artefact?)
-    #         # maskedVelocities = np.ma.log(velocities[minIndex:maxIndex])
-    #
-    #         # meanVelocity = maskedVelocities.mean()
-    #         # stdVelocity = maskedVelocities.std()
-    #
-    #         velCut = velocities[minIndex:maxIndex]
-    #
-    #         meanVelocity = velCut.mean()
-    #         medianVelocity = np.median(velCut)
-    #         stdVelocity = velCut.std()
-    #
-    #         if isinstance(axon, Myelinated):
-    #             meanVelocityArrayMyel.append(meanVelocity)
-    #             medianVelocityArrayMyel.append(medianVelocity)
-    #             stdVelocityArrayMyel.append(stdVelocity)
-    #         else:
-    #             meanVelocityArrayUnmyel.append(meanVelocity)
-    #             medianVelocityArrayUnmyel.append(medianVelocity)
-    #             stdVelocityArrayUnmyel.append(stdVelocity)
-    #
-    #         # plt.plot(velocities)
-    #         # plt.title('axon diameter '+str(axon.fiberD)+ ' um')
-    #         # plt.show()
-    #
-    #     if plot:
-    #         f, (ax1, ax2) = plt.subplots(1,2)
-    #         ax1.scatter(diameterArrayMyel, meanVelocityArrayMyel, label='mean')
-    #         ax1.scatter(diameterArrayMyel, medianVelocityArrayMyel, label='median', color='red')
-    #         ax1.errorbar(diameterArrayMyel, meanVelocityArrayMyel, yerr=stdVelocityArrayMyel, linestyle='None')
-    #         ax1.set_title('Conduction velocity of myelinated axons')
-    #         ax1.set_xlabel('Diameter [um]')
-    #         ax1.set_ylabel('Conduction velocity [m/s]')
-    #         ax1.legend()
-    #
-    #         ax2.scatter(diameterArrayUnmyel, meanVelocityArrayUnmyel, label='mean')
-    #         ax2.scatter(diameterArrayUnmyel, medianVelocityArrayUnmyel, label='median')
-    #         ax2.errorbar(diameterArrayUnmyel, meanVelocityArrayUnmyel, yerr=stdVelocityArrayUnmyel, linestyle='None')
-    #         ax2.set_title('Conduction velocity of unmyelinated axons')
-    #         ax2.set_xlabel('Diameter [um]')
-    #         ax2.set_ylabel('Conduction velocity [m/s]')
-    #         ax2.legend()
-    #
-    #         # plt.show()
-    #
-    #
-    #     # pack for return values
-    #     myelinatedDict = {'diams': diameterArrayMyel,
-    #                       'meanVelocity': meanVelocityArrayMyel,
-    #                       'medianVelocity': medianVelocityArrayMyel,
-    #                       'stdVelocity': stdVelocityArrayMyel}
-    #
-    #     unmyelinatedDict = {'diams': diameterArrayUnmyel,
-    #                         'meanVelocity': meanVelocityArrayUnmyel,
-    #                       'medianVelocity': medianVelocityArrayUnmyel,
-    #                       'stdVelocity': stdVelocityArrayUnmyel}
-    #
-    #     returnDict = {'myel': myelinatedDict,
-    #                   'unmyel': unmyelinatedDict}
-    #
-    #     if saveToFile:
-    #         pickle.dump(returnDict,open( os.path.join(self.basePath, 'conductionVelocities.dict'), "wb" ))
-    #
-    #     return returnDict
 

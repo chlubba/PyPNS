@@ -55,66 +55,6 @@ class StimIntra(ExcitationMechanism):
     def delete_neuron_objects(self):
         self.svec = None
 
-class StimCuff(ExcitationMechanism):
-
-    def __init__(self, stimulusSignal, radius, rho=500, numberContactPoints=20):
-        """
-
-        Args:
-            stimulusSignal: ...
-            radius: distance of the electrodes from the bundle guide
-            rho: resistivity of the surrounding medium (homogeneity assumption)
-            numberContactPoints: approximate cuff composed of a finite set of electrodes,
-                for 20 more or less angle-independent field (<1% difference at 80% of the electrode radius
-        """
-
-        angles = 2*np.pi/numberContactPoints*np.arange(numberContactPoints)
-        self.stim_coord = np.column_stack((np.zeros(numberContactPoints), radius*np.cos(angles), radius*np.sin(angles)))
-
-        self.radius = radius
-        self.rho = rho
-
-        self.stimulusSignal = stimulusSignal
-        self.svec = h.Vector(self.stimulusSignal)
-
-        super(StimCuff, self).__init__()
-
-    def connect_axon(self, axon):
-
-        axon.setrx(self.stim_coord, rho=self.rho)
-        self.svec.play(h._ref_is_xtra, self.timeRes)
-
-    def delete_neuron_objects(self):
-        self.svec = None
-
-
-class SimpleIClamp(ExcitationMechanism):
-
-    def __init__(self, delay, stimDur, amplitude):
-
-        self.delay = delay
-        self.stimDur = stimDur
-        self.amplitude = amplitude
-
-        super(SimpleIClamp, self).__init__()
-
-
-    def connect_axon(self, axon):
-
-        # Place an IClamp on the first element of the allseclist
-        # In unmyelinated axon case allseclist is directly the unique axon section
-
-        stim = h.IClamp(0.001, axon.allseclist)
-        stim.delay = self.delay
-        stim.dur = self.stimDur
-        stim.amp = self.amplitude
-
-        excitationMechanismVars = [stim]
-        axon.append_ex_mech_vars(excitationMechanismVars)
-
-    def delete_neuron_objects(self):
-        pass
-
 
 class StimField(ExcitationMechanism):
     def __init__(self, stimulusSignal, electrodePositions, extPotMech, polarities = ()):
@@ -170,6 +110,33 @@ class StimField(ExcitationMechanism):
         # keep variables in memory in order for NEURON to see them
         axon.append_ex_mech_vars([svec])
 
+
+    def delete_neuron_objects(self):
+        pass
+
+class SimpleIClamp(ExcitationMechanism):
+
+    def __init__(self, delay, stimDur, amplitude):
+
+        self.delay = delay
+        self.stimDur = stimDur
+        self.amplitude = amplitude
+
+        super(SimpleIClamp, self).__init__()
+
+
+    def connect_axon(self, axon):
+
+        # Place an IClamp on the first element of the allseclist
+        # In unmyelinated axon case allseclist is directly the unique axon section
+
+        stim = h.IClamp(0.001, axon.allseclist)
+        stim.delay = self.delay
+        stim.dur = self.stimDur
+        stim.amp = self.amplitude
+
+        excitationMechanismVars = [stim]
+        axon.append_ex_mech_vars(excitationMechanismVars)
 
     def delete_neuron_objects(self):
         pass
