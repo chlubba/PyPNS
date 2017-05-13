@@ -17,28 +17,39 @@ To install PNPy you will need:
 - NEURON (from http://www.neuron.yale.edu) compiled as a Python module. See below links for help.
 
 http://www.tc.umn.edu/~haszx010/files/vpl_dbs_docs/Installation.html
+
 http://www.davison.webfactional.com/notes/installation-neuron-python/
 
 
 Installation
 ============
 
+Using pip or easy install
+
+	pip install PNPy
+	easy_install PNPy
 
 From source:
-::
 
     tar -xzf PNPy-x.x.tar.gz
     cd PNPy-x.x
-    (sudo) python setup.py install (--user)
+    python setup.py install
 
 
 Usage
 ============
 
-To run PNPy properly, several NEURON extensions need to be compiled. Those are located in the 'mods'-directory of PNPy. Download this directory and run 
-::
+To run PNPy several, properly NEURON extensions need to be compiled for the myelinated axon model. Those are located in the 'mods'-directory of PNPy. Download this directory and run 
 
 	nrnivmodl
+
 from the console. A new folder will be generated containing the compiled files. They need to be present in the working directory of your project.
 
+
+Documentation
+============
+
+Do compile the Sphinx documentation, locate the source folder of PNPy and run
+
+	sphinx-build -b html path/to/documentation/source output/path
 
