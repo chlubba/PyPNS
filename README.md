@@ -17,7 +17,6 @@ To install PNPy you will need:
 - NEURON (from http://www.neuron.yale.edu) compiled as a Python module. See below links for help.
 
 http://www.tc.umn.edu/~haszx010/files/vpl_dbs_docs/Installation.html
-
 http://www.davison.webfactional.com/notes/installation-neuron-python/
 
 
@@ -27,6 +26,7 @@ Installation
 Using pip or easy install
 
 	pip install PNPy
+
 	easy_install PNPy
 
 From source:
