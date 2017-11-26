@@ -10,12 +10,12 @@ except ImportError as ie:
 
 setup(
     name = "PNPy",
-    version = "0.0.1",
+    version = "0.0.2",
     maintainer = "Carl H Lubba",
     maintainer_email = 'c.lubba15@imperial.ac.uk',
     packages = ['PNPy'],
     url='https://github.com/caaarl/PNPy',
-    download_url = 'https://github.com/caaarl/PNPy/archive/0.0.1.tar.gz',
+    download_url = 'https://github.com/caaarl/PNPy/archive/0.0.2.tar.gz',
     license='LICENSE',
     description='A peripheral nerve simulator built on NEURON',
     #long_description=,
