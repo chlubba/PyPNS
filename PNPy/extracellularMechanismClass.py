@@ -5,6 +5,7 @@ import silencer
 import time
 from extracellularBackend import *
 from scipy.interpolate import interp1d
+import analyticFnGen
 
 class ExtracellularPotentialMechanism(object):
     __metaclass__ = ABCMeta
@@ -31,32 +32,7 @@ class analytic(ExtracellularPotentialMechanism):
         if self.interpolator == None:
             # if no function for potential calculation is given, take the default one
 
-            a = 2.5E-9 # 1.9E-9  #
-            b = 0.00005
-            cuffWidth = 0.01
-            triangleMax = 8.83e-5
-
-            # for z-dependent triangle, use interpolation
-            def smooth(y, box_pts):
-                box = np.ones(box_pts) / box_pts
-                y_smooth = np.convolve(y, box, mode='same')
-                return y_smooth
-
-            dz = 0.000001
-            zInterp = np.arange(-0.02, 0.02, dz)
-            smoothWidth = cuffWidth/20 # 5
-            smoothSamples = smoothWidth / dz
-            sharpOneSide = np.maximum(0, triangleMax * (np.add(1, np.divide(zInterp, cuffWidth))))
-            smoothedOneSide = smooth(sharpOneSide, int(smoothSamples))
-            smoothedOneSideToMiddle = smoothedOneSide[0:int(np.floor(np.shape(smoothedOneSide)[0] / 2))]
-            smoothedTwoSides = np.concatenate([smoothedOneSideToMiddle, np.fliplr([smoothedOneSideToMiddle])[0]])
-            triangle = interp1d(zInterp, smoothedTwoSides, bounds_error=False, fill_value="extrapolate")
-
-            peakFactor = lambda angle, xP: np.maximum(0, (1 - np.abs(np.mod(angle + np.pi, 2*np.pi)-np.pi) / np.pi * 5)) * np.minimum(
-                1, (xP / 0.000190) ** 5)
-            peak = lambda zValues, angle, xP: a * (1.0 / (np.abs(zValues) + b)) * peakFactor(angle, xP)
-
-            self.interpolator = lambda zValues, angle, xP: triangle(zValues) + peak(zValues, angle, xP)
+            self.interpolator = analyticFnGen.idealizedCuff(cuffWidthIn=0.02)
 
         else:
             self.interpolator = interpolator
@@ -87,7 +63,7 @@ class analytic(ExtracellularPotentialMechanism):
 
             elif self.method == 'z,xP,angle':
                 zValues = points[2, :]
-                angle = np.arctan2(points[0, :], points[1, :])
+                angle = np.arctan2(points[1, :], points[0, :])
                 xP = points[-1, :]
                 return self.interpolator(zValues, angle, xP)  # triangularVoltage # smoothedVoltageStatic #
 

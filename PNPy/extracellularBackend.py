@@ -288,6 +288,9 @@ def compute_relative_positions_and_interpolate_fn_input(sourcePositions, sourceC
         # now interpolate from fieldImage
         receiverPotTempStatic = positionToVoltageFn(interpolationPoints)
 
+        # clear to free memory
+        interpolationPoints = None
+
         # scale potential-voltage-relation with current to obtain temporal signal
         # COMSOL gave V, we need mV, therefore multiply with 1000
         # also there can be a mismatch in current unit of the source, eliminate

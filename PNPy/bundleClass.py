@@ -67,8 +67,8 @@ class Bundle(object):
         self.saveI = saveI
         self.saveV = saveV
 
-        self.paramsMyel =  paramsMyel
-        self.paramsUnmyel =  paramsUnmyel
+        self.paramsMyel = paramsMyel
+        self.paramsUnmyel = paramsUnmyel
 
         self.length = length
         self.randomDirectionComponent = randomDirectionComponent
@@ -113,9 +113,6 @@ class Bundle(object):
         # params for NEURON simulation
         self.tStop = tStop # set simulation duration (ms)
         self.timeRes = timeRes # set time step (ms)
-
-
-        # self._build_disk(self.numberOfAxons, self.bundleCoords[0, -1])
 
         self.generate_axon_trajectories()
 
@@ -222,7 +219,6 @@ class Bundle(object):
 
         return axons_pos
 
-
     def create_axon(self, axonType, axonCoords):
 
         """
@@ -293,7 +289,7 @@ class Bundle(object):
 
             # draw one diameter value from the distribution
             diamIndex = np.random.choice(len(normalize_densities), size, p = normalize_densities)
-            diam = diameters[diamIndex]
+            diam = diameters[np.squeeze(diamIndex)]
 
         else:
             # draw from theoretical distribution
@@ -301,7 +297,7 @@ class Bundle(object):
             dist = getattr(np.random, distName)
             diam = dist(*params, size=size)
 
-            diam = max(0, diam)
+            diam = max(0.3, diam)
 
         return diam
 

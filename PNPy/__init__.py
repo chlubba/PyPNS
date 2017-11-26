@@ -13,7 +13,6 @@ from PNPy.spikeTrainGeneration import generateCorrelatedSpikeTimes
 from PNPy.recordingMechanismClass import *
 import PNPy.extracellularMechanismClass as Extracellular
 
-
 # geometry
 import PNPy.createGeometry
 

@@ -14,8 +14,8 @@ dt=0.0025
 
 # ----------------------------- axon params ---------------------------
 
-myelinatedParameters = {'fiberD': 2}
-unmyelinatedParameters = {'fiberD': 2}
+myelinatedParameters = {'fiberD': {'distName': 'normal', 'params': (1.7, 0.4)}}
+unmyelinatedParameters = {'fiberD': {'distName': 'normal', 'params': (1.0, 0.2)}}
 
 segmentLengthAxon = 15
 rdc = 0.2 # random direction component
