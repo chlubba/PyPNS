@@ -51,7 +51,7 @@ If FEM results are to be used for either recording or stimulation, the 'Fields'-
 Documentation
 ============
 
-Do compile the Sphinx documentation, locate the source folder of PNPy and run
+Do compile the Sphinx documentation, locate the source folder of PNPy and run 
 
 	sphinx-build -b html path/to/documentation/source output/path
 
