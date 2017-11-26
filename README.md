@@ -39,13 +39,13 @@ From source:
 Usage
 ============
 
-To run PNPy several, properly NEURON extensions need to be compiled for the myelinated axon model. Those are located in the 'mods'-directory of PNPy. Download this directory and run 
+To run PNPy properly, several NEURON extensions need to be compiled for the myelinated axon model. Those are located in the 'mods'-directory of PNPy. Download this directory and run 
 
 	nrnivmodl
 
 from the console. A new folder will be generated containing the compiled files. They need to be present in the working directory of your project.
 
-If FEM results are to be used by either recording or stimulation, the 'Fields'-directory needs to be present within the working directory as well. Different field dictionaries need to be contained within subdirectories. Subdirectory name equals field name. One example field can be downloaded from GitHub.
+If FEM results are to be used for either recording or stimulation, the 'Fields'-directory needs to be present within the working directory as well. Different field dictionaries need to be contained within subdirectories. Subdirectory name equals field name. One example field can be downloaded from GitHub.
 
 
 Documentation
