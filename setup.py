@@ -10,12 +10,12 @@ except ImportError as ie:
 
 setup(
     name = "PyPNS",
-    version = "0.0.2",
+    version = "0.0.5",
     maintainer = "Carl H Lubba",
     maintainer_email = 'c.lubba15@imperial.ac.uk',
     packages = ['PyPNS'],
     url='https://github.com/caaarl/PyPNS',
-    download_url = 'https://github.com/caaarl/PyPNS/archive/0.0.2.tar.gz',
+    download_url = 'https://github.com/caaarl/PyPNS/archive/0.0.5.tar.gz',
     license='LICENSE',
     description='A peripheral nerve simulator built on NEURON',
     #long_description=,
