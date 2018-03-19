@@ -26,6 +26,55 @@ def stationary_poisson(nsyn, lambd, tstart, tstop):
 
     return spiketimes
 
+
+def two_phase_poisson(nsyn, lambd, tstart, tstop, cycleLength, burstiness, burstFraction=0.2):
+    """
+    Generates nsyn spike trains with bursting characteristic
+
+    :param nsyn: number of spike trains
+    :param lambd: rate [1/s]
+    :param tstart: start time [ms]
+    :param tstop: stop time [ms]
+    :param cycleLength: duration on + off phase [ms]
+    :param burstiness: if 0 the output is a stationary poisson process, if 1 all spikes are within the burstFraction
+    :param burstFraction: share of cycleLength that where more spikes for burstiness > 0
+
+    :return: nsyn spike trains stored in a matrix
+    """
+
+    lambd_ms = lambd * 0.001
+
+    # number of burst-non-burst cycles
+    numCycles = int(np.floor((tstop-tstart) / cycleLength) + 1)
+
+    nonBurstLength = cycleLength * (1 - burstFraction)
+    burstLength = cycleLength * burstFraction
+
+    spiketimes = []
+    for i in range(nsyn):
+
+        # vector to save spike times into
+        spikevec = np.array([])
+
+        for j in range(numCycles):
+            spikecountNonBurst = np.random.poisson(nonBurstLength * lambd_ms * (1-burstiness))
+            spikecountBurst = np.random.poisson(burstLength * lambd_ms * (1 * (1-burstiness) + 1 / burstFraction * burstiness))
+
+            spikevecNonBurst = nonBurstLength * np.random.random(spikecountNonBurst)
+            spikevecBurst = nonBurstLength + burstLength * np.random.random(spikecountBurst)
+
+            # combine both phases to one
+            spikevecCycle = np.concatenate((spikevecBurst, spikevecNonBurst)) + j * cycleLength
+
+            # append to spike train of this unit
+            spikevec = np.concatenate((spikevec, spikevecCycle))
+
+        spikevec = spikevec[spikevec < tstop] # delete spike after simulation end
+
+        spiketimes.append(np.sort(spikevec)) #sort them too!
+
+    return spiketimes
+
 def generateCorrelatedSpikeTimes(nAxons, tStart=0, lambd = 1000., correlation = 0.1, tStop=300):
     """ Generate ``nAxons`` spike trains that are pairwise correlated with a factor ``correlation``. Function adapted from LFPy example 3.
 
@@ -50,7 +99,7 @@ def generateCorrelatedSpikeTimes(nAxons, tStart=0, lambd = 1000., correlation = 
     #assign spike times to different units
     n_synapses = int(n_pre_syn*correlation)
 
-    pre_syn_sptimes = stationary_poisson(nsyn=n_pre_syn, lambd=lambd/n_synapses, tstart=tStart, tstop=tStop)
+    pre_syn_sptimes = stationary_poisson(nsyn=n_pre_syn, lambd=float(lambd)/n_synapses, tstart=tStart, tstop=tStop)
 
 
 
@@ -73,3 +122,14 @@ def generateCorrelatedSpikeTimes(nAxons, tStart=0, lambd = 1000., correlation = 
         signalArray.append(np.array(signal))
 
     return signalArray
+
+if __name__ == "__main__":
+
+    nAxons = 10
+    spikeTrains = two_phase_poisson(nsyn=nAxons, lambd=10, tstart=0, tstop=1000, cycleLength=300,
+                                                              burstiness=0.5, burstFraction=0.2)
+
+    import matplotlib.pyplot as plt
+    for i in range(nAxons):
+        plt.stem(spikeTrains[i], np.ones(len(spikeTrains[i])))
+    plt.show()
