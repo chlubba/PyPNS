@@ -19,6 +19,6 @@ setup(
     license='LICENSE',
     description='A peripheral nerve simulator built on NEURON',
     #long_description=,
-    install_requires = ['numpy', 'scipy', 'matplotlib', 'neuron'],
+    install_requires = ['numpy', 'scipy', 'matplotlib'], # , 'neuron' exluded because we need a higher version.
     provides = ['PyPNS'],
     )
