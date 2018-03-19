@@ -25,10 +25,12 @@ Download the NEURON source `nrn-nn.tar.gz`
  
  ### Compile and install InterView
 
+Replace `mm` with your InterViews version number.
+
 ```
  N=`pwd`
- tar xzf iv-17.tar.gz
- cd iv-17
+ tar xzf iv-mm.tar.gz
+ cd iv-mm
  ./configure --prefix=`pwd`
  make
  make install
@@ -36,11 +38,13 @@ Download the NEURON source `nrn-nn.tar.gz`
 
 ### Compile and install NEURON
 
+Replace `nn` with your NEURON version number and `mm` with your InterViews version number.
+
 ```
 cd ..
-tar xzf nrn-7.0.tar.gz
-cd nrn-7.0
-./configure --prefix=`pwd` --with-iv=$N/iv-17 --with-nrnpython
+tar xzf nrn-nn.tar.gz
+cd nrn-nn
+./configure --prefix=`pwd` --with-iv=$N/iv-mm --with-nrnpython
 make
 make install
 ```
