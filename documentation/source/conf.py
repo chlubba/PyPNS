@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# PNPy documentation build configuration file, created by
+# PyPNS documentation build configuration file, created by
 # sphinx-quickstart on Sat May 13 17:07:34 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -19,7 +19,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0,os.path.abspath('../../PNPy'))
+sys.path.insert(0,os.path.abspath('../../PyPNS'))
 
 # -- General configuration ------------------------------------------------
 
@@ -48,7 +48,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PNPy'
+project = u'PyPNS'
 copyright = u'2017, Carl H Lubba'
 author = u'Carl H Lubba'
 
@@ -202,7 +202,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PNPydoc'
+htmlhelp_basename = 'PyPNSdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -224,7 +224,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'PNPy.tex', u'PNPy Documentation',
+    (master_doc, 'PyPNS.tex', u'PyPNS Documentation',
      u'Carl H Lubba', 'manual'),
 ]
 
@@ -254,7 +254,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pnpy', u'PNPy Documentation',
+    (master_doc, 'PyPNS', u'PyPNS Documentation',
      [author], 1)
 ]
 
@@ -268,8 +268,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'PNPy', u'PNPy Documentation',
-     author, 'PNPy', 'One line description of project.',
+    (master_doc, 'PyPNS', u'PyPNS Documentation',
+     author, 'PyPNS', 'One line description of project.',
      'Miscellaneous'),
 ]
 

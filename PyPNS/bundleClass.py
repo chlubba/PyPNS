@@ -39,7 +39,7 @@ class Bundle(object):
                  segmentLengthAxon = 10, randomDirectionComponent = 0., tStop=30, timeRes=0.0025,
                  numberOfSavedSegments=300, saveV=True, saveI=False, saveLocation='Results'):
 
-        """Constructor of the Bundle class, the main object in `PNPy`.
+        """Constructor of the Bundle class, the main object in `PyPNS`.
 
         :param radius: radius of the nerve
         :param length: length of the nerve (not equal to length of the axons as they can take a curvy trajectory)

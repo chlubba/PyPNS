@@ -1,4 +1,4 @@
-import PNPy
+import PyPNS
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -27,7 +27,7 @@ bundleLength = 40000
 nAxons = 1
 
 # bundle guide
-bundleGuide = PNPy.createGeometry.get_bundle_guide_straight(bundleLength, segmentLengthAxon)
+bundleGuide = PyPNS.createGeometry.get_bundle_guide_straight(bundleLength, segmentLengthAxon)
 
 # ------------------------ intracellular stimulation params -----------------
 
@@ -42,7 +42,7 @@ rectangularSignalParamsIntra = {'amplitude': 50., #50,  # Pulse amplitude (mA)
                                 # 'timeRes': timeRes,
                                 }
 
-intraParameters = {'stimulusSignal': PNPy.signalGeneration.rectangular(**rectangularSignalParamsIntra)}
+intraParameters = {'stimulusSignal': PyPNS.signalGeneration.rectangular(**rectangularSignalParamsIntra)}
 
 # ------------------------- extracellular stimulation params -----------------
 
@@ -56,11 +56,11 @@ rectangularSignalParamsExtra = {'amplitude': 3000, # Pulse amplitude (nA)
                                 # 'timeRes': timeRes,
                                 }
 
-elecPosStim = PNPy.createGeometry.circular_electrode(bundleGuide, positionAlongBundle=12500, radius=235,
+elecPosStim = PyPNS.createGeometry.circular_electrode(bundleGuide, positionAlongBundle=12500, radius=235,
                                                      numberOfPoles=2, poleDistance=1000)
-extPotMechStim = PNPy.Extracellular.precomputedFEM(bundleGuide) # , 'oil190Inner50Endoneurium')
+extPotMechStim = PyPNS.Extracellular.precomputedFEM(bundleGuide) # , 'oil190Inner50Endoneurium')
 
-extraParameters = {'stimulusSignal': PNPy.signalGeneration.rectangular(**rectangularSignalParamsExtra),
+extraParameters = {'stimulusSignal': PyPNS.signalGeneration.rectangular(**rectangularSignalParamsExtra),
                    'electrodePositions': elecPosStim,
                    'extPotMech': extPotMechStim}
 
@@ -73,15 +73,15 @@ recordingParametersNew = {'bundleGuide': bundleGuide,
                           'poleDistance': 1000,
                           }
 
-electrodePoints = PNPy.createGeometry.circular_electrode(**recordingParametersNew)
+electrodePoints = PyPNS.createGeometry.circular_electrode(**recordingParametersNew)
 
 extracellularMechs = []
-extracellularMechs.append(PNPy.Extracellular.homogeneous(sigma=1))
-extracellularMechs.append(PNPy.Extracellular.precomputedFEM(bundleGuide))
-extracellularMechs.append(PNPy.Extracellular.analytic(bundleGuide))
+extracellularMechs.append(PyPNS.Extracellular.homogeneous(sigma=1))
+extracellularMechs.append(PyPNS.Extracellular.precomputedFEM(bundleGuide))
+extracellularMechs.append(PyPNS.Extracellular.analytic(bundleGuide))
 
 # ------------------------------------------------------------------------------
-# --------------------------- PNPy object instantiation  -----------------------
+# --------------------------- PyPNS object instantiation  -----------------------
 # ------------------------------------------------------------------------------
 
 # set all properties of the bundle
@@ -105,24 +105,24 @@ bundleParameters = {'radius': 180,  #um Radius of the bundle (match carefully to
                     }
 
 # create the bundle with all properties of axons
-bundle = PNPy.Bundle(**bundleParameters)
+bundle = PyPNS.Bundle(**bundleParameters)
 
 # spiking through a single electrical stimulation
-bundle.add_excitation_mechanism(PNPy.StimIntra(**intraParameters))
-bundle.add_excitation_mechanism(PNPy.StimField(**extraParameters))
+bundle.add_excitation_mechanism(PyPNS.StimIntra(**intraParameters))
+bundle.add_excitation_mechanism(PyPNS.StimField(**extraParameters))
 
 # add recording electrodes. One for each extracellular medium
 for extracellularMech in extracellularMechs:
-    bundle.add_recording_mechanism(PNPy.RecordingMechanism(electrodePoints, extracellularMech))
+    bundle.add_recording_mechanism(PyPNS.RecordingMechanism(electrodePoints, extracellularMech))
 
 # ------------------------------------------------------------------------------
-# -------------------------------- PNPy calculation  ---------------------------
+# -------------------------------- PyPNS calculation  ---------------------------
 # ------------------------------------------------------------------------------
 
 # run the simulation
 bundle.simulate()
 
-PNPy.save_bundle(bundle)
+PyPNS.save_bundle(bundle)
 print 'bundle saved.'
 
 # ------------------------------------------------------------------------------

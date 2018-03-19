@@ -1,16 +1,16 @@
-.. PNPy documentation master file, created by
+.. PyPNS documentation master file, created by
    sphinx-quickstart on Sat May 13 17:07:34 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-The PNPy API
+The PyPNS API
 ============
 
-.. module:: PNPy
+.. module:: PyPNS
 
-To use ``PNPy``, you need to::
+To use ``PyPNS``, you need to::
 		
-	import PNPy
+	import PyPNS
 
 .. * :class:`axonClass.Myelinated` and :class:`axonClass.Unmyelinated`
 
@@ -31,7 +31,7 @@ as well as the modules
 The ``Bundle`` Class
 ____________________
 
-The central object in ``PNPy`` is :class:`bundleClass.Bundle`. 
+The central object in ``PyPNS`` is :class:`bundleClass.Bundle`. 
 
 .. autoclass:: bundleClass.Bundle()
 
@@ -70,7 +70,7 @@ Rerunning the CAP Calculation from Precomputed Membrane Current
 The ``ExtracellularMechanism`` Class
 ____________________________________
 
-An ``ExtracellularMechanism`` is needed in ``PNPy`` to compute the extracellular field from currents. Two variants exist:
+An ``ExtracellularMechanism`` is needed in ``PyPNS`` to compute the extracellular field from currents. Two variants exist:
 
 
 .. autoclass:: extracellularMechanismClass.homogeneous

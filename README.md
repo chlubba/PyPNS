@@ -1,15 +1,15 @@
-# PNPy
+# PyPNS
 
-PNPy is a Python module for the simulation of periperal nerves. Axon models are simulated in the compartmental simulator NEURON (http://www.neuron.yale.edu/neuron) over its Python interface (http://www.frontiersin.org/neuroinformatics/10.3389/neuro.11.001.2009/abstract). Extracellular potentials from membrane currents or stimulation electrodes are calculated in a resistive, electro-quasistatic approximation of the Maxwell equations from either a homogeneous analytical solution, precomputed and imported finite element model outputs or analytical functions fit to FEM results. 
+PyPNS is a Python module for the simulation of periperal nerves. Axon models are simulated in the compartmental simulator [NEURON](http://www.neuron.yale.edu/neuron) over its [Python interface](http://www.frontiersin.org/neuroinformatics/10.3389/neuro.11.001.2009/abstract). Extracellular potentials from membrane currents or stimulation electrodes are calculated in a resistive, electro-quasistatic approximation of the Maxwell equations from either a homogeneous analytical solution, precomputed and imported finite element model outputs or analytical functions fit to FEM results.
 
-PNPy was developed in the Department of Bioengineering, Centre of Neurotechnology at Imperial College London.
+PyPNS was developed in the Department of Bioengineering, Centre of Neurotechnology at Imperial College London.
 
 This scientific software is released under the GNU Public License GPLv3.
 
 
 # Requirements
 
-To install PNPy you will need:
+To install PyPNS you will need:
 
 - Python modules numpy, scipy and matplotlib
 - NEURON (from http://www.neuron.yale.edu) compiled as a Python module. IMPORTANT: Do not rely on `pip` for the installation of NEURON. Below is a guide on how to install NEURON including the Python interface from source.
@@ -78,21 +78,21 @@ export PYTHONPATH=$PYTHONPATH:~/lib/python/site-packages
 
 Using pip or easy install
 
-	pip install PNPy
+	pip install PyPNS
 
-	easy_install PNPy
+	easy_install PyPNS
 
 From source:
 
-    tar -xzf PNPy-x.x.tar.gz
-    cd PNPy-x.x
+    tar -xzf PyPNS-x.x.tar.gz
+    cd PyPNS-x.x
     python setup.py install
 
 
 # Usage
 
 
-To run PNPy properly, several NEURON extensions need to be compiled for the myelinated axon model. Those are located in the `mods`-directory of PNPy. Download this directory and run
+To run PyPNS properly, several NEURON extensions need to be compiled for the myelinated axon model. Those are located in the `mods`-directory of PyPNS. Download this directory and run
 
 	nrnivmodl
 
@@ -112,7 +112,7 @@ To reproduce figures of the paper go to this figure-repository (ADD THE CORRECT 
 
 # Documentation
 
-For further description of the different components of `PNPy`, compile the Sphinx documentation. Do do so, navigate to `documentation/source` within the PNPy directory and run
+For further description of the different components of `PyPNS`, compile the Sphinx documentation. Do do so, navigate to `documentation/source` within the PyPNS directory and run
 
 	sphinx-build -b html . ../HTML
     
