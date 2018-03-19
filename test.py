@@ -24,7 +24,7 @@ rdc = 0.2 # random direction component
 
 # set length of bundle and number of axons
 bundleLength = 40000
-nAxons = 5
+nAxons = 1
 
 # bundle guide
 bundleGuide = PNPy.createGeometry.get_bundle_guide_straight(bundleLength, segmentLengthAxon)
@@ -131,6 +131,8 @@ print 'bundle saved.'
 
 t, SFAPs = bundle.get_SFAPs_from_file(0)
 plt.plot(t, SFAPs)
+plt.xlabel('time (ms)')
+plt.ylabel('voltage (mV)')
 plt.show()
 
 bundle = None
