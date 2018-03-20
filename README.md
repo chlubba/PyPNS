@@ -116,7 +116,7 @@ To reproduce figures of the paper go to this [figure-repository](https://github.
 
 # Documentation
 
-For further description of the different components of `PyPNS`, compile the Sphinx documentation. Do do so, navigate to `documentation/source` within the PyPNS directory and run
+For further description of the different components of `PyPNS`, compile the Sphinx documentation. To do so, navigate to `documentation/source` within the PyPNS directory and run
 
 	sphinx-build -b html . ../HTML
     
