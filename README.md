@@ -112,7 +112,7 @@ For a quick first test, download the `test.py` script from GitHub and run it:
 python test.py
 ```
 
-To reproduce figures of the paper go to this figure-repository (ADD THE CORRECT LINK HERE!!!).
+To reproduce figures of the paper go to this [figure-repository](https://github.com/cahelu/PyPNS-PaperFigures).
 
 # Documentation
 
