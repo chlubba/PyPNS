@@ -25,5 +25,5 @@ from PyPNS.nameSetters import get_bundle_directory, save_bundle, open_recent_bun
 # misc
 from PyPNS.samplingRates import *
 import PyPNS.signalGeneration
-from generateAndSaveFieldDictFn import *
+from PyPNS.generateAndSaveFieldDictFn import *
 import PyPNS.analyticFnGen

@@ -25,7 +25,7 @@ def genFieldDict(sourceFolder, axonXs):
             for filename in filenames:
                 fields.append(np.loadtxt(os.path.join(folder, filename)))
 
-            print 'loaded field'
+            print('loaded field')
 
             # get coordinates (should be equal for all field files, otherwise nothing works)
             x = fields[0][:, 0]

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import ndimage
 import time
-import createGeometry
+import PyPNS.createGeometry as createGeometry
 # from takeTime import takeTime
 # from scipy.interpolate import interp1d
 

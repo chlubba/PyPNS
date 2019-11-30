@@ -1,5 +1,5 @@
 from abc import abstractmethod # ABCMeta,
-import constants
+import PyPNS.constants as constants
 
 class ExcitationMechanism(object):
     # __metaclass__ = ABCMeta

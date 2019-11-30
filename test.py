@@ -9,11 +9,12 @@ import numpy as np
 
 # ----------------------------- simulation params ---------------------------
 
-tStop=100
+tStop=50
 dt=0.0025
 
 # ----------------------------- axon params ---------------------------
 
+# diameters enlarged for quicker execution
 myelinatedParameters = {'fiberD': {'distName': 'normal', 'params': (1.7, 0.4)}}
 unmyelinatedParameters = {'fiberD': {'distName': 'normal', 'params': (1.0, 0.2)}}
 
@@ -90,8 +91,8 @@ bundleParameters = {'radius': 180,  #um Radius of the bundle (match carefully to
                     'bundleGuide': bundleGuide,
 
                     'numberOfAxons': nAxons,  # Number of axons in the bundle
-                    'pMyel': .5,  # Percentage of myelinated fiber type A
-                    'pUnmyel': .5,  # Percentage of unmyelinated fiber type C
+                    'pMyel': 1.,  # Percentage of myelinated fiber type A
+                    'pUnmyel': 0.,  # Percentage of unmyelinated fiber type C
                     'paramsMyel': myelinatedParameters,  # parameters for fiber type A
                     'paramsUnmyel': unmyelinatedParameters,  # parameters for fiber type C
 
@@ -123,14 +124,16 @@ for extracellularMech in extracellularMechs:
 bundle.simulate()
 
 PyPNS.save_bundle(bundle)
-print 'bundle saved.'
+print('bundle saved.')
 
 # ------------------------------------------------------------------------------
 # -------------------------------- Result Plotting  ----------------------------
 # ------------------------------------------------------------------------------
-
-t, SFAPs = bundle.get_SFAPs_from_file(0)
-plt.plot(t, SFAPs)
+plt.figure()
+for i in range(len(bundle.recordingMechanisms)):
+    t, SFAPs = bundle.get_SFAPs_from_file(i)
+    plt.plot(t, SFAPs, label='recordingMechanism_%i'%i)
+plt.legend()
 plt.xlabel('time (ms)')
 plt.ylabel('voltage (mV)')
 plt.show()

@@ -4,8 +4,8 @@ import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-from axonClass import *
-from nameSetters import *
+from PyPNS.axonClass import *
+from PyPNS.nameSetters import *
 
 
 def geometry_definition(bundle, axis_equal=True, axis_off=False):
@@ -129,7 +129,7 @@ def CAP1D_singleAxon(bundle, maxNumberOfAxons=10, recMechIndex=0):
     try:
         newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
     except ValueError:
-        print 'No CAP calculation has been performed yet with this set of parameters.'
+        print('No CAP calculation has been performed yet with this set of parameters.')
         return
 
     # CAPraw = np.transpose(np.loadtxt(newestFile))
@@ -264,8 +264,8 @@ def CAP2D(bundle):
     numberOfRecordingSites = np.shape(CAP)[0]
 
     if numberOfRecordingSites <= 10:
-        print 'Plotting of the CAP in two dimensions (time, space) does not make sense with fewer than 10 electrodes. ' \
-              'Please select another plotting mechanism or restart the simulation with more electrodes.'
+        print('Plotting of the CAP in two dimensions (time, space) does not make sense with fewer than 10 electrodes. ' +
+              'Please select another plotting mechanism or restart the simulation with more electrodes.')
         return
 
 
@@ -504,10 +504,10 @@ def voltage_one_myelinated_axon(bundle, myelinatedIndex=0):
     # now plot
     numberOfAxons = np.shape(voltageMatrices)[0]
     if myelinatedIndex >= numberOfAxons:
-        print 'voltage_one_myelinated_axon: Axon index too high'
+        print('voltage_one_myelinated_axon: Axon index too high')
         return
     elif myelinatedIndex < 0:
-        print 'voltage_one_myelinated_axon: Axon index <0 given.'
+        print('voltage_one_myelinated_axon: Axon index <0 given.')
         return
 
     # first search through neurons. This function is for myelinated ones only.
@@ -528,7 +528,7 @@ def voltage_one_myelinated_axon(bundle, myelinatedIndex=0):
         axonIndex += 1
 
     if not selectedAxon:
-        print 'Select axon index between 0 and ' + str(myelinatedIndex)
+        print('Select axon index between 0 and ' + str(myelinatedIndex))
         return
 
 
@@ -620,4 +620,4 @@ def diameterHistogram(bundle):
         ax2.set_title('Unmyelinated Diameters')
     # whoops, no axons?
     else:
-        print 'No axons in bundle. Cannot plot their diameters.'
+        print('No axons in bundle. Cannot plot their diameters.')

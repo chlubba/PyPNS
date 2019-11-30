@@ -6,7 +6,7 @@ import sys
 
 def show_sizeof(x, level=0):
 
-    print "\t" * level, x.__class__, sys.getsizeof(x), x
+    print("\t" * level, x.__class__, sys.getsizeof(x), x)
 
     if hasattr(x, '__iter__'):
         if hasattr(x, 'items'):

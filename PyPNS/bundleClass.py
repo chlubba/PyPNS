@@ -1,5 +1,5 @@
-from axonClass import *
-import createGeometry
+from PyPNS.axonClass import *
+import PyPNS.createGeometry as createGeometry
 
 import numpy as np # for arrays managing
 import time
@@ -12,18 +12,18 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 
-from takeTime import *
-import constants
-import silencer
+from PyPNS.takeTime import *
+import PyPNS.constants as constants
+import PyPNS.silencer as silencer
 
 # from recordingMechanismFEMClass import RecordingMechanismFEM
 # from recordingMechanismClass import RecordingMechanism
-from extracellularMechanismClass import precomputedFEM
+from PyPNS.extracellularMechanismClass import precomputedFEM as precomputedFEM
 
 from scipy.signal import argrelextrema
 from scipy.interpolate import interp1d
 
-from nameSetters import *
+from PyPNS.nameSetters import *
 
 class Bundle(object):
     # radiusBundle: Radius of the bundle (typically 0.5-1.5mm)
@@ -130,7 +130,7 @@ class Bundle(object):
 
         # create axons
         for i in range(self.numberOfAxons):
-            print "Creating axon " + str(i)
+            print("Creating axon " + str(i))
             if i < self.numUnmyel:
                 self.create_axon('u', self.axonCoords[i])
             else:
@@ -385,7 +385,7 @@ class Bundle(object):
 
         # exectue the NEURON and LFPy calculations of all axons
         self.simulate_axons()
-        print '\nAll axons simulated.'
+        print ('\nAll axons simulated.')
 
         # once simulation is over get rid of the all Neuron objects to be able to pickle the bundle-class.
         h('forall delete_section()')
@@ -419,7 +419,7 @@ class Bundle(object):
 
         for axonIndex in range(self.numberOfAxons):
 
-            print "\nStarting simulation of axon " + str(axonIndex)
+            print("\nStarting simulation of axon " + str(axonIndex))
             tStart = time.time()
 
             axon = self.axons[axonIndex]
@@ -450,7 +450,7 @@ class Bundle(object):
                         recMech.compute_single_axon_CAP(axon)
                         recMechIndex += 1
             else:
-                print 'No recording mechanisms added. No CAP will be recorded.'
+                print('No recording mechanisms added. No CAP will be recorded.')
 
             # TODO: regularize time step for current and voltage here, so you don't need to care about it later
             # TODO: first check how long the interpolation takes.
@@ -468,7 +468,7 @@ class Bundle(object):
 
             elapsedAxon = time.time() - tStart
             # print ("Overall processing of axon %i took %.2f s. ( %.2f %% saving.)" % (axonIndex, elapsedAxon, (elapsedSaveV + elapsedSaveLFP)/elapsedAxon*100))
-            print "Overall processing of axon %i took %.2f s." % (axonIndex, elapsedAxon)
+            print ("Overall processing of axon %i took %.2f s." % (axonIndex, elapsedAxon))
 
 
     def store_geometry(self):
@@ -610,13 +610,13 @@ class Bundle(object):
         if recMecIndices == -1:
             recMecIndices = range(len(self.recordingMechanisms))
         elif not np.all([i in range(len(self.recordingMechanisms)) for i in recMecIndices]):
-            print 'selected recording mechanism indices not valid. Set to all recording mechanisms.'
+            print('selected recording mechanism indices not valid. Set to all recording mechanisms.')
             recMecIndices = range(len(self.recordingMechanisms))
 
         for axonIndex in range(len(self.axons)):
             axon = self.axons[axonIndex]
 
-            print ''
+            print ('')
             with takeTime('load current of axon ' + str(axonIndex)):
                 axon.imem = self.get_imem_from_file_axonwise(axonIndex)[1]
 
@@ -634,7 +634,7 @@ class Bundle(object):
                         recMech.compute_single_axon_CAP(axon)
 
             else:
-                print 'Nothing to do here, no recording mechanisms have been added to the bundle.'
+                print ('Nothing to do here, no recording mechanisms have been added to the bundle.')
 
             axon.imem = None
 
@@ -685,7 +685,7 @@ class Bundle(object):
         try:
             newestFile = max(glob.iglob(os.path.join(directory, '') + '*.[Nn][Pp][Yy]'), key=os.path.getctime)
         except ValueError:
-            print 'No CAP calculation has been performed yet with this set of parameters.'
+            print('No CAP calculation has been performed yet with this set of parameters.')
             return
 
         # CAPraw = np.transpose(np.loadtxt(newestFile))
@@ -705,7 +705,7 @@ class Bundle(object):
             # newestFile = max(glob.iglob(os.path.join(directory,'')+'*.[Dd][Aa][Tt]'), key=os.path.getctime)
             newestFile = max(glob.iglob(os.path.join(directory, '') + '*.[Nn][Pp][Yy]'), key=os.path.getctime)
         except ValueError:
-            print 'No voltage calculation has been performed yet with this set of parameters.'
+            print('No voltage calculation has been performed yet with this set of parameters.')
             return None, None
 
         # load the all voltage files

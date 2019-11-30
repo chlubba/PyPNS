@@ -9,7 +9,7 @@ import os
 from scipy import interpolate
 import numbers
 
-import createGeometry
+import PyPNS.createGeometry as createGeometry
 
 
 # Some methods in the Axon class are based on existing methods in the Python package LFPY
@@ -476,7 +476,8 @@ class Axon(object):
                 zz = h.Vector(nn)
                 length = h.Vector(nn)
 
-                for ii in xrange(nn):
+                # for ii in xrange(nn):
+                for ii in range(nn):
                     xx.x[ii] = h.x3d(ii,sec=sec)
                     yy.x[ii] = h.y3d(ii,sec=sec)
                     zz.x[ii] = h.z3d(ii,sec=sec)
@@ -600,9 +601,9 @@ class Unmyelinated(Axon):
         self.Ra = Ra
         self.hhDraw = hhDraw
 
-        print "Unmyelinated axon diameter: " + str(self.fiberD)
+        print("Unmyelinated axon diameter: " + str(self.fiberD))
 
-        print 'Number of segments for unmyelinated axon: %i' % self.get_number_of_segs()
+        print('Number of segments for unmyelinated axon: %i' % self.get_number_of_segs())
 
     def get_number_of_segs(self, d_lambda=0.1, lambda_freq=100):
 
@@ -788,7 +789,7 @@ class Myelinated(Axon):
         nodeD=Myelinated.pNodeDiam(diameter)
         paraD1=nodeD
         paraD2=axonD
-        deltax=round(Myelinated.pNodeSep(diameter))
+        deltax=np.round(Myelinated.pNodeSep(diameter))
         paralength2=Myelinated.pFLUTLen(diameter)
         nl=np.round(Myelinated.pNoLamella(diameter))
         # interlength=int(round(Myelinated.pSTINLen(diameter)))
@@ -895,7 +896,7 @@ class Myelinated(Axon):
 
         self.endOverlap = 7 # number of axon segments after last node
 
-        print 'Myelinated fiber diameter: ' + str(self.fiberD)
+        print('Myelinated fiber diameter: ' + str(self.fiberD))
 
         # initialize variables to store NEURON elements in
         self.nodes = None
@@ -951,7 +952,7 @@ class Myelinated(Axon):
         # self.axontotal= self.axonnodes+self.paranodes1+self.paranodes2+self.axoninter
         self.axontotal= self.axonnodes+self.paranodes1+self.paranodes2+self.axoninter + self.endOverlap
 
-        print 'Number of segments for myelinated axon: %i' % self.axontotal
+        print('Number of segments for myelinated axon: %i' % self.axontotal)
 
     def createSingleNode(self, nodeType):
 

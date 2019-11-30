@@ -2,13 +2,13 @@ from neuron import h
 import numpy as np
 import math
 from scipy import signal
-from excitationMechanismClass import *
+from PyPNS.excitationMechanismClass import *
 import os
 
-from signalGeneration import *
-from samplingRates import *
-from nameSetters import *
-from extracellularBackend import *
+from PyPNS.signalGeneration import *
+from PyPNS.samplingRates import *
+from PyPNS.nameSetters import *
+from PyPNS.extracellularBackend import *
 
 
 class StimIntra(ExcitationMechanism):

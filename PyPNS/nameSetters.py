@@ -1,7 +1,7 @@
 import os
 import sys
 import glob
-import cPickle as pickle
+import _pickle as pickle
 
 def get_bundle_directory(paramDict, new = False):
     """Create the directory where all output of the simulation is saved in. If no ``saveLocation`` is specified in the ``paramDict``, the working directory is used as a basis. For each simulation an individual subfolder will be generated.
@@ -47,7 +47,7 @@ def get_bundle_directory(paramDict, new = False):
         try:
             latestFolder = max(glob.iglob(os.path.join(pathString,'')+'bundle*'), key=os.path.getmtime)
         except:
-            print 'Desired folder empty.'
+            print('Desired folder empty.')
             return ''
 
         finalBasePath = latestFolder
@@ -135,7 +135,7 @@ def open_recent_bundle(parameters):
         bundle = pickle.load(open(os.path.join(bundleSaveLocation, 'bundle.cl'), "rb" ))
         return bundle
     except:
-        print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
+        print('No bundle with these parameters has been generated yet. Set calculationFlag to True.')
 
 
 def open_bundle_from_location(bundleSaveLocation):
@@ -151,6 +151,6 @@ def open_bundle_from_location(bundleSaveLocation):
         return bundle
     except:
         print("Unexpected error:", sys.exc_info()[0])
-        print 'No bundle with these parameters has been generated yet. Set calculationFlag to True.'
+        print('No bundle with these parameters has been generated yet. Set calculationFlag to True.')
         raise
 

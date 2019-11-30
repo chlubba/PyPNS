@@ -1,11 +1,11 @@
 from abc import abstractmethod, ABCMeta
 import numpy as np
 import os
-import silencer
+import PyPNS.silencer as silencer
 import time
-from extracellularBackend import *
+from PyPNS.extracellularBackend import *
 from scipy.interpolate import interp1d
-import analyticFnGen
+import PyPNS.analyticFnGen as analyticFnGen
 
 class ExtracellularPotentialMechanism(object):
     __metaclass__ = ABCMeta
@@ -90,7 +90,7 @@ class precomputedFEM(ExtracellularPotentialMechanism):
         #       'long (~1cm) straight part of the bundle guide.'
 
         # fieldDictArray = np.load(os.path.join('/Volumes/SANDISK/ComsolData/usedFields', fieldName, 'fieldDict.npy'))
-        fieldDictArray = np.load(os.path.join('Fields', fieldName, 'fieldDict.npy'))
+        fieldDictArray = np.load(os.path.join('Fields', fieldName, 'fieldDict_python3.npy'), allow_pickle=True)
         self.FEMFieldDict = fieldDictArray[()]
 
         self.bundleGuide = bundleGuide

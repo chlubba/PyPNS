@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import signal
-import constants
+import PyPNS.constants as constants
 
 def biphasic_decaying(tDelay=0, tC=1, aC=0.05, tExp=1, cExp=-5, tD=2, aD=-0.01):
     """
@@ -58,7 +58,7 @@ def rectangular(stimDur, amplitude, frequency, dutyCycle, waveform, delay=0, inv
     elif waveform == 'BIPHASIC':
         stimulusSignal = amplitude * signal.square(2 * np.pi * frequency * tGen, duty=dutyCycle)
     else:
-        print "You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC"
+        print ("You didn't choose the right waveform either MONOPHASIC or BIPHASIC, it has been set to default MONOPHASIC")
         stimulusSignal = amplitude * 0.5 * signal.square(2 * np.pi * frequency * tGen, duty=dutyCycle) + amplitude * 0.5
 
     if invert:

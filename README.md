@@ -1,22 +1,22 @@
 # PyPNS
 
-PyPNS is a Python module for the simulation of periperal nerves. Axon models are simulated in the compartmental simulator [NEURON](http://www.neuron.yale.edu/neuron) over its [Python interface](http://www.frontiersin.org/neuroinformatics/10.3389/neuro.11.001.2009/abstract). Extracellular potentials from membrane currents or stimulation electrodes are calculated in a resistive, electro-quasistatic approximation of the Maxwell equations from either a homogeneous analytical solution, precomputed and imported finite element model outputs or analytical functions fit to FEM results.
+PyPNS is a Python module for the simulation of peripheral nerves. Axon models are simulated in the compartmental simulator [NEURON](http://www.neuron.yale.edu/neuron) over its [Python interface](http://www.frontiersin.org/neuroinformatics/10.3389/neuro.11.001.2009/abstract). Extracellular potentials from membrane currents or stimulation electrodes are calculated in a resistive, electro-quasistatic approximation of the Maxwell equations from either a homogeneous analytical solution, precomputed and imported finite element model outputs or analytical functions fit to FEM results.
 
 PyPNS was developed in the Department of Bioengineering, Centre of Neurotechnology at Imperial College London.
 
 This scientific software is released under the GNU Public License GPLv3.
 
-
 # Requirements
 
 To install PyPNS you will need:
 
+- Python3
 - Python modules numpy, scipy and matplotlib
-- NEURON (from http://www.neuron.yale.edu) compiled as a Python module. IMPORTANT: Do not rely on `pip` for the installation of NEURON. Below is a guide on how to install NEURON including the Python interface from source.
+- NEURON (from http://www.neuron.yale.edu) compiled as a Python module. IMPORTANT: Do not rely on `pip` for the installation of NEURON. Below is a guide on how to install NEURON including the Python interface from source. PyPNS is tested for NEURON 7.6.7 with InterViews 19
 
 ## NEURON installation
 
-It is advisable to install NEURON from source. The following description is closely based on [Andrew Davidson's tutorial](http://andrewdavison.info/notes/installation-neuron-python/) and copied here to make sure it is available.
+It is advisable to install NEURON from source. The following description is closely based on [Andrew Davidson's tutorial](http://andrewdavison.info/notes/installation-neuron-python/) and copied here to make sure it is available. Another good description can be found on the official page [here](https://www.neuron.yale.edu/neuron/download/compile_linux).
 
 ### Download the source from the NEURON site
 

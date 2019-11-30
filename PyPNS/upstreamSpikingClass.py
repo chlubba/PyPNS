@@ -1,5 +1,5 @@
 from neuron import h
-from excitationMechanismClass import *
+from PyPNS.excitationMechanismClass import *
 # import spikeTrainGeneration
 
 
