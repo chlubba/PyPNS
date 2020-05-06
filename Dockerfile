@@ -36,6 +36,7 @@ WORKDIR $HOME/work
 RUN git clone https://github.com/chlubba/PyPNS
 WORKDIR PyPNS
 RUN pip install -e .
+RUN pip install tk
 WORKDIR mods
 RUN nrnivmodl
 RUN conda clean --all -f -y && \
