@@ -1,4 +1,5 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fun-zoological-computing/PyPNS/master)
+Enter code like in this picture ![PyPNS_build.png](PyPNS_build.png)
 
 # PyPNS
 
