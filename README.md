@@ -1,6 +1,8 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fun-zoological-computing/PyPNS/master)
 Enter code like in this picture ![PyPNS_build.png](PyPNS_build.png)
 
+[![Build Status](https://travis-ci.com/russelljjarvis/PeripheralNervousSystem.svg?branch=master)](https://travis-ci.com/russelljjarvis/PeripheralNervousSystem)
+
 # PyPNS
 
 PyPNS is a Python module for the simulation of peripheral nerves. Axon models are simulated in the compartmental simulator [NEURON](http://www.neuron.yale.edu/neuron) over its [Python interface](http://www.frontiersin.org/neuroinformatics/10.3389/neuro.11.001.2009/abstract). Extracellular potentials from membrane currents or stimulation electrodes are calculated in a resistive, electro-quasistatic approximation of the Maxwell equations from either a homogeneous analytical solution, precomputed and imported finite element model outputs or analytical functions fit to FEM results.
