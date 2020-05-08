@@ -13,6 +13,8 @@ RUN apt-get upgrade
 RUN apt-get install -y ncurses-base ncurses-bin
 RUN apt-get update && apt-get install -y bzip2 ca-certificates automake libtool  \
                        libncurses5-dev libreadline-dev libgsl0-dev cmake ssh
+USER jovyan
+
 WORKDIR $HOME
 RUN \
   wget http://www.neuron.yale.edu/ftp/neuron/versions/v7.7/nrn-7.7.tar.gz && \
@@ -21,27 +23,41 @@ RUN \
 WORKDIR $HOME/nrn-7.7
 ENV PATH /usr/bin/python3/python:/opt/conda/bin:/opt/conda/bin/conda:/opt/conda/bin/python:$PATH
 RUN ./configure --prefix=`pwd` --without-iv --with-nrnpython=/opt/conda/bin/python3
+USER root
 RUN sudo make all && \
      make install
-RUN make all
-RUN make install
+USER jovyan
 WORKDIR src/nrnpython
 RUN python setup.py install
+RUN python -c "import neuron"
 ENV NEURON_HOME $HOME/nrn-7.7/x86_64
 ENV PATH $NEURON_HOME/bin:$PATH
-USER root
-RUN chown -R jovyan $HOME
 WORKDIR $HOME/work/extra_work
 WORKDIR $HOME/work
-RUN git clone https://github.com/chlubba/PyPNS
+RUN pip install --upgrade matplotlib
+# RUN conda install tk
+# RUN pip install tkinter
+RUN python -c "import tkinter"
+#import matplotlib as mpl;mpl.use('TkAgg')"
+RUN python -c "import tkinter"
+#; import tk"
+RUN git clone https://github.com/fun-zoological-computing/PyPNS
 WORKDIR PyPNS
 RUN pip install -e .
-RUN pip install tk
+
 WORKDIR mods
 RUN nrnivmodl
-RUN conda clean --all -f -y && \
-    fix-permissions $CONDA_DIR && \
-    fix-permissions /home/$NB_USER
-USER $NB_UID
-WORKDIR $HOME/work
+#RUN pip install tk
+#RUN pip install --upgrade tk
 
+
+RUN python -c "import neuron"
+RUN python -c "import PyPNS"
+#RUN python -c "import matplotlib as mpl;mpl.use('TkAgg'); import PyPNS"
+WORKDIR $HOME/work/PyPNS/
+RUN ls mods/*
+RUN cp mods/*.mod .
+RUN nrnivmodl
+RUN python test.py
+WORKDIR $HOME
+#ENTRYPOINT /bin/bash
