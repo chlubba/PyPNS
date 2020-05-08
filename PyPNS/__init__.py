@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('agg')
+
 from PyPNS.bundleClass import Bundle
 
 # excitation mechanisms
