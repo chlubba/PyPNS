@@ -7,7 +7,8 @@ import shutil
 import copy
 
 import matplotlib as mpl
-mpl.use('TkAgg')
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
