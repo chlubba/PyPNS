@@ -41,7 +41,7 @@ RUN python -c "import tkinter"
 #import matplotlib as mpl;mpl.use('TkAgg')"
 RUN python -c "import tkinter"
 #; import tk"
-RUN git clone https://github.com/fun-zoological-computing/PyPNS
+RUN git clone https://github.com/chlubba/PyPNS
 WORKDIR PyPNS
 RUN pip install -e .
 
