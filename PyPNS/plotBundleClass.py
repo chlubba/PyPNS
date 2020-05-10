@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('agg')
 import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.colors as colors
