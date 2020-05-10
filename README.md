@@ -3,8 +3,6 @@
 [![Build Status](https://travis-ci.com/russelljjarvis/PeripheralNervousSystem.svg?branch=master)](https://travis-ci.com/russelljjarvis/PeripheralNervousSystem)
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fun-zoological-computing/PyPNS/master)
-Enter code like in this picture ![PyPNS_build.png](PyPNS_build.png)
-
 
 # PyPNS
 
@@ -13,6 +11,14 @@ PyPNS is a Python module for the simulation of peripheral nerves. Axon models ar
 PyPNS was developed in the Department of Bioengineering, Centre of Neurotechnology at Imperial College London.
 
 This scientific software is released under the GNU Public License GPLv3.
+
+# Docker
+
+For a quick start the Binder docker can be used that is maintained by [fun-zoological-computing](https://github.com/fun-zoological-computing/PyPNS).
+
+Click on the picutre below to start the docker in mybinder.org. Tyle code like in the picture or launch `jupyter_test.ipynb`.
+
+[![PyPNS_build.png](PyPNS_build.png)](https://mybinder.org/v2/gh/fun-zoological-computing/PyPNS/master)
 
 # Requirements
 
