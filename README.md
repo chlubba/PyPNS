@@ -16,7 +16,7 @@ This scientific software is released under the GNU Public License GPLv3.
 
 For a quick start the Binder docker can be used that was contributed by [russelljjarvis](https://github.com/russelljjarvis) at [fun-zoological-computing](https://github.com/fun-zoological-computing/PyPNS).
 
-Click on the picture below to start the docker in mybinder.org. Type code like in the picture or launch `jupyter_test.ipynb`.
+Click on the picture below to start the docker in mybinder.org. Type code like in the picture or launch `work/PyPNS/jupyter_test.ipynb`.
 
 [![PyPNS_build.png](PyPNS_build.png)](https://mybinder.org/v2/gh/fun-zoological-computing/PyPNS/master)
 
