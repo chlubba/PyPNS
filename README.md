@@ -18,7 +18,7 @@ For a quick start the Binder docker can be used that was contributed by [russell
 
 Click on the picture below to start the docker in mybinder.org. Type code like in the picture or launch `work/PyPNS/jupyter_test.ipynb`.
 
-[![PyPNS_build.png](PyPNS_build.png)](https://mybinder.org/v2/gh/fun-zoological-computing/PyPNS/master)
+[![PyPNS_build.png](PyPNS_build.png)](https://mybinder.org/v2/gh/chlubba/PyPNS/master)
 
 # Requirements
 
