@@ -15,4 +15,5 @@ notifications:
 before_install:
   - docker build -t pns .
 script:
-  - docker run pns python $HOME/work/PyPNS/test.py
+  # - docker run pns python $HOME/work/PyPNS/test.py
+  - docker run pns python -c "print('built')"
