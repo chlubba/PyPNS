@@ -1,6 +1,6 @@
 
 
-[![Build Status](https://travis-ci.com/russelljjarvis/PeripheralNervousSystem.svg?branch=master)](https://travis-ci.com/russelljjarvis/PeripheralNervousSystem)
+[![Build Status](https://travis-ci.com/chlubba/PyPNS.svg?branch=master)](https://travis-ci.com/github/chlubba/PyPNS)
 
 # PyPNS
 
