@@ -119,7 +119,7 @@ class Axon(object):
 
         #loop over all segments
         for sec in self.allseclist:
-            n3d = int(h.n3d())
+            n3d = int(sec.n3d())
             nseg = sec.nseg
             gsen2 = 1./2/nseg
             if n3d > 0:
@@ -129,10 +129,10 @@ class Axon(object):
                 y = np.zeros(n3d)
                 z = np.zeros(n3d)
                 for i in range(n3d):
-                    L[i] = h.arc3d(i)
-                    x[i] = h.x3d(i)
-                    y[i] = h.y3d(i)
-                    z[i] = h.z3d(i)
+                    L[i] = sec.arc3d(i)
+                    x[i] = sec.x3d(i)
+                    y[i] = sec.y3d(i)
+                    z[i] = sec.z3d(i)
                 #normalize as seg.x [0, 1]
                 L /= sec.L
 
@@ -157,7 +157,7 @@ class Axon(object):
 
                 #fill in values area, diam, length
                 for i, seg in enumerate(sec):
-                    areavec[counter] = h.area(seg.x)
+                    areavec[counter] = seg.area()
                     diamvec[counter] = seg.diam
                     lengthvec[counter] = sec.L/nseg
                     counter += 1
@@ -1108,3 +1108,4 @@ class Myelinated(Axon):
         self.FLUTs = None
         self.MYSAs = None
         self.STINs = None
+
