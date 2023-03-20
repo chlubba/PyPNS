@@ -1,5 +1,5 @@
 # Distributed under the terms of the Modified BSD License.
-ARG BASE_CONTAINER=jupyter/scipy-notebook
+ARG BASE_CONTAINER=jupyter/scipy-notebook:python-3.7.12
 FROM $BASE_CONTAINER
 LABEL maintainer="Russell <rjjarvis@asu.edu>"
 USER root
