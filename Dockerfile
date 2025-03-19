@@ -30,7 +30,7 @@ USER jovyan
 WORKDIR src/nrnpython
 RUN python setup.py install
 RUN python -c "import neuron"
-ENV NEURON_HOME $HOME/nrn-7.7/x86_64
+ENV NEURON_HOME $HOME/nrn-7.7/aarch64
 ENV PATH $NEURON_HOME/bin:$PATH
 WORKDIR $HOME/work/extra_work
 WORKDIR $HOME/work
